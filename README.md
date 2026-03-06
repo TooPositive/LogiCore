@@ -50,11 +50,16 @@ Python 3.12 (uv workspaces) | FastAPI | LangGraph | Azure OpenAI | Qdrant | Post
 | Phase | Codename | Focus |
 |-------|----------|-------|
 | 1 | Corporate Brain | Hybrid RAG + RBAC |
-| 2 | Customs & Finance Engine | Multi-agent orchestration + HITL |
-| 3 | Trust Layer | LLMOps, observability, evaluation |
-| 4 | Air-Gapped Vault | Local inference, containerization |
-| 5 | Regulatory Shield | EU AI Act Article 12 compliance |
-| 6 | Fleet Guardian | Real-time streaming + Kafka |
-| 7 | LLM Firewall | Security, guardrails, red teaming |
+| 2 | Retrieval Engineering | Chunking, re-ranking, HyDE, embedding eval |
+| 3 | Customs & Finance Engine | Multi-agent orchestration + HITL |
+| 4 | Trust Layer | LLMOps, observability, semantic caching |
+| 5 | Assessment Rigor | Judge bias, drift detection, prompt caching |
+| 6 | Air-Gapped Vault | Local inference (Ollama) |
+| 7 | Resilience Engineering | Circuit breakers, model routing, fallback chains |
+| 8 | Regulatory Shield | EU AI Act Article 12 compliance |
+| 9 | Fleet Guardian | Real-time streaming + Kafka |
+| 10 | LLM Firewall | Security, guardrails, red teaming |
+| 11 | Tool Standards | MCP server integration |
+| 12 | Full Stack Demo | Integration capstone, final metrics |
 
-See `docs/phases/` for detailed specs per phase.
+See `docs/phases/` for detailed specs per phase. Each phase = one LinkedIn post + one Medium deep dive.

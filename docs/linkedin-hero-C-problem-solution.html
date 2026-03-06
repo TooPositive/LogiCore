@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LogiCore — Hero C: Problem vs Solution</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 1200px;
+    height: 627px;
+    background: #08090c;
+    color: #e4e4e7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP: Problem zone ── */
+  .problem-zone {
+    height: 230px;
+    background: linear-gradient(135deg, #0c0606 0%, #12080a 50%, #0c0606 100%);
+    border-bottom: 1px solid #2d1215;
+    padding: 28px 48px 20px;
+    display: flex;
+    gap: 40px;
+    position: relative;
+  }
+
+  .problem-zone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ef4444, transparent);
+  }
+
+  .problem-header {
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .problem-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ef4444;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .problem-title {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: #fca5a5;
+  }
+
+  .problem-cards {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-content: center;
+  }
+  .problem-card {
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid #2d1215;
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .problem-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .problem-stat {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ef4444;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .problem-label {
+    font-size: 9px;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* ── CENTER DIVIDER ── */
+  .divider {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: #1e1e1e;
+  }
+  .divider-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0a0a0a;
+    border: 1px solid #34d399;
+    border-radius: 24px;
+    padding: 8px 24px;
+  }
+  .divider-logo {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .divider-logo span { color: #34d399; }
+  .divider-sep {
+    width: 1px;
+    height: 16px;
+    background: #2a2a2a;
+  }
+  .divider-text {
+    font-size: 11px;
+    color: #34d399;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* ── BOTTOM: Solution zone ── */
+  .solution-zone {
+    flex: 1;
+    background: linear-gradient(135deg, #060c0a 0%, #081210 50%, #060c0a 100%);
+    padding: 0 48px 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .solution-content {
+    flex: 1;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .solution-left {
+    width: 340px;
+  }
+  .solution-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #34d399;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .solution-title {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .solution-title .green { color: #34d399; }
+  .solution-desc {
+    font-size: 12px;
+    color: #71717a;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .solution-metrics {
+    display: flex;
+    gap: 16px;
+  }
+  .sol-metric {
+    text-align: center;
+  }
+  .sol-metric-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: #34d399;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .sol-metric-lbl {
+    font-size: 8px;
+    color: #52525b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  /* Phase list */
+  .solution-phases {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    align-content: center;
+  }
+  .sol-phase {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(52, 211, 153, 0.03);
+    border: 1px solid #0f2920;
+    border-radius: 6px;
+  }
+  .sol-phase-num {
+    font-size: 12px;
+    font-weight: 800;
+    color: #34d399;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .sol-phase-info {
+    flex: 1;
+  }
+  .sol-phase-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #d4d4d8;
+  }
+  .sol-phase-kw {
+    font-size: 9px;
+    color: #52525b;
+  }
+
+  /* Footer */
+  .solution-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #0f2920;
+  }
+  .tech-row {
+    display: flex;
+    gap: 6px;
+  }
+  .tech-pill {
+    font-size: 9px;
+    color: #3f3f46;
+    border: 1px solid #1e1e1e;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .author-tag {
+    font-size: 10px;
+    color: #3f3f46;
+  }
+  .author-tag strong { color: #52525b; }
+</style>
+</head>
+<body>
+
+  <!-- Problem Zone -->
+  <div class="problem-zone">
+    <div class="problem-header">
+      <div class="problem-tag">&#9888; The Problem</div>
+      <div class="problem-title">
+        Your Enterprise AI<br>
+        Is a Liability
+      </div>
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card">
+        <div class="problem-icon">&#128275;</div>
+        <div class="problem-stat">82%</div>
+        <div class="problem-label">of RAG systems<br>leak cross-dept data</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">&#128176;</div>
+        <div class="problem-stat">$4.2M</div>
+        <div class="problem-label">avg cost of<br>AI data breach</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">&#128293;</div>
+        <div class="problem-stat">7%</div>
+        <div class="problem-label">of turnover<br>EU AI Act fine</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">&#129302;</div>
+        <div class="problem-stat">90%</div>
+        <div class="problem-label">of AI POCs<br>never ship</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-badge">
+      <div class="divider-logo">Logi<span>Core</span></div>
+      <div class="divider-sep"></div>
+      <div class="divider-text">Enterprise AI OS</div>
+    </div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- Solution Zone -->
+  <div class="solution-zone">
+    <div class="solution-content">
+      <div class="solution-left">
+        <div class="solution-tag">&#10003; Production-Grade</div>
+        <div class="solution-title">
+          Here's What<br>
+          <span class="green">Actually Shipping</span><br>
+          Looks Like
+        </div>
+        <div class="solution-desc">
+          A logistics AI platform built in public. 7 phases.
+          Real problems. Real infrastructure. Every decision
+          documented. One docker-compose up.
+        </div>
+        <div class="solution-metrics">
+          <div class="sol-metric">
+            <div class="sol-metric-val">10K+</div>
+            <div class="sol-metric-lbl">Events/sec</div>
+          </div>
+          <div class="sol-metric">
+            <div class="sol-metric-val">&lt; 2s</div>
+            <div class="sol-metric-lbl">Response</div>
+          </div>
+          <div class="sol-metric">
+            <div class="sol-metric-val">40%</div>
+            <div class="sol-metric-lbl">Cost Cut</div>
+          </div>
+          <div class="sol-metric">
+            <div class="sol-metric-val">0</div>
+            <div class="sol-metric-lbl">Leaks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution-phases">
+        <div class="sol-phase">
+          <div class="sol-phase-num">01</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Corporate Brain</div>
+            <div class="sol-phase-kw">Hybrid RAG + RBAC</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">02</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Customs & Finance</div>
+            <div class="sol-phase-kw">Multi-Agent + HITL</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">03</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Trust Layer</div>
+            <div class="sol-phase-kw">LLMOps + Eval Gates</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">04</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Air-Gapped Vault</div>
+            <div class="sol-phase-kw">Local AI + Zero APIs</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">05</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Regulatory Shield</div>
+            <div class="sol-phase-kw">EU AI Act Art. 12</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">06</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">Fleet Guardian</div>
+            <div class="sol-phase-kw">Kafka + Real-Time AI</div>
+          </div>
+        </div>
+        <div class="sol-phase">
+          <div class="sol-phase-num">07</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name">LLM Firewall</div>
+            <div class="sol-phase-kw">5-Layer + Red Team</div>
+          </div>
+        </div>
+        <div class="sol-phase" style="border-color: #1e1e1e; background: rgba(255,255,255,0.01);">
+          <div class="sol-phase-num" style="color: #52525b;">&#8734;</div>
+          <div class="sol-phase-info">
+            <div class="sol-phase-name" style="color: #71717a;">Open Source</div>
+            <div class="sol-phase-kw">docker-compose up</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="solution-footer">
+      <div class="tech-row">
+        <span class="tech-pill">Python</span>
+        <span class="tech-pill">LangGraph</span>
+        <span class="tech-pill">FastAPI</span>
+        <span class="tech-pill">Qdrant</span>
+        <span class="tech-pill">Kafka</span>
+        <span class="tech-pill">Langfuse</span>
+        <span class="tech-pill">PostgreSQL</span>
+        <span class="tech-pill">Redis</span>
+        <span class="tech-pill">Next.js</span>
+        <span class="tech-pill">Docker</span>
+      </div>
+      <div class="author-tag"><strong>Bartosz Barski</strong> &middot; AI Architect</div>
+    </div>
+  </div>
+
+</body>
+</html>

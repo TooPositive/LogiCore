@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LogiCore — Hero A: The Blueprint</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 1200px;
+    height: 627px;
+    background: #060a10;
+    color: #e4e4e7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Grid overlay */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(52, 211, 153, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 211, 153, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* Subtle glow top-left */
+  body::after {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 36px 48px 28px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    opacity: 0.6;
+  }
+  .logo span { color: #34d399; }
+  .tech-tags {
+    display: flex;
+    gap: 8px;
+  }
+  .tech-tag {
+    font-size: 10px;
+    color: #52525b;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #1e1e1e;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    flex: 1;
+    display: flex;
+    gap: 48px;
+  }
+
+  /* Left: Headline */
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .headline {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .headline em {
+    font-style: normal;
+    color: #34d399;
+  }
+  .subline {
+    font-size: 15px;
+    color: #a1a1aa;
+    line-height: 1.6;
+    max-width: 440px;
+    margin-bottom: 28px;
+  }
+
+  /* Metrics strip */
+  .metrics {
+    display: flex;
+    gap: 24px;
+  }
+  .metric {
+    text-align: center;
+  }
+  .metric-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #34d399;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .metric-label {
+    font-size: 9px;
+    color: #52525b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* Right: Flow diagram */
+  .right {
+    width: 440px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow-node {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    position: relative;
+  }
+  .flow-node.primary {
+    border-color: #34d399;
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.05);
+  }
+  .flow-arrow {
+    color: #2a2a2a;
+    font-size: 14px;
+  }
+  .flow-label {
+    font-size: 9px;
+    color: #52525b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 4px;
+  }
+
+  /* ── PHASES STRIP ── */
+  .phases-strip {
+    display: flex;
+    gap: 0;
+    margin-top: auto;
+    border-top: 1px solid #1a1a1a;
+    padding-top: 20px;
+  }
+  .phase-stamp {
+    flex: 1;
+    text-align: center;
+    padding: 0 4px;
+    border-right: 1px solid #1a1a1a;
+  }
+  .phase-stamp:last-child { border-right: none; }
+  .phase-num {
+    font-size: 18px;
+    font-weight: 800;
+    color: #27272a;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .phase-icon {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  .phase-kw {
+    font-size: 9px;
+    color: #52525b;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .phase-kw strong {
+    color: #71717a;
+    font-weight: 600;
+  }
+
+  /* Author line */
+  .author-line {
+    position: absolute;
+    bottom: 12px;
+    right: 48px;
+    font-size: 10px;
+    color: #3f3f46;
+  }
+  .author-line strong { color: #52525b; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">Logi<span>Core</span></div>
+    <div class="tech-tags">
+      <span class="tech-tag">Python</span>
+      <span class="tech-tag">LangGraph</span>
+      <span class="tech-tag">Qdrant</span>
+      <span class="tech-tag">Kafka</span>
+      <span class="tech-tag">Langfuse</span>
+      <span class="tech-tag">Next.js</span>
+      <span class="tech-tag">Docker</span>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Left: Headline + metrics -->
+    <div class="left">
+      <div class="headline">
+        How to Build a<br>
+        <em>Production-Grade</em><br>
+        Enterprise AI System<br>
+        From Scratch
+      </div>
+      <div class="subline">
+        A logistics AI platform processing real-time fleet telemetry,
+        auditing financial contracts, and staying EU AI Act compliant.
+        Not a tutorial. Not a toy. A full production system.
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-value">10K+</div>
+          <div class="metric-label">Events / sec</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">&lt; 2s</div>
+          <div class="metric-label">Anomaly Response</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">40%</div>
+          <div class="metric-label">Cost Reduction</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">5</div>
+          <div class="metric-label">Security Layers</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">0</div>
+          <div class="metric-label">Data Leaks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Simplified flow -->
+    <div class="right">
+      <div class="flow-label">Data Flow</div>
+      <div class="flow-row">
+        <div class="flow-node">IoT Sensors</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-node primary">Kafka</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-node">Anomaly Filter</div>
+      </div>
+      <div class="flow-row" style="padding-left: 200px;">
+        <span class="flow-arrow">&#8595;</span>
+      </div>
+      <div class="flow-row">
+        <div class="flow-node">Guardrails</div>
+        <span class="flow-arrow">&#8592;</span>
+        <div class="flow-node primary">LangGraph Agents</div>
+        <span class="flow-arrow">&#8592;</span>
+        <div class="flow-node">RAG + RBAC</div>
+      </div>
+      <div class="flow-row" style="padding-left: 120px;">
+        <span class="flow-arrow">&#8595;</span>
+      </div>
+      <div class="flow-row">
+        <div class="flow-node">HITL Gate</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-node primary">Audit Report</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-node">Compliance Log</div>
+      </div>
+      <div class="flow-row" style="padding-left: 200px;">
+        <span class="flow-arrow">&#8595;</span>
+      </div>
+      <div class="flow-row">
+        <div class="flow-node">Langfuse</div>
+        <span class="flow-arrow">&#8592;</span>
+        <div class="flow-node">Cost Tracker</div>
+        <span class="flow-arrow">&#8592;</span>
+        <div class="flow-node primary">Dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phases strip -->
+  <div class="phases-strip">
+    <div class="phase-stamp">
+      <div class="phase-num">01</div>
+      <div class="phase-kw"><strong>Hybrid RAG</strong><br>Zero-Trust RBAC</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">02</div>
+      <div class="phase-kw"><strong>Multi-Agent</strong><br>Human-in-the-Loop</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">03</div>
+      <div class="phase-kw"><strong>LLMOps</strong><br>FinOps + Eval</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">04</div>
+      <div class="phase-kw"><strong>Air-Gapped</strong><br>Local Inference</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">05</div>
+      <div class="phase-kw"><strong>EU AI Act</strong><br>Article 12</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">06</div>
+      <div class="phase-kw"><strong>Kafka Streams</strong><br>Real-Time AI</div>
+    </div>
+    <div class="phase-stamp">
+      <div class="phase-num">07</div>
+      <div class="phase-kw"><strong>LLM Firewall</strong><br>Red Teaming</div>
+    </div>
+  </div>
+</div>
+
+<div class="author-line"><strong>Bartosz Barski</strong> &middot; AI Architect</div>
+
+</body>
+</html>

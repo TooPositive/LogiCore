@@ -1,4 +1,4 @@
-# Phase 3: "The Trust Layer" — LLMOps, Observability & Evaluation
+# Phase 4: "The Trust Layer" — LLMOps, Observability & Evaluation
 
 ## Business Problem
 

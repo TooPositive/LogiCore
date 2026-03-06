@@ -1,4 +1,4 @@
-# Phase 4: "The Air-Gapped Vault" — Infrastructure & Local Inference
+# Phase 6: "The Air-Gapped Vault" — Infrastructure & Local Inference
 
 ## Business Problem
 

@@ -1,4 +1,4 @@
-# Phase 5: "The Regulatory Shield" — EU AI Act Compliance
+# Phase 8: "The Regulatory Shield" — EU AI Act Compliance
 
 ## Business Problem
 

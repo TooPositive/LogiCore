@@ -18,12 +18,17 @@ const services = [
 
 const phases = [
   { number: 1, name: "Corporate Brain", focus: "Hybrid RAG + RBAC", status: "planned" },
-  { number: 2, name: "Customs & Finance", focus: "Multi-agent + HITL", status: "planned" },
-  { number: 3, name: "Trust Layer", focus: "LLMOps + evaluation", status: "planned" },
-  { number: 4, name: "Air-Gapped Vault", focus: "Local inference", status: "planned" },
-  { number: 5, name: "Regulatory Shield", focus: "EU AI Act compliance", status: "planned" },
-  { number: 6, name: "Fleet Guardian", focus: "Real-time streaming", status: "planned" },
-  { number: 7, name: "LLM Firewall", focus: "Security + red teaming", status: "planned" },
+  { number: 2, name: "Retrieval Engineering", focus: "Chunking, re-ranking, HyDE", status: "planned" },
+  { number: 3, name: "Customs & Finance", focus: "Multi-agent + HITL", status: "planned" },
+  { number: 4, name: "Trust Layer", focus: "LLMOps + semantic caching", status: "planned" },
+  { number: 5, name: "Assessment Rigor", focus: "Judge bias + drift detection", status: "planned" },
+  { number: 6, name: "Air-Gapped Vault", focus: "Local inference (Ollama)", status: "planned" },
+  { number: 7, name: "Resilience Engineering", focus: "Circuit breakers + model routing", status: "planned" },
+  { number: 8, name: "Regulatory Shield", focus: "EU AI Act compliance", status: "planned" },
+  { number: 9, name: "Fleet Guardian", focus: "Real-time Kafka streaming", status: "planned" },
+  { number: 10, name: "LLM Firewall", focus: "Security + red teaming", status: "planned" },
+  { number: 11, name: "Tool Standards", focus: "MCP server integration", status: "planned" },
+  { number: 12, name: "Full Stack Demo", focus: "Integration capstone", status: "planned" },
 ];
 
 export default function Home() {

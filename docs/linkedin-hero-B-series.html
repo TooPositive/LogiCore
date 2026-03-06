@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LogiCore — Hero B: The Series Card</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 1200px;
+    height: 627px;
+    background: #08090c;
+    color: #e4e4e7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    display: flex;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    width: 540px;
+    padding: 44px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #1a1a1a;
+    position: relative;
+  }
+
+  /* Accent bar */
+  .left::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #34d399, #fbbf24, #ef4444);
+  }
+
+  .top-section {}
+
+  .series-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #34d399;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .headline {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+  }
+  .headline .accent { color: #34d399; }
+
+  .description {
+    font-size: 14px;
+    color: #a1a1aa;
+    line-height: 1.65;
+    max-width: 420px;
+  }
+
+  /* Bottom metrics */
+  .bottom-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .metric-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .metric-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: #34d399;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .metric-lbl {
+    font-size: 8px;
+    color: #52525b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+  }
+
+  .tech-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tech-pill {
+    font-size: 9px;
+    color: #3f3f46;
+    border: 1px solid #1e1e1e;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    flex: 1;
+    padding: 44px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .right-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #52525b;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .phase-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid #141414;
+  }
+  .phase-row:last-child { border-bottom: none; }
+
+  .phase-num {
+    font-size: 14px;
+    font-weight: 800;
+    color: #27272a;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    width: 28px;
+    flex-shrink: 0;
+  }
+
+  .phase-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .pi-1 { background: rgba(52, 211, 153, 0.1); }
+  .pi-2 { background: rgba(251, 191, 36, 0.1); }
+  .pi-3 { background: rgba(129, 140, 248, 0.1); }
+  .pi-4 { background: rgba(244, 114, 182, 0.1); }
+  .pi-5 { background: rgba(239, 68, 68, 0.1); }
+  .pi-6 { background: rgba(14, 165, 233, 0.1); }
+  .pi-7 { background: rgba(239, 68, 68, 0.1); }
+
+  .phase-info {
+    flex: 1;
+  }
+  .phase-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #d4d4d8;
+    margin-bottom: 2px;
+  }
+  .phase-keywords {
+    font-size: 10px;
+    color: #52525b;
+    letter-spacing: 0.3px;
+  }
+  .phase-keywords span {
+    color: #71717a;
+    font-weight: 500;
+  }
+
+  .phase-problem {
+    font-size: 9px;
+    color: #3f3f46;
+    font-style: italic;
+    max-width: 200px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .author-tag {
+    position: absolute;
+    bottom: 16px;
+    right: 40px;
+    font-size: 10px;
+    color: #3f3f46;
+  }
+  .author-tag strong { color: #52525b; }
+</style>
+</head>
+<body>
+
+  <!-- Left Panel -->
+  <div class="left">
+    <div class="top-section">
+      <div class="series-tag">&#9632; Build Series &middot; 7 Phases</div>
+      <div class="headline">
+        How to Build a<br>
+        <span class="accent">Secure, Observable</span><br>
+        Enterprise AI System<br>
+        From Scratch
+      </div>
+      <div class="description">
+        A real logistics platform processing 10K+ events/sec,
+        orchestrating multi-agent financial audits, and meeting
+        EU AI Act compliance. Every phase solves a real business
+        problem. Every decision is documented. Nothing is faked.
+      </div>
+    </div>
+
+    <div class="bottom-section">
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-val">10K+</div>
+          <div class="metric-lbl">Events/sec</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">3</div>
+          <div class="metric-lbl">AI Agents</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">5</div>
+          <div class="metric-lbl">Security Layers</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">100%</div>
+          <div class="metric-lbl">Air-Gappable</div>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-pill">Python 3.12</span>
+        <span class="tech-pill">LangGraph</span>
+        <span class="tech-pill">FastAPI</span>
+        <span class="tech-pill">Qdrant</span>
+        <span class="tech-pill">Kafka</span>
+        <span class="tech-pill">Langfuse</span>
+        <span class="tech-pill">PostgreSQL</span>
+        <span class="tech-pill">Redis</span>
+        <span class="tech-pill">Next.js 15</span>
+        <span class="tech-pill">Docker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right">
+    <div class="right-header">The Roadmap</div>
+
+    <div class="phase-row">
+      <div class="phase-num">01</div>
+      <div class="phase-icon pi-1">&#128269;</div>
+      <div class="phase-info">
+        <div class="phase-name">The Corporate Brain</div>
+        <div class="phase-keywords"><span>Hybrid RAG</span> &middot; BM25 + Vectors &middot; <span>Zero-Trust RBAC</span></div>
+      </div>
+      <div class="phase-problem">CEO payroll leak?<br>Not on our watch.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">02</div>
+      <div class="phase-icon pi-2">&#9733;</div>
+      <div class="phase-info">
+        <div class="phase-name">Customs & Finance Engine</div>
+        <div class="phase-keywords"><span>Multi-Agent</span> &middot; LangGraph State Machine &middot; <span>HITL Gateway</span></div>
+      </div>
+      <div class="phase-problem">$50K decision?<br>Human clicks Approve.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">03</div>
+      <div class="phase-icon pi-3">&#128200;</div>
+      <div class="phase-info">
+        <div class="phase-name">The Trust Layer</div>
+        <div class="phase-keywords"><span>LLMOps</span> &middot; Semantic Caching &middot; <span>LLM-as-Judge Evals</span></div>
+      </div>
+      <div class="phase-problem">Prove it works.<br>Mathematically.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">04</div>
+      <div class="phase-icon pi-4">&#127968;</div>
+      <div class="phase-info">
+        <div class="phase-name">Air-Gapped Vault</div>
+        <div class="phase-keywords"><span>Local Inference</span> &middot; Ollama &middot; <span>Zero External APIs</span></div>
+      </div>
+      <div class="phase-problem">Swiss bank data?<br>Never leaves the VPC.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">05</div>
+      <div class="phase-icon pi-5">&#128220;</div>
+      <div class="phase-info">
+        <div class="phase-name">Regulatory Shield</div>
+        <div class="phase-keywords"><span>EU AI Act</span> &middot; Article 12 Logging &middot; <span>Data Lineage</span></div>
+      </div>
+      <div class="phase-problem">7% turnover fine?<br>Architecture prevents it.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">06</div>
+      <div class="phase-icon pi-6">&#9889;</div>
+      <div class="phase-info">
+        <div class="phase-name">Fleet Guardian</div>
+        <div class="phase-keywords"><span>Kafka Streaming</span> &middot; Event-Driven AI &middot; <span>10K Events/sec</span></div>
+      </div>
+      <div class="phase-problem">Cargo spoiling?<br>2-second response.</div>
+    </div>
+
+    <div class="phase-row">
+      <div class="phase-num">07</div>
+      <div class="phase-icon pi-7">&#128737;</div>
+      <div class="phase-info">
+        <div class="phase-name">LLM Firewall</div>
+        <div class="phase-keywords"><span>5-Layer Defense</span> &middot; Prompt Injection &middot; <span>OWASP Red Team</span></div>
+      </div>
+      <div class="phase-problem">DROP TABLE?<br>Nice try.</div>
+    </div>
+  </div>
+
+  <div class="author-tag"><strong>Bartosz Barski</strong> &middot; AI Architect</div>
+
+</body>
+</html>

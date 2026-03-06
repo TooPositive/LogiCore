@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiCore — LinkedIn Architecture Card</title>
+<style>
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #34d399;
+    --accent-dim: #065f46;
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #e4e4e7;
+    --text-dim: #71717a;
+    --text-muted: #52525b;
+    --done: #34d399;
+    --current: #fbbf24;
+    --upcoming: #3f3f46;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    width: 1200px;
+    height: 1200px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 32px 40px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .logo {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .phase-badge {
+    background: var(--surface-2);
+    border: 1px solid var(--current);
+    color: var(--current);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section {
+    padding: 0 40px 24px;
+  }
+  .progress-track {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .progress-segment {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--upcoming);
+    position: relative;
+  }
+  .progress-segment.done { background: var(--done); }
+  .progress-segment.current {
+    background: linear-gradient(90deg, var(--current), var(--current) 60%, var(--upcoming) 60%);
+  }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MAIN GRID ── */
+  .main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    padding: 0 40px;
+    min-height: 0;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .architecture {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .arch-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  /* Service nodes */
+  .arch-layer {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .arch-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    min-width: 110px;
+    position: relative;
+  }
+  .arch-node.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.08);
+  }
+  .arch-node.current-focus {
+    border-color: var(--current);
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.12);
+  }
+  .arch-node.dimmed {
+    opacity: 0.35;
+  }
+  .node-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .node-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .node-detail {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .node-port {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 9px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  /* Connection arrows */
+  .arch-connectors {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 2px 0;
+  }
+  .connector {
+    width: 2px;
+    height: 16px;
+    background: var(--border);
+    position: relative;
+  }
+  .connector.active { background: var(--accent-dim); }
+  .connector::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: -3px;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid;
+    border-bottom: 2px solid;
+    border-color: inherit;
+    transform: rotate(-45deg);
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .info-card.highlight {
+    border-color: var(--current);
+    background: linear-gradient(135deg, var(--surface) 0%, #1a1708 100%);
+  }
+  .info-card.pattern {
+    border-color: var(--accent-dim);
+  }
+  .info-card.anti {
+    border-color: #7f1d1d;
+    background: linear-gradient(135deg, var(--surface) 0%, #1a0a0a 100%);
+  }
+
+  .card-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .card-label.current-label { color: var(--current); }
+  .card-label.pattern-label { color: var(--accent); }
+  .card-label.anti-label { color: #ef4444; }
+  .card-label.scenario-label { color: #818cf8; }
+  .card-label.takeaway-label { color: #f472b6; }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .card-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .checklist {
+    list-style: none;
+    margin-top: 8px;
+  }
+  .checklist li {
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .check-done { color: var(--done); }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 16px 40px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tech-stack {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .tech-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .author {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .author strong {
+    color: var(--text-dim);
+  }
+
+  /* ── PHASE MINI-TRACKER ── */
+  .phase-list {
+    list-style: none;
+  }
+  .phase-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 11px;
+  }
+  .phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .phase-dot.done { background: var(--done); }
+  .phase-dot.current { background: var(--current); box-shadow: 0 0 8px var(--current); }
+  .phase-dot.upcoming { background: var(--upcoming); }
+  .phase-name { color: var(--text-dim); }
+  .phase-name.active-name { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════
+     HOW TO USE:
+     1. Edit the CONFIG object below for each LinkedIn post
+     2. Open this file in a browser
+     3. Screenshot at 1200x1200 (or use browser DevTools device mode)
+     4. Architecture nodes auto-highlight based on currentPhase
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div>
+    <div class="logo">Logi<span>Core</span></div>
+    <div class="subtitle">Enterprise AI Operating System</div>
+  </div>
+  <div class="phase-badge" id="phase-badge"></div>
+</div>
+
+<!-- ── PROGRESS BAR ── -->
+<div class="progress-section">
+  <div class="progress-track" id="progress-track">
+    <div class="progress-segment" id="seg-1"></div>
+    <div class="progress-segment" id="seg-2"></div>
+    <div class="progress-segment" id="seg-3"></div>
+    <div class="progress-segment" id="seg-4"></div>
+    <div class="progress-segment" id="seg-5"></div>
+    <div class="progress-segment" id="seg-6"></div>
+    <div class="progress-segment" id="seg-7"></div>
+    <div class="progress-segment" id="seg-8"></div>
+    <div class="progress-segment" id="seg-9"></div>
+    <div class="progress-segment" id="seg-10"></div>
+    <div class="progress-segment" id="seg-11"></div>
+    <div class="progress-segment" id="seg-12"></div>
+  </div>
+  <div class="progress-labels">
+    <span>RAG</span>
+    <span>Retrieval</span>
+    <span>Agents</span>
+    <span>LLMOps</span>
+    <span>Rigor</span>
+    <span>Local</span>
+    <span>Resil.</span>
+    <span>EU AI</span>
+    <span>Stream</span>
+    <span>Sec.</span>
+    <span>MCP</span>
+    <span>Demo</span>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="main">
+
+  <!-- Architecture Diagram -->
+  <div class="architecture">
+    <div class="arch-title">System Architecture</div>
+
+    <!-- Layer 1: Frontend -->
+    <div class="arch-layer">
+      <div class="arch-node" id="node-web">
+        <span class="node-port">:3000</span>
+        <div class="node-icon">&#9645;</div>
+        <div class="node-name">Web Dashboard</div>
+        <div class="node-detail">Next.js 15 + shadcn</div>
+      </div>
+    </div>
+
+    <div class="arch-connectors">
+      <div class="connector active"></div>
+    </div>
+
+    <!-- Layer 2: API + Agents -->
+    <div class="arch-layer">
+      <div class="arch-node" id="node-api">
+        <span class="node-port">:8080</span>
+        <div class="node-icon">&#9881;</div>
+        <div class="node-name">FastAPI</div>
+        <div class="node-detail">Python 3.12 + uv</div>
+      </div>
+      <div class="arch-node" id="node-agents">
+        <div class="node-icon">&#9733;</div>
+        <div class="node-name">LangGraph</div>
+        <div class="node-detail">Agent orchestration</div>
+      </div>
+      <div class="arch-node" id="node-rag">
+        <div class="node-icon">&#128269;</div>
+        <div class="node-name">RAG Pipeline</div>
+        <div class="node-detail">Hybrid search</div>
+      </div>
+    </div>
+
+    <div class="arch-connectors">
+      <div class="connector active"></div>
+      <div class="connector"></div>
+      <div class="connector"></div>
+      <div class="connector"></div>
+    </div>
+
+    <!-- Layer 3: Data -->
+    <div class="arch-layer">
+      <div class="arch-node" id="node-qdrant">
+        <span class="node-port">:6333</span>
+        <div class="node-icon">&#9670;</div>
+        <div class="node-name">Qdrant</div>
+        <div class="node-detail">Vector DB</div>
+      </div>
+      <div class="arch-node" id="node-postgres">
+        <span class="node-port">:5432</span>
+        <div class="node-icon">&#9638;</div>
+        <div class="node-name">PostgreSQL</div>
+        <div class="node-detail">State + lineage</div>
+      </div>
+      <div class="arch-node" id="node-redis">
+        <span class="node-port">:6379</span>
+        <div class="node-icon">&#9889;</div>
+        <div class="node-name">Redis</div>
+        <div class="node-detail">Semantic cache</div>
+      </div>
+      <div class="arch-node" id="node-kafka">
+        <span class="node-port">:9092</span>
+        <div class="node-icon">&#8644;</div>
+        <div class="node-name">Kafka</div>
+        <div class="node-detail">Event streams</div>
+      </div>
+    </div>
+
+    <div class="arch-connectors">
+      <div class="connector active"></div>
+    </div>
+
+    <!-- Layer 4: Observability + LLM -->
+    <div class="arch-layer">
+      <div class="arch-node" id="node-langfuse">
+        <span class="node-port">:3001</span>
+        <div class="node-icon">&#128200;</div>
+        <div class="node-name">Langfuse</div>
+        <div class="node-detail">Traces + costs</div>
+      </div>
+      <div class="arch-node" id="node-llm">
+        <div class="node-icon">&#129302;</div>
+        <div class="node-name">Azure OpenAI</div>
+        <div class="node-detail">GPT-4o</div>
+      </div>
+      <div class="arch-node" id="node-ollama">
+        <div class="node-icon">&#127968;</div>
+        <div class="node-name">Ollama</div>
+        <div class="node-detail">Local inference</div>
+      </div>
+      <div class="arch-node" id="node-guard">
+        <div class="node-icon">&#128737;</div>
+        <div class="node-name">Guardrails</div>
+        <div class="node-detail">LLM Firewall</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+
+    <!-- What was built -->
+    <div class="info-card highlight">
+      <div class="card-label current-label" id="built-label">&#9632; Built This Phase</div>
+      <ul class="checklist" id="achievements-list"></ul>
+    </div>
+
+    <!-- Good pattern -->
+    <div class="info-card pattern">
+      <div class="card-label pattern-label">&#10003; Pattern</div>
+      <div class="card-title" id="pattern-title"></div>
+      <div class="card-text" id="pattern-text"></div>
+    </div>
+
+    <!-- Anti-pattern -->
+    <div class="info-card anti">
+      <div class="card-label anti-label">&#10007; Anti-Pattern</div>
+      <div class="card-title" id="anti-title"></div>
+      <div class="card-text" id="anti-text"></div>
+    </div>
+
+    <!-- Real-world scenario -->
+    <div class="info-card">
+      <div class="card-label scenario-label">&#127919; Real-World Scenario</div>
+      <div class="card-title" id="scenario-title"></div>
+      <div class="card-text" id="scenario-text"></div>
+    </div>
+
+    <!-- Takeaway -->
+    <div class="info-card">
+      <div class="card-label takeaway-label">&#128161; Takeaway for Engineers</div>
+      <div class="card-title" id="takeaway-title"></div>
+      <div class="card-text" id="takeaway-text"></div>
+    </div>
+
+    <!-- Phase tracker -->
+    <div class="info-card">
+      <div class="card-label" style="color: var(--text-muted);">Roadmap</div>
+      <ul class="phase-list" id="phase-list">
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-1"></span><span class="phase-name" id="name-1">1. Corporate Brain</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-2"></span><span class="phase-name" id="name-2">2. Retrieval Eng.</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-3"></span><span class="phase-name" id="name-3">3. Customs &amp; Finance</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-4"></span><span class="phase-name" id="name-4">4. Trust Layer</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-5"></span><span class="phase-name" id="name-5">5. Assessment Rigor</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-6"></span><span class="phase-name" id="name-6">6. Air-Gapped Vault</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-7"></span><span class="phase-name" id="name-7">7. Resilience Eng.</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-8"></span><span class="phase-name" id="name-8">8. Regulatory Shield</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-9"></span><span class="phase-name" id="name-9">9. Fleet Guardian</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-10"></span><span class="phase-name" id="name-10">10. LLM Firewall</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-11"></span><span class="phase-name" id="name-11">11. Tool Standards</span></li>
+        <li class="phase-item"><span class="phase-dot upcoming" id="dot-12"></span><span class="phase-name" id="name-12">12. Full Stack Demo</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div class="tech-stack">
+    <span class="tech-tag">Python</span>
+    <span class="tech-tag">LangGraph</span>
+    <span class="tech-tag">Qdrant</span>
+    <span class="tech-tag">Kafka</span>
+    <span class="tech-tag">Langfuse</span>
+    <span class="tech-tag">Next.js</span>
+    <span class="tech-tag">Docker</span>
+  </div>
+  <div class="author">
+    <strong>Bartosz Barski</strong> &middot; AI Architect
+  </div>
+</div>
+
+<!-- ── RENDER LOGIC ── -->
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIG — Edit this block for each LinkedIn post, then screenshot
+// ══════════════════════════════════════════════════════════════
+const CONFIG = {
+  currentPhase: 0,           // 0 = skeleton, 1-12 = phases
+  phaseName: "Project Skeleton",
+
+  // What was built this iteration
+  achievements: [
+    "FastAPI + Next.js 15 scaffold",
+    "Docker Compose (7 services)",
+    "uv workspace + 73 deps",
+    "7 phase implementation docs",
+  ],
+
+  // Key pattern demonstrated (good practice)
+  pattern: {
+    title: "Infra-First, Logic-Later",
+    text: "Set up all infrastructure (DB, cache, vectors, observability) before writing a single line of agent code. You can't debug what you can't observe.",
+  },
+
+  // Anti-pattern to avoid
+  antiPattern: {
+    title: "Don't Start with the LLM",
+    text: "Most AI projects start with prompt engineering. Production projects start with Docker, CI, observability, and health checks.",
+  },
+
+  // Real-world scenario
+  scenario: {
+    title: "Day 1 at a logistics enterprise",
+    text: "CTO says 'build us an AI.' You don't open ChatGPT. You set up Langfuse, Qdrant, Postgres, Redis. Then you build.",
+  },
+
+  // Key takeaway for other engineers
+  takeaway: {
+    title: "The 80/20 of AI Architecture",
+    text: "80% of enterprise AI work is infrastructure, security, and observability. 20% is the actual LLM calls.",
+  },
+};
+
+// ── Rendering (don't edit below) ──
+(function() {
+  var C = CONFIG;
+
+  // Phase badge
+  var badge = document.getElementById('phase-badge');
+  badge.textContent = C.currentPhase === 0
+    ? 'Phase 0 \u2014 Skeleton'
+    : 'Phase ' + C.currentPhase + ' \u2014 ' + C.phaseName;
+
+  // Progress segments
+  for (var i = 1; i <= 12; i++) {
+    var seg = document.getElementById('seg-' + i);
+    if (!seg) continue;
+    if (i < C.currentPhase) seg.classList.add('done');
+    else if (i === C.currentPhase) seg.classList.add('current');
+  }
+
+  // Phase dots
+  for (var j = 1; j <= 12; j++) {
+    var dot = document.getElementById('dot-' + j);
+    var name = document.getElementById('name-' + j);
+    if (!dot || !name) continue;
+    if (j < C.currentPhase) {
+      dot.classList.remove('upcoming');
+      dot.classList.add('done');
+    } else if (j === C.currentPhase) {
+      dot.classList.remove('upcoming');
+      dot.classList.add('current');
+      name.classList.add('active-name');
+    }
+  }
+
+  // Achievements list — using safe DOM methods
+  var list = document.getElementById('achievements-list');
+  C.achievements.forEach(function(text) {
+    var li = document.createElement('li');
+    var checkSpan = document.createElement('span');
+    checkSpan.className = 'check-done';
+    checkSpan.textContent = '\u2713';
+    li.appendChild(checkSpan);
+    li.appendChild(document.createTextNode(' ' + text));
+    list.appendChild(li);
+  });
+
+  // Info cards — all using textContent (safe)
+  document.getElementById('pattern-title').textContent = C.pattern.title;
+  document.getElementById('pattern-text').textContent = C.pattern.text;
+  document.getElementById('anti-title').textContent = C.antiPattern.title;
+  document.getElementById('anti-text').textContent = C.antiPattern.text;
+  document.getElementById('scenario-title').textContent = C.scenario.title;
+  document.getElementById('scenario-text').textContent = C.scenario.text;
+  document.getElementById('takeaway-title').textContent = C.takeaway.title;
+  document.getElementById('takeaway-text').textContent = C.takeaway.text;
+
+  // ── Node highlighting per phase ──
+  // Phase-to-node mapping (12 phases)
+  var base = ['node-web','node-api'];
+  var phaseNodes = {
+    0:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse']), current: [] },
+    1:  { active: base.concat(['node-postgres','node-redis','node-langfuse']), current: ['node-rag','node-qdrant'] },
+    2:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse']), current: ['node-rag'] },
+    3:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag']), current: ['node-agents'] },
+    4:  { active: base.concat(['node-qdrant','node-postgres','node-rag','node-agents']), current: ['node-langfuse','node-redis'] },
+    5:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-rag','node-agents']), current: ['node-langfuse'] },
+    6:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents']), current: ['node-ollama','node-llm'] },
+    7:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama']), current: ['node-api'] },
+    8:  { active: base.concat(['node-qdrant','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama']), current: ['node-postgres'] },
+    9:  { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama']), current: ['node-kafka'] },
+    10: { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama','node-kafka']), current: ['node-guard'] },
+    11: { active: base.concat(['node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama','node-kafka','node-guard']), current: ['node-api'] },
+    12: { active: ['node-web','node-api','node-qdrant','node-postgres','node-redis','node-langfuse','node-rag','node-agents','node-llm','node-ollama','node-kafka','node-guard'], current: [] },
+  };
+
+  var allNodes = ['node-web','node-api','node-agents','node-rag','node-qdrant','node-postgres','node-redis','node-kafka','node-langfuse','node-llm','node-ollama','node-guard'];
+  var cfg = phaseNodes[C.currentPhase] || phaseNodes[0];
+
+  allNodes.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active','current-focus','dimmed');
+    if (cfg.current.indexOf(id) !== -1) {
+      el.classList.add('current-focus');
+    } else if (cfg.active.indexOf(id) !== -1) {
+      el.classList.add('active');
+    } else {
+      el.classList.add('dimmed');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

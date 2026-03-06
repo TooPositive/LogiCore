@@ -1,4 +1,4 @@
-# Phase 7: "The LLM Firewall" — Security & Red Teaming
+# Phase 10: "The LLM Firewall" — Security & Red Teaming
 
 ## Business Problem
 

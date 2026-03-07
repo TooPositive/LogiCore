@@ -1,4 +1,4 @@
-# ADR-006: Multi-Provider Embedding Architecture with Benchmark Harness
+# ADR-006: Multi-Provider Embedding Architecture — Benchmarked on 52 Queries
 
 ## Status
 Accepted
@@ -13,10 +13,10 @@ Phase 2 needs to: (1) benchmark additional models (Cohere, Nomic), (2) make the 
 
 | Model | Provider | Dimensions | Cost/1M Tokens | Role |
 |-------|----------|------------|-----------------|------|
-| `text-embedding-3-small` | Azure OpenAI | 1536 | $0.02 | **Default** — proven quality at lowest cost |
-| `text-embedding-3-large` | Azure OpenAI | 3072 | $0.13 | Large corpus only — upgrade when semantic overlap causes retrieval ambiguity |
-| `cohere-embed-v4` | Cohere | 1024 | $0.10 | Alternative provider — benchmark candidate, reduces Azure dependency |
-| `nomic-embed-text-v1.5` | Nomic (open-source) | 768 | $0.00 | Air-gapped candidate — free, self-hosted, Phase 6 deployment |
+| `text-embedding-3-small` | Azure OpenAI | 1536 | $0.02 | **Default** — MRR 0.885 on 52 queries. Best AND cheapest. |
+| `text-embedding-3-large` | Azure OpenAI | 3072 | $0.13 | MRR 0.856 on 52 queries. 6.5x cost for LOWER MRR (-0.029). NOT justified. |
+| `cohere-embed-v4` | Cohere | 1024 | $0.10 | Registered, not yet benchmarked. Reduces Azure dependency. |
+| `nomic-embed-text-v1.5` | Nomic (open-source) | 768 | $0.00 | Registered, not yet benchmarked. Air-gapped candidate for Phase 6. |
 
 All providers implement `BaseEmbedder` ABC. Factory function `get_embedder(provider, **kwargs)` selects provider at runtime. `MockEmbedder` (deterministic SHA-256 hash-based) enables testing without credentials.
 

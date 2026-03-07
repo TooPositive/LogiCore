@@ -183,13 +183,13 @@ class AzureOpenAIEmbedder(BaseEmbedder):
         model: str = "text-embedding-3-small",
         endpoint: str = "",
         api_key: str = "",
-        api_version: str = "2024-12-01-preview",
+        api_version: str = "",
     ) -> None:
         self._model = model
         self._client = AzureOpenAIEmbeddings(
-            azure_endpoint=endpoint,
-            api_key=api_key,
-            api_version=api_version,
+            azure_endpoint=endpoint or settings.azure_openai_endpoint,
+            api_key=api_key or settings.azure_openai_api_key,
+            api_version=api_version or settings.azure_openai_api_version,
             azure_deployment=model,
         )
         # Look up dimensions from registry, default to 1536

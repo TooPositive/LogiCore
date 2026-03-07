@@ -4,9 +4,9 @@
 Accepted
 
 ## Context
-Phase 1's hybrid search achieves 24/26 queries (92.3%) but precision@5 is 0.62 — meaning 38% of the top-5 results are wrong. Vector similarity returns "mathematically similar" results that aren't actually relevant. A shipping terms clause scores 0.91 while the actual penalty clause scores 0.88 — the user gets confident but wrong information.
+Phase 2 live benchmarks (52 queries, 12 docs, Azure OpenAI text-embedding-3-small) show dense-only MRR=0.885, hybrid MRR=0.847. The baseline is stronger than Phase 1's 26-query estimate of precision@5=0.62. However, re-ranking addresses a different problem: when vector similarity returns "mathematically similar" results that aren't actually relevant. A shipping terms clause scores 0.91 while the actual penalty clause scores 0.88 — the user gets confident but wrong information.
 
-In Phase 3's invoice audit, wrong retrieval means wrong rate extraction: 2.5% false negative rate at 1,000 invoices/month = EUR 40,800/year in unrecovered overcharges. Re-ranking closing precision@5 from 0.62 to 0.89 cuts that to under 0.5%.
+**Projected ROI** (contingent on measured precision delta): In Phase 3's invoice audit, wrong retrieval means wrong rate extraction. Re-ranking typically improves precision@5 by 15-30% in cross-encoder benchmarks. At 1,000 invoices/month, even a 5% false negative reduction saves EUR 15,000+/year. Actual ROI will be measured when Cohere API is integrated for live re-ranking benchmarks.
 
 ## Decision
 **Cohere Rerank v3 as primary, local cross-encoder as fallback, with circuit breaker pattern.**
@@ -61,5 +61,5 @@ CohereReranker sends document chunks to Cohere's API for scoring. For GDPR compl
 - Cohere dependency for cloud deployments (EUR 100/month, mitigated by circuit breaker + local fallback)
 - `sentence-transformers` is an optional dependency (guarded import) — cloud-only deployments don't need it installed
 - Re-ranking adds 50-150ms per query (Cohere) or 100-300ms (local cross-encoder)
-- ROI: EUR 100/month cost vs EUR 3,100/month saved from avoided retrieval errors (31x)
+- Projected ROI: EUR 100/month cost vs projected EUR 3,100/month saved from avoided retrieval errors (31x projected, pending live re-ranking benchmark)
 - All reranker parameters are configurable — model name, threshold, circuit breaker timeouts

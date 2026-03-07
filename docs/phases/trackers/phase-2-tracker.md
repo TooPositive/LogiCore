@@ -15,27 +15,29 @@
 - [x] `scripts/benchmark_embeddings.py` — compare embedding models (mock + live modes, 52-query ground truth)
 - [x] `scripts/benchmark_retrieval.py` — end-to-end retrieval quality (mock + live modes, per-category breakdown)
 - [x] `tests/evaluation/test_retrieval_quality.py` — automated retrieval quality gate (30 tests: 7 precision@k, 6 recall@k, 7 MRR, 4 aggregate, 6 ground truth validation)
-- [ ] `docs/adr/004-chunking-strategy.md`
-- [ ] `docs/adr/005-reranking-layer.md`
-- [ ] `docs/adr/006-embedding-model-choice.md`
+- [x] `docs/adr/004-chunking-strategy.md` — semantic chunking over fixed-size, with security note on parent-child RBAC
+- [x] `docs/adr/005-reranking-layer.md` — Cohere primary + local fallback + circuit breaker, ROI: 31x
+- [x] `docs/adr/006-embedding-model-choice.md` — multi-provider architecture, 4 models benchmarked, switch conditions
 
 ## Success Criteria
 
-- [ ] 3 chunking strategies implemented with benchmark script
-- [ ] Semantic chunking >15% precision improvement over fixed-size on contract queries
-- [ ] Re-ranking improves precision@5 by >20% over raw hybrid search
-- [ ] HyDE improves recall on vague queries by >25%
-- [ ] Embedding model benchmark completed, winner documented in ADR
-- [ ] End-to-end quality gate: precision@5 > 0.85, MRR > 0.80
+- [x] 3 chunking strategies implemented with benchmark script (FixedSize, Semantic, ParentChild — `scripts/benchmark_chunking.py`)
+- [ ] Semantic chunking >15% precision improvement over fixed-size on contract queries (NEEDS LIVE BENCHMARK)
+- [ ] Re-ranking improves precision@5 by >20% over raw hybrid search (NEEDS LIVE BENCHMARK)
+- [ ] HyDE improves recall on vague queries by >25% (NEEDS LIVE BENCHMARK)
+- [x] Embedding model benchmark completed, winner documented in ADR (ADR-006, 4 models registered, benchmark harness ready)
+- [ ] End-to-end quality gate: precision@5 > 0.85, MRR > 0.80 (NEEDS LIVE BENCHMARK)
 
 ## Decisions Made
 
 | Decision | Spec'd | Actual | Why |
 |---|---|---|---|
-| Chunking winner | semantic | | benchmark results |
-| Re-ranker | Cohere Rerank v3 | | |
-| Embedding model | 4-way benchmark | | benchmark results |
-| HyDE prompt template | generic | | |
+| Chunking winner | semantic | SemanticChunker for contracts, FixedSize for unstructured | Clause integrity is the deciding factor — semantic keeps full clauses together. Mock benchmark shows structural improvement; live benchmark needed for precision numbers. |
+| Re-ranker | Cohere Rerank v3 | Cohere primary + local cross-encoder fallback + CircuitBreaker | Cohere for quality (EUR 100/month), local for air-gap/fallback, circuit breaker for resilience. ROI: 31x. |
+| Embedding model | 4-way benchmark | text-embedding-3-small (default), 4 models registered | Phase 1 proved small = large at 12 docs. ADR-006 documents switch conditions. Live benchmark pending. |
+| HyDE prompt template | generic | Configurable via `prompt_template` param | Default template is generic ("Write a short passage..."). Domain-specific templates can be injected. |
+| Query router | GPT-5 nano | Configurable `llm_fn` + `model` param | Router classifies keyword/standard/vague/multi_hop. Defaults to "standard" on failure. |
+| Query sanitizer | — (not in spec) | 9 injection patterns, configurable max_length | P0 security addition from Phase 2 analysis. Applied before every LLM call. |
 
 ## Deviations from Spec
 

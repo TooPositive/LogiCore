@@ -6,6 +6,37 @@ The EU AI Act enforcement for "High-Risk" AI systems is approaching. Companies u
 
 **CTO pain**: "Legal says we need full audit trails for every AI decision. If a regulator asks 'Why did the AI flag this invoice 6 months ago?' we need to reconstruct the exact system state."
 
+## Real-World Scenario: LogiCore Transport
+
+**Feature: Compliance Report Generator**
+
+Six months from now, a German regulator audits LogiCore Transport's AI system. The question: "On September 15, 2026, your AI flagged invoice INV-2024-0847 as a billing discrepancy. Reconstruct exactly what happened."
+
+**Without Phase 8**: "Uh... the AI found something? We think it was an overcharge. Not sure which model version was running. The logs got rotated."
+
+**With Phase 8**: Pull audit log entry #4,721:
+- **Who asked**: Anna Schmidt (user-logistics-01, clearance 2)
+- **What was asked**: "Audit invoice INV-2024-0847 against contract CTR-2024-001"
+- **What AI saw**: Retrieved chunks: contract-CTR-2024-001-v2.3-chunk-47 (rate clause), contract-CTR-2024-001-v2.3-chunk-48 (penalty clause)
+- **Which model**: gpt-5.2-2026-0201, deployment: logicore-prod-east
+- **What it said**: "Discrepancy detected: billed €0.52/kg vs contracted €0.45/kg. Overcharge: €588."
+- **Who approved**: Martin Lang (user-cfo-01), approved 2026-09-15T14:23:07Z, note: "Verified. Dispute with vendor."
+- **Full trace**: Langfuse trace ID → click to see exact token-by-token execution
+
+**Data lineage demo**: Click on "contract-CTR-2024-001-v2.3-chunk-47" → shows: Source PDF uploaded 2024-06-01 → re-ingested 2024-09-15 (v2.3, SHA-256: abc123...) → chunked by semantic splitter → embedded with text-embedding-3-small → Qdrant point ID q-47-v2 → retrieved in audit run #4,721.
+
+**The immutability test**: Try `UPDATE audit_log SET response_text = 'nothing wrong'` → permission denied. Even a DBA with the application role can't tamper with the log.
+
+### Tech → Business Translation
+
+| Technical Concept | What the User Sees | Why It Matters |
+|---|---|---|
+| Immutable audit log (append-only) | Tamper-proof record of every AI decision | Regulator trusts the data — nobody could have altered it |
+| Data lineage | "This answer came from contract v2.3, clause 47, uploaded June 1" | Full traceability from answer → source document version |
+| Langfuse trace linking | Click to see the exact AI execution, step by step | Reconstruct any past decision with full context |
+| Article 12 compliance | One-click compliance report for any date range | Turn a 3-week audit into a 10-minute report generation |
+| Database-level immutability | UPDATE/DELETE revoked at role level | Even compromised app code can't tamper with logs |
+
 ## Architecture
 
 ```
@@ -118,6 +149,126 @@ CREATE TABLE chunk_versions (
 - [ ] Data lineage traces a document from source file → chunks → embeddings → retrieval
 - [ ] Audit entry links to Langfuse trace — clicking trace ID reconstructs full context
 - [ ] 6-month-old query can be fully reconstructed (same chunks, same model version)
+
+## Cost of Getting It Wrong
+
+Compliance logging costs EUR 5,400/year. A single unlogged decision costs up to EUR 3.5M.
+
+| Error | Scenario | Cost | Frequency |
+|---|---|---|---|
+| **Audit trail gap** | Server crashes between agent execution and log write. Workflow resumes (checkpoint works), but audit entry was never written. Gap in trail. | EUR 100,000-3,500,000 (EU AI Act fine: up to 7% global turnover) | 1 incident |
+| **Langfuse trace ID broken** | Langfuse rebuilt after failure. Trace IDs in audit log no longer resolve. Can't reconstruct token-level execution. | EUR 50,000-500,000 (compliance violation) | 1-2/year |
+| **Over-logging PII** | Full trace captures employee health queries verbatim. Creates second GDPR liability. Data subject request reveals their queries were logged. | EUR 20,000-200,000 (GDPR fine for unnecessary retention) | 1-2/year |
+| **Log volume degrades query performance** | 10 years × 10K decisions/day = 36.5M records. Report generation degrades from 10 min to 45 min. Regulator waiting. | Reputational damage + compliance risk | After 3-5 years |
+
+**The CTO line**: "Full trace compliance logging costs EUR 5,400/year. A single unlogged AI decision that a regulator asks about costs up to EUR 3.5M. The ratio is 648:1."
+
+### Atomic Audit Logging
+
+The audit log write and the LangGraph checkpointer update MUST be in the same database transaction. Otherwise, a crash between them creates a compliance gap.
+
+```python
+# ❌ WRONG: Separate writes
+await checkpointer.save(state)  # succeeds
+await audit_logger.write(entry)  # server crashes here → gap
+
+# ✅ RIGHT: Same transaction
+async with pg_pool.acquire() as conn:
+    async with conn.transaction():
+        await checkpointer.save(state, conn=conn)
+        await audit_logger.write(entry, conn=conn)
+        # Both succeed or both roll back
+```
+
+### Engineering Time Saved Per Audit
+
+Without Phase 8: regulator asks to reconstruct a decision from 6 months ago. 3 engineers × 2 weeks digging through logs = EUR 6,000 per audit query.
+
+With Phase 8: 10 minutes to generate the report.
+
+At 10 regulator audit queries/year: EUR 60,000 saved in engineering time alone — before even considering the fine risk.
+
+## Decision Framework: Compliance Logging Depth
+
+Not every AI decision needs the same audit granularity. Over-logging wastes storage and money. Under-logging risks regulatory fines.
+
+### Three Logging Levels
+
+| Level | What's Captured | Storage Multiplier | Monthly Cost (10K decisions/day) |
+|---|---|---|---|
+| **Full trace** | Every token in/out, chunk content, embedding vectors, Langfuse trace with full replay | 3x baseline | ~€450/mo |
+| **Summary trace** | Query, response summary (first 500 chars), chunk IDs (not content), model version, approver | 1.5x baseline | ~€225/mo |
+| **Metadata only** | Timestamp, user ID, model version, chunk IDs, latency, cost, trace ID (no content) | 1x baseline | ~€150/mo |
+
+### Decision Tree: Which Level?
+
+```
+AI decision occurs
+  ├─ Is this a High-Risk use case under EU AI Act?
+  │   ├─ YES (financial decisions, safety-critical, HR)
+  │   │   └─ FULL TRACE — mandatory under Article 12
+  │   │       Store: all tokens, chunk content, full Langfuse trace
+  │   │       Retention: 10 years minimum (financial), 5 years (other)
+  │   └─ NO
+  │       ├─ Does it involve PII or sensitive data?
+  │       │   ├─ YES → SUMMARY TRACE (log structure, not raw content)
+  │       │   └─ NO
+  │       │       ├─ Internal analytics / search / recommendations?
+  │       │       │   └─ METADATA ONLY — sufficient for debugging
+  │       │       └─ External-facing decision?
+  │       │           └─ SUMMARY TRACE — enough to reconstruct if disputed
+  └─ Cost of non-compliance: up to 7% annual global revenue
+      (For a €50M company = €3.5M fine. Full trace costs €5,400/year.)
+```
+
+### When NOT to Log Full Traces
+
+Full traces capture every token — that's expensive and sometimes counterproductive:
+
+- **Non-regulated use cases**: Internal search, content recommendations, fleet dashboard summaries. Metadata + summary is sufficient for debugging and incident response.
+- **High-volume, low-risk decisions**: 10,000 GPS anomaly classifications/day where the rule-based tier handles 95%. Log metadata for the rule-based tier; summary trace only for the LLM-escalated 5%.
+- **PII-heavy queries**: Full token logging of queries containing employee health data or salary information creates a *second* compliance liability (GDPR). Summary trace with redacted content is safer.
+- **Development/staging environments**: Metadata only. Full traces in dev waste storage and risk leaking test data with real PII.
+
+**Rule of thumb**: If a regulator would never ask about it, metadata is enough. If they might ask, summary. If they *will* ask, full trace.
+
+## Technical Deep Dive: Document Versioning in Audit Trails
+
+### The Problem
+
+Contract CTR-2024-001 gets updated from v2.3 to v3.0 on October 1. An audit entry from September 15 references chunks from v2.3. If we only keep the latest version, we can't reconstruct what the AI actually saw.
+
+### Immutable Snapshot Strategy
+
+Every audit log entry captures the **document version at decision time**, not a pointer to the "current" version:
+
+```
+audit_log entry #4,721 (September 15)
+  └─ retrieved_chunk_ids: [
+       "contract-CTR-2024-001-v2.3-chunk-47",  ← version baked into ID
+       "contract-CTR-2024-001-v2.3-chunk-48"
+     ]
+  └─ document_versions table:
+       document_id: CTR-2024-001
+       version: 2.3
+       ingested_at: 2024-09-15
+       source_hash: abc123...  ← SHA-256 proves content hasn't changed
+```
+
+### Version Lifecycle Rules
+
+| Event | What Happens | Old Version |
+|---|---|---|
+| Document re-ingested (new version) | New `document_versions` row, new chunks, new embeddings | **Preserved** — old chunks remain in Qdrant with version-tagged IDs |
+| Chunk content changes | New `chunk_versions` row with new `content_hash` | Old chunk row retained, Qdrant point preserved |
+| Embedding model upgraded | New embeddings generated, stored alongside old | Old embeddings kept (audit entries reference them by point ID) |
+| Audit query for old entry | Resolve chunk IDs → exact version that was live at decision time | Always reconstructible |
+
+### Garbage Collection (When to Delete Old Versions)
+
+- **Never delete** versions referenced by audit entries within the retention window (5-10 years for regulated use cases)
+- **Safe to delete** after retention expiry AND no pending litigation hold
+- **Soft delete first**: mark as `archived`, move to cold storage (Azure Blob Archive tier at €0.002/GB/mo), hard delete after confirmation period
 
 ## LinkedIn Post Template
 

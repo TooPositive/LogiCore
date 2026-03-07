@@ -1,0 +1,34 @@
+Employee Termination Procedures — HR CONFIDENTIAL
+LogiCore Transport GmbH — HR Department
+
+1. Grounds for Termination
+1.1 Performance-based: Two consecutive quarterly reviews below 2.0/5.0 after documented improvement plan.
+1.2 Conduct-based: Violation of company policies (see Employee Handbook Section 12).
+1.3 Redundancy: Business restructuring approved by the Board.
+
+2. Notice Periods (German Labor Law)
+- Probation period (6 months): 2 weeks notice
+- Up to 2 years: 4 weeks to the 15th or end of month
+- 2-5 years: 1 month to end of month
+- 5-8 years: 2 months to end of month
+- 8-10 years: 3 months to end of month
+- 10-12 years: 4 months to end of month
+- 12-15 years: 5 months to end of month
+- 15-20 years: 6 months to end of month
+- 20+ years: 7 months to end of month
+
+3. Severance Calculations
+Standard formula: 0.5 months salary per year of service.
+Minimum severance: EUR 5,000 (for employees with 2+ years).
+Maximum severance: 18 months salary (capped by social plan agreement with Works Council).
+
+4. Exit Process
+- HR conducts exit interview
+- IT revokes all system access within 4 hours of notification
+- Company property returned (laptop, phone, access cards, company vehicle)
+- Final salary payment includes accrued vacation days
+- Reference letter provided within 14 days (German law requirement)
+
+5. Works Council Notification
+Works Council (Betriebsrat) must be notified before any termination per BetrVG Section 102.
+Failure to consult renders the termination void.

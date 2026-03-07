@@ -101,6 +101,18 @@ services:
     depends_on:
       - api
 
+  simulator:
+    build:
+      context: apps/simulator
+    ports:
+      - "8081:8081"
+    environment:
+      TRUCK_COUNT: "50"
+      REFRIGERATED_COUNT: "15"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      PORT: "8081"
+    profiles: ["simulator"]
+
 volumes:
   qdrant-data:
   postgres-data:

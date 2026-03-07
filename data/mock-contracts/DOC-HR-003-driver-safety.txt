@@ -1,0 +1,24 @@
+Driver Safety Protocol
+LogiCore Transport GmbH — Operations Department
+
+1. Pre-Trip Inspection
+Every driver must complete the 15-point pre-trip inspection checklist before departing. This includes tire pressure, brake check, lights, mirrors, load securing, and refrigeration unit verification for temperature-controlled shipments.
+
+2. Driving Hours Compliance
+EU Regulation (EC) No 561/2006 applies to all LogiCore drivers:
+- Maximum daily driving: 9 hours (extendable to 10 hours twice per week)
+- Maximum weekly driving: 56 hours
+- Maximum fortnightly driving: 90 hours
+- Continuous driving break: 45 minutes after 4.5 hours
+
+3. Emergency Procedures
+In case of accident: secure the scene, call emergency services (112), notify LogiCore dispatch immediately.
+In case of cargo spill (hazardous materials): follow ADR procedures, evacuate 50m radius, call HAZMAT team.
+
+4. Temperature-Controlled Cargo
+Pharmaceutical shipments: maintain 2-8 degrees Celsius at all times.
+Frozen food: maintain -18 degrees Celsius or below.
+Any temperature deviation exceeding 2 degrees triggers an automatic alert to dispatch and the quality team.
+
+5. Route Compliance
+All drivers must follow approved routes. Deviations require dispatcher approval. GPS tracking is active at all times for fleet monitoring and customer visibility.

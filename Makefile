@@ -1,13 +1,16 @@
-.PHONY: up up-kafka down logs api-dev web-dev sync lint test build ps reset
+.PHONY: up up-full up-kafka down logs api-dev web-dev sim-dev sync lint test build ps reset
 
 up:
 	docker compose up -d
+
+up-full:
+	docker compose --profile kafka --profile simulator up -d
 
 up-kafka:
 	docker compose --profile kafka up -d
 
 down:
-	docker compose --profile kafka down
+	docker compose --profile kafka --profile simulator down
 
 logs:
 	docker compose logs -f
@@ -18,8 +21,14 @@ api-dev:
 web-dev:
 	cd apps/web && npm run dev
 
+sim-dev:
+	cd apps/simulator && cargo run
+
+sim-build:
+	cd apps/simulator && cargo build --release
+
 sync:
-	uv sync
+	uv sync --all-packages
 
 lint:
 	uv run ruff check apps/api/src
@@ -35,5 +44,5 @@ ps:
 	docker compose ps
 
 reset:
-	docker compose --profile kafka down -v
+	docker compose --profile kafka --profile simulator down -v
 	@echo "All volumes removed."

@@ -24,7 +24,7 @@
 - [x] 3 chunking strategies implemented with benchmark script (FixedSize, Semantic, ParentChild — `scripts/benchmark_chunking.py`)
 - [ ] Semantic chunking >15% precision improvement over fixed-size on contract queries (chunking benchmark ran but clause integrity metric needs richer docs — structural chunking works, semantic precision needs live Qdrant comparison with re-ingestion)
 - [ ] Re-ranking improves precision@5 by >20% over raw hybrid search (needs Cohere API key for live benchmark)
-- [ ] HyDE improves recall on vague queries by >25% (needs gpt-5-mini + Qdrant for live benchmark)
+- [x] HyDE recall benchmark completed (LIVE: HyDE HURTS vague queries by -20.9% R@5 and -25.8% MRR at 12-doc scale. NOT viable — skip HyDE until corpus exceeds 500+ semantically similar docs.)
 - [x] Embedding model benchmark completed, winner documented in ADR (LIVE: small MRR=0.885 vs large MRR=0.856 on 52 queries — small wins again at 6.5x cheaper)
 - [x] End-to-end quality gate: precision@5 > 0.85, MRR > 0.80 (LIVE: MRR=0.885 with dense_only, MRR=0.847 with hybrid — both PASS the 0.80 gate)
 
@@ -125,9 +125,14 @@
 | Fixed-size (512) clause integrity | 1/8 | Only 1 of 8 key clauses preserved intact |
 | Semantic (t=0.5) clause integrity | 1/8 | Similar — hash-based embed_fn limits detection. Need live semantic comparison. |
 | Parent-child clause integrity | 1/8 | Parent-child structure created but clause detection is structural, not semantic |
-| **Re-ranking & HyDE (PENDING — need Cohere API key)** | | |
+| **HyDE Benchmark (4 categories, live Azure OpenAI gpt-5-mini + Qdrant)** | | |
+| HyDE on vague queries R@5 / MRR | 0.672 / 0.681 vs no-HyDE 0.850 / 0.917 | **HyDE HURTS vague queries by -20.9% R@5, -25.8% MRR.** Hypothetical is less specific than original query at 12-doc scale. |
+| HyDE on exact_code R@5 / MRR | 1.000 / 0.750 vs no-HyDE 1.000 / 1.000 | **HyDE HURTS exact codes by -25.0% MRR.** Hypothetical dilutes exact code matching. |
+| HyDE on natural_language R@5 / MRR | 1.000 / 0.760 vs no-HyDE 1.000 / 1.000 | **HyDE HURTS NL queries by -24.0% MRR.** Same pattern — original query already finds right doc. |
+| HyDE on negation R@5 / MRR | 0.833 / 0.542 vs no-HyDE 0.750 / 0.583 | Mixed: +11.1% R@5, -7.1% MRR. Only category where HyDE finds more documents. |
+| HyDE latency overhead | +1400-3800ms per query | gpt-5-mini LLM call dominates. NOT viable for latency-sensitive queries. |
+| **Re-ranking (PENDING — need Cohere API key)** | | |
 | Re-ranking precision@5 improvement | — | Need Cohere API key to run live re-ranking benchmark |
-| HyDE recall improvement (vague queries) | — | Need Azure OpenAI gpt-5-mini for HyDE generation + Qdrant for retrieval |
 | Re-ranking latency overhead | — | Expected 50-150ms per query (Cohere) |
 
 ## Screenshots Captured

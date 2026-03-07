@@ -9,7 +9,7 @@
 | 0 | Project Skeleton | DONE | 100% | — | — | — | — |
 | 0.5 | Simulator Service | DONE | 100% | — | — | — | — |
 | 1 | Corporate Brain (RAG + RBAC) | TESTED | 100% | 100% (80/80) | — | — | — |
-| 2 | Retrieval Engineering | NOT STARTED | 0% | 0% | — | — | Phase 1 |
+| 2 | Retrieval Engineering | IN PROGRESS | 10% | 10% | — | — | Phase 1 |
 | 3 | Customs & Finance (Multi-Agent) | NOT STARTED | 0% | 0% | — | — | Phase 1 |
 | 4 | Trust Layer (LLMOps) | NOT STARTED | 0% | 0% | — | — | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | NOT STARTED | 0% | 0% | — | — | Phase 4 |
@@ -20,6 +20,7 @@
 | 10 | LLM Firewall (Security) | NOT STARTED | 0% | 0% | — | — | Phases 1-6 |
 | 11 | Tool Standards (MCP) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 12 | Full Stack Demo | NOT STARTED | 0% | 0% | — | — | Phases 1-11 |
+| R | Core Extraction (domain-agnostic refactor) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 
 **Legend**: Status = NOT STARTED / IN PROGRESS / CODE COMPLETE / TESTED / CONTENT PUBLISHED
 LinkedIn/Medium = — / draft / reviewed / published (date)
@@ -55,6 +56,11 @@ Phase 1: RAG + RBAC ◄───────────────────
   ├──► Phase 11: MCP Tool Standards (requires Phases 1-3)
   │
   └──► Phase 12: Full Stack Demo (requires ALL 1-11)
+
+Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
+  Extract domain-agnostic core (retrieval, agents, LLMOps, security)
+  from LogiCore-specific code. Result: core/ + domains/logicore/ split.
+  Config-driven: corpus, roles, agents, benchmarks per domain.
 ```
 
 **Parallel tracks after Phase 1**:

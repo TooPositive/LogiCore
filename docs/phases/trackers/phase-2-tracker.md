@@ -1,12 +1,12 @@
 # Phase 2 Tracker: Retrieval Engineering — Chunking, Re-Ranking, HyDE
 
-**Status**: NOT STARTED
+**Status**: IN PROGRESS
 **Spec**: `docs/phases/phase-2-retrieval-engineering.md`
 **Depends on**: Phase 1
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/rag/chunking.py` — multiple chunking strategies: fixed-size, semantic, parent-child
+- [x] `apps/api/src/rag/chunking.py` — multiple chunking strategies: fixed-size, semantic, parent-child (48 tests)
 - [ ] `apps/api/src/rag/reranker.py` — cross-encoder re-ranking (Cohere + local model)
 - [ ] `apps/api/src/rag/query_transform.py` — HyDE, multi-query expansion, query decomposition
 - [ ] `apps/api/src/rag/embeddings.py` — MODIFY: support multiple embedding models, benchmark harness
@@ -39,15 +39,22 @@
 
 ## Deviations from Spec
 
+- **ChunkResult is a dataclass, not Pydantic.** The spec shows `ChunkResult` as a plain data container. Using `@dataclass` is lighter than Pydantic for internal pipeline data that never crosses API boundaries. Domain `Chunk` (Pydantic) is applied at ingestion time.
+- **SemanticChunker uses synchronous embed_fn.** The chunker itself is CPU-bound (sentence splitting, similarity math). The embed_fn is called once per chunk() call with all sentences batched. Async is unnecessary here — the caller can await externally if needed.
+
 ## Code Artifacts
 
 | File | Commit | Notes |
 |---|---|---|
+| `apps/api/src/rag/chunking.py` | feat(phase-2) | 3 strategies (FixedSize, Semantic, ParentChild), factory function, ChunkResult dataclass. All domain-agnostic — strategy, chunk_size, overlap, similarity_threshold, section_pattern all configurable. SemanticChunker accepts injectable embed_fn for testability. |
+| `tests/unit/test_chunking.py` | feat(phase-2) | 48 tests: 12 FixedSize, 13 Semantic, 14 ParentChild, 5 factory, 3 ChunkResult, 3 BaseChunker ABC. Semantic tests use deterministic topic-based fake embedder. |
 
 ## Test Results
 
 | Test | Status | Notes |
 |---|---|---|
+| `tests/unit/test_chunking.py` (48 tests) | PASS | FixedSize: word boundary, overlap, coverage, empty/single/long inputs. Semantic: topic clustering, boundary detection, min/max size, configurable threshold. ParentChild: parent-child hierarchy, child-references-parent, metadata, custom patterns, min_child_size merge, max_parent_size split. Factory: all strategies + invalid strategy error. |
+| Full suite (112 tests) | PASS | No regressions from Phase 1 (64 existing tests unaffected) |
 
 ## Benchmarks & Metrics (Content Grounding Data)
 

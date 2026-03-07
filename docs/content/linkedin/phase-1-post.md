@@ -7,11 +7,11 @@
 
 I ran 26 queries against my RAG system. half of them designed to fail.
 
-BM25 alone scored 16/26. fails synonyms (2/4), German queries (2/4), typos (2/4), jargon (2/4). a warehouse worker types "dangerous goods" and gets zero results coz the document says "hazardous materials." types "Gefahrgut Vorschriften" (German for hazmat regulations) and gets garbage. types "pharamcorp" with a typo and gets nothing.
+BM25 alone scored 16/26. fails synonyms (2/4), Polish queries (2/4), typos (2/4), jargon (2/4). a warehouse worker types "dangerous goods" and gets zero results coz the document says "hazardous materials." types "towary niebezpieczne przepisy" (Polish for hazmat regulations) and gets garbage. types "pharamcorp" with a typo and gets nothing.
 
 real humans dont search in exact english document terminology, spelled perfectly. BM25 expects them to.
 
-dense embeddings (text-embedding-3-small, $0.02/1M tokens) scored 23/26. synonyms 4/4, German 4/4, typos 4/4. "letting go of staff" finds the termination procedures doc. "Gefahrgut Vorschriften" finds the hazmat contract. thats what enterprise search should do.
+dense embeddings (text-embedding-3-small, $0.02/1M tokens) scored 23/26. synonyms 4/4, Polish 4/4, typos 4/4. "letting go of staff" finds the termination procedures doc. "towary niebezpieczne przepisy" finds the hazmat contract. thats what enterprise search should do.
 
 so why not just dense? coz CTR-2024-001 (a contract ID) ranks position 2 in dense mode. BM25 puts it rank 1. when a logistics manager needs a specific contract by its code, position 2 is wrong. hybrid RRF fusion: 24/26, best of both.
 
@@ -29,7 +29,7 @@ what it cant do: reasoning. "contract with the largest annual value" fails ALL m
 
 ### 1. "BM25 is fine for most use cases"
 
-yeah if your users are developers who know the exact terms in the codebase. for enterprise docs where a German warehouse worker types "Gefahrgut" and the doc says "hazardous materials" in English? 2/4 on our German queries. thats not "fine", thats a coin flip.
+yeah if your users are developers who know the exact terms in the codebase. for enterprise docs where a Polish warehouse worker types "towary niebezpieczne" and the doc says "hazardous materials" in English? 2/4 on our Polish queries. thats not "fine", thats a coin flip.
 
 ### 2. "What about the latency difference? BM25 is way faster"
 
@@ -37,7 +37,7 @@ yeah if your users are developers who know the exact terms in the codebase. for 
 
 ### 3. "26 queries isn't statistically significant"
 
-agreed its not a research paper. but each query was picked to stress a specific failure mode: synonyms, exact codes, ranking, jargon, German, typos, negation. 7 categories, each with 4 cases (except negation at 2). its a diagnostic, not a p-value exercise. and the patterns were extremely consistent across categories.
+agreed its not a research paper. but each query was picked to stress a specific failure mode: synonyms, exact codes, ranking, jargon, Polish, typos, negation. 7 categories, each with 4 cases (except negation at 2). its a diagnostic, not a p-value exercise. and the patterns were extremely consistent across categories.
 
 ### 4. "Why not SPLADE instead of basic BM25?"
 
@@ -61,7 +61,7 @@ most RAG tutorials filter AFTER retrieval. the LLM sees all docs, then the app h
 
 ### 9. "What about fine-tuning embeddings for your domain?"
 
-not yet. text-embedding-3-small already handles German queries, logistics jargon, and typos at 4/4 across those categories. fine-tuning makes sense when you have thousands of domain-specific terms that off-the-shelf models confuse. at 12 docs, the model is already overpowered for the task.
+not yet. text-embedding-3-small already handles Polish queries, logistics jargon, and typos at 4/4 across those categories. fine-tuning makes sense when you have thousands of domain-specific terms that off-the-shelf models confuse. at 12 docs, the model is already overpowered for the task.
 
 ### 10. "How does this scale to 100K+ documents?"
 

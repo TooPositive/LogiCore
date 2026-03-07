@@ -23,7 +23,7 @@
 
 - [x] 3 chunking strategies implemented with benchmark script (FixedSize, Semantic, ParentChild — `scripts/benchmark_chunking.py`)
 - [x] Semantic chunking comparison completed with live embeddings on expanded corpus (6 docs, ~1800 chars/doc). Semantic(t=0.3) produces 50 chunks avg 215 chars vs FixedSize(80) at 173 chunks avg 75 chars — and preserves 8/8 clauses vs 6/8. Clause integrity is the architect metric, not precision@5 (which requires full retrieval benchmark per chunking config — deferred to Phase R at scale).
-- [x] Re-ranking benchmarked with local cross-encoder on 52 queries. **Result: re-ranking HURTS by -39.2% MRR.** Spec target was >20% improvement, but that assumed a corpus where initial retrieval is imprecise. At MRR=0.885 with 12 docs, there's nothing to improve — re-ranking just reshuffles correct results. Architecture is correct (circuit breaker, ABC, factory), but enabling it is counterproductive at this scale. Switch condition documented.
+- [x] Re-ranking benchmarked with **6 models** across 2 production-quality Polish corpora (57 docs each, 5-9K chars). 3 English-only (TinyBERT/ms-marco/mmarco-multi): ALL HURT. BGE-base: NEUTRAL. **BGE-m3: +25.8%, BGE-large: +23.5%** on diverse corpus. Key finding: "multilingual" training ≠ multilingual effectiveness (mmarco-multi still HURTS at -6.6%). Spec target of >20% improvement: MET by BGE-m3 and BGE-large.
 - [x] HyDE recall benchmark completed (LIVE: HyDE HURTS vague queries by -20.9% R@5 and -25.8% MRR at 12-doc scale. NOT viable — skip HyDE until corpus exceeds 500+ semantically similar docs.)
 - [x] Embedding model benchmark completed, winner documented in ADR (LIVE: small MRR=0.885 vs large MRR=0.856 on 52 queries — small wins again at 6.5x cheaper)
 - [x] End-to-end quality gate: precision@5 > 0.85, MRR > 0.80 (LIVE: MRR=0.885 with dense_only, MRR=0.847 with hybrid — both PASS the 0.80 gate)
@@ -33,7 +33,7 @@
 | Decision | Spec'd | Actual | Why |
 |---|---|---|---|
 | Chunking winner | semantic | SemanticChunker for contracts, FixedSize for unstructured | Clause integrity is the deciding factor — semantic keeps full clauses together. Mock benchmark shows structural improvement; live benchmark needed for precision numbers. |
-| Re-ranker | Cohere Rerank v3 | Cohere primary + local cross-encoder fallback + CircuitBreaker | Cohere for quality (EUR 100/month), local for air-gap/fallback, circuit breaker for resilience. ROI: 31x. |
+| Re-ranker | Cohere Rerank v3 | **BGE-reranker-v2-m3** (local, multilingual) + CircuitBreaker → NoOp fallback | 6-model benchmark: BGE-m3 is best (+25.8% MRR on diverse). BGE-large is strong backup (+23.5%). mmarco-multi ("multilingual" ms-marco) HURTS despite label. Cohere remains option for cloud. |
 | Embedding model | 4-way benchmark | text-embedding-3-small (default), 4 models registered | Phase 1 proved small = large at 12 docs. ADR-006 documents switch conditions. Live benchmark pending. |
 | HyDE prompt template | generic | Configurable via `prompt_template` param | Default template is generic ("Write a short passage..."). Domain-specific templates can be injected. |
 | Query router | GPT-5 nano | Configurable `llm_fn` + `model` param | Router classifies keyword/standard/vague/multi_hop. Defaults to "standard" on failure. |
@@ -72,13 +72,18 @@
 | `tests/unit/test_embeddings.py` | feat(phase-2) | 52 tests: 4 EmbeddingProvider enum, 5 EmbeddingModel + registry, 3 EmbeddingBenchmarkResult (fields, default notes, custom notes), 3 BaseEmbedder ABC (instantiation blocked, partial impl blocked, full impl works), 10 MockEmbedder (dimensionality, determinism, uniqueness, types, empty list, normalization, configurable dims), 6 AzureOpenAIEmbedder (delegation to langchain, params, dimensions for small/large/unknown), 8 CohereEmbedder (API call structure, dimensions, multi-doc, error handling, configurable model/input_type, unknown model default), 7 get_embedder factory (all providers, invalid, kwargs, enum), 4 backward compat (get_embeddings, model param, constants), 2 EmbeddingError. |
 | `apps/api/src/rag/retriever.py` | feat(phase-2) | Added enhanced_search() pipeline wrapper around hybrid_search(). RetrievalPipelineConfig dataclass for composable pipeline stages. Pipeline: sanitize -> route -> transform -> search -> rerank. Each stage optional, each handles its own errors (graceful degradation). hybrid_search() unchanged for Phase 1 backward compatibility. EnhancedSearchResult added to domain/document.py (Pydantic, extends SearchResult fields + pipeline metadata). |
 | `tests/unit/test_enhanced_retriever.py` | feat(phase-2) | 25 tests: 5 basic (no-pipeline returns EnhancedSearchResult, preserves fields, empty results, RBAC filter, search mode forwarding), 5 reranker (reorders results, scores available, top_k respected, failure degrades gracefully, rerank_top_k overrides search limit), 4 query transform (HyDE transforms embedding query, multi-query merges+deduplicates, HyDE failure fallback, multi-query failure fallback), 5 router (KEYWORD skips transforms+reranking, STANDARD applies reranking only, VAGUE applies HyDE+reranking, MULTI_HOP applies decompose+reranking, router failure defaults to STANDARD), 4 full pipeline (full stage ordering, all stages optional, pipeline=None, sanitizer-before-everything ordering), 2 backward compat (hybrid_search signature unchanged, returns SearchResult not Enhanced). |
-| `tests/evaluation/ground_truth.py` | feat(phase-2) | 52 ground truth queries across 10 categories: exact_code (8), natural_language (8), vague (6), negation (6), german (4), synonym (4), typo (4), jargon (4), ranking (4), multi_hop (4). GroundTruthQuery dataclass with query, category, relevant_doc_ids, description. Helper functions: get_queries_by_category(), get_all_categories(). Self-validating: asserts 50+ queries and 10 categories on import. |
+| `tests/evaluation/ground_truth.py` | feat(phase-2) | 52 ground truth queries across 10 categories: exact_code (8), natural_language (8), vague (6), negation (6), polish (4), synonym (4), typo (4), jargon (4), ranking (4), multi_hop (4). GroundTruthQuery dataclass with query, category, relevant_doc_ids, description. Helper functions: get_queries_by_category(), get_all_categories(). Self-validating: asserts 50+ queries and 10 categories on import. |
 | `tests/evaluation/corpus.py` | feat(phase-2) | Shared 12-document CorpusDocument dataclass (doc_id, text, department, clearance_level). Canonical corpus matching Phase 1 benchmark DOCS array. Used by all benchmark scripts and evaluation tests. |
 | `tests/evaluation/metrics.py` | feat(phase-2) | 3 metric functions: compute_precision_at_k, compute_recall_at_k, compute_mrr. RetrievalEvalResult dataclass (aggregate + per-category). run_evaluation() function for batch evaluation against ground truth. Zero external dependencies. |
 | `tests/evaluation/test_retrieval_quality.py` | feat(phase-2) | 30 tests: TestPrecisionAtK (7 tests — perfect, zero, partial, k truncation, empty edge cases), TestRecallAtK (6 tests — same coverage), TestMRR (7 tests — rank position, multiple relevant, empty edge cases), TestRunRetrieval (4 tests — perfect/zero/per-category/empty), TestGroundTruthDataset (6 tests — 50+ queries, 10 categories, 4+ per category, valid doc IDs, unique queries). |
 | `scripts/benchmark_chunking.py` | feat(phase-2) | Compares 6 chunking configurations (FixedSize 512/256, Semantic 0.5/0.3, ParentChild default/min30). Measures: chunk count, avg size, size variance, clause integrity (8 key clauses). Supports --data-dir for disk files or inline corpus fallback. --output-json for CI. Includes architect verdict on clause integrity. |
 | `scripts/benchmark_embeddings.py` | feat(phase-2) | Benchmarks embedding models against 52 ground truth queries. Mock mode (--mock) or live mode (--models). Measures: precision@k, recall@k, MRR, latency, cost. Architect verdict: cost/quality tradeoff with recommendation and revisit condition. |
 | `scripts/benchmark_retrieval.py` | feat(phase-2) | End-to-end pipeline benchmark: chunking + embedding + search. Mock mode (in-memory cosine similarity) or live mode (Qdrant + Azure OpenAI). Per-category breakdown. Architect verdict with quality gate (MRR >= 0.80). |
+| `scripts/benchmark_reranking_v2.py` | feat(phase-2) | Two-scenario re-ranking benchmark on production Polish corpora (57 docs, 5-9K chars). 6 models: TinyBERT, ms-marco, mmarco-multi, BGE-base, BGE-large, BGE-m3. Proves: multilingual training ≠ multilingual effectiveness. |
+| `scripts/generate_corpus.py` | feat(phase-2) | Production-quality Polish corpus generator using Azure OpenAI. Creates 45 realistic logistics documents across 8 categories for re-ranking benchmark. |
+| `scripts/generate_homogeneous_corpus.py` | feat(phase-2) | Production-quality Polish contract generator using Azure OpenAI. Creates 45 transport contracts with unique specs (pharma, food, hazmat, electronics, etc.) for homogeneous re-ranking benchmark. |
+| `data/benchmark-corpus/diverse_docs.json` | feat(phase-2) | 45 LLM-generated Polish logistics documents (safety manuals, HR policies, tech specs, incident reports, meeting minutes, SOPs, compliance audits, vendor agreements). Avg 8,968 chars each (production-length). |
+| `data/benchmark-corpus/homogeneous_docs.json` | feat(phase-2) | 45 LLM-generated Polish transport contracts (pharma, food, hazmat, electronics, medical, etc.). Avg 6,689 chars each (production-length). |
 
 ## Test Results
 
@@ -102,8 +107,8 @@
 | Metric | Value | Context |
 |---|---|---|
 | **Search Mode Comparison (52 queries, 12 docs, live Azure OpenAI)** | | |
-| BM25-only P@5 / R@5 / MRR | 0.262 / 0.835 / 0.770 | Baseline. Fast (6ms) but worst MRR. Fails German (0.375 MRR), synonyms (0.550 MRR), typos (0.550 MRR). |
-| Dense-only P@5 / R@5 / MRR | 0.319 / 0.983 / **0.885** | Best MRR. Handles German (1.000), synonyms (1.000), typos (1.000). Weak on negation (0.458 MRR). 202ms latency. |
+| BM25-only P@5 / R@5 / MRR | 0.262 / 0.835 / 0.770 | Baseline. Fast (6ms) but worst MRR. Fails Polish (0.375 MRR), synonyms (0.550 MRR), typos (0.550 MRR). |
+| Dense-only P@5 / R@5 / MRR | 0.319 / 0.983 / **0.885** | Best MRR. Handles Polish (1.000), synonyms (1.000), typos (1.000). Weak on negation (0.458 MRR). 202ms latency. |
 | Hybrid (RRF) P@5 / R@5 / MRR | 0.296 / 0.939 / 0.847 | BM25 adds noise on 52-query set — dense-only is better by +0.038 MRR. 139ms latency. |
 | **Embedding Model Benchmark (52 queries, 12 docs, cosine similarity)** | | |
 | text-embedding-3-small P@5 / R@5 / MRR | 0.319 / 0.983 / **0.885** | Winner. Best MRR AND cheapest ($0.02/1M tok). 114ms latency. |
@@ -113,7 +118,7 @@
 | **Per-Category Breakdown (Dense-only, best config)** | | |
 | exact_code MRR | 0.760 | BM25 scores 1.000 here — dense loses on exact codes |
 | natural_language MRR | 1.000 | Perfect on NL queries |
-| german MRR | 1.000 | Cross-lingual embedding quality confirmed on 52-query set |
+| polish MRR | 1.000 | Cross-lingual embedding quality confirmed on 52-query set |
 | synonym MRR | 1.000 | "letting go staff" → termination procs, rank 1 |
 | typo MRR | 1.000 | "pharamcorp" → PharmaCorp, rank 1 |
 | jargon MRR | 1.000 | Industry terminology handled |
@@ -136,16 +141,31 @@
 | HyDE on natural_language R@5 / MRR | 1.000 / 0.760 vs no-HyDE 1.000 / 1.000 | **HyDE HURTS NL queries by -24.0% MRR.** Same pattern — original query already finds right doc. |
 | HyDE on negation R@5 / MRR | 0.833 / 0.542 vs no-HyDE 0.750 / 0.583 | Mixed: +11.1% R@5, -7.1% MRR. Only category where HyDE finds more documents. |
 | HyDE latency overhead | +1400-3800ms per query | gpt-5-mini LLM call dominates. NOT viable for latency-sensitive queries. |
-| **Re-ranking Benchmark (52 queries, 12 docs, local cross-encoder/ms-marco-MiniLM-L-12-v2)** | | |
-| NoOp (no re-ranking) MRR | **0.885** | Baseline — dense-only retrieval with text-embedding-3-small. |
-| Local cross-encoder MRR | 0.538 | **Re-ranking HURTS by -39.2% MRR.** Cross-encoder reshuffles already-correct rankings. |
-| Re-ranking on exact_code | MRR: 0.760 → **1.000** (+0.240) | **ONLY category where re-ranking helps.** Cross-encoder recognizes exact code matches. |
-| Re-ranking on german | MRR: 1.000 → **0.000** (-1.000) | **COMPLETE DESTRUCTION.** MS MARCO English model cannot score German queries. |
-| Re-ranking on typo | MRR: 1.000 → **0.000** (-1.000) | **COMPLETE DESTRUCTION.** "pharamcorp" vs "PharmaCorp" scores as irrelevant. |
-| Re-ranking on synonym | MRR: 1.000 → 0.500 (-0.500) | Cross-encoder doesn't understand domain synonyms as well as embeddings. |
-| Re-ranking on vague | MRR: 1.000 → 0.500 (-0.500) | Vague queries need semantic understanding, not lexical re-scoring. |
-| Re-ranking latency | avg 232ms per query | Local inference — acceptable for batch but adds latency to interactive queries. |
-| **KEY FINDING**: Re-ranking is counterproductive at 12-doc scale | Initial MRR is already 0.885 — re-ranking reshuffles correct rankings using a model that doesn't understand German, typos, or domain synonyms. | **RECOMMENDATION: Do NOT enable re-ranking until corpus >500 docs, document length >1000 chars, initial precision@1 <0.80, AND use a multilingual cross-encoder (not MS MARCO English-only).** |
+| **Re-ranking Benchmark (52 queries, 6 models, 2 production-quality Polish corpora)** | | |
+| **Homogeneous corpus** (57 contracts, avg 5,419 chars) | | Fair comparison — all same doc type, production-length Polish logistics contracts. |
+| NoOp MRR (homogeneous) | 0.415 | Baseline drops from 0.885 (12 short docs) to 0.415 (57 production-length contracts). More docs + longer docs = harder retrieval. |
+| TinyBERT MRR (homogeneous) | 0.308 (**-25.8%**) | English-only, 2 layers, 14.5M params. Fastest (72ms) but destroys Polish/typo/synonym. |
+| ms-marco MRR (homogeneous) | 0.351 (**-15.4%**) | English-only, 12 layers. Same failures as TinyBERT, slower. No use case. |
+| mmarco-multi MRR (homogeneous) | 0.333 (**-19.8%**) | "Multilingual" ms-marco (118M) — trained on translated data, but still HURTS. Multilingual training ≠ multilingual effectiveness. |
+| bge-base MRR (homogeneous) | 0.457 (+10.1%) | 278M params. Near-identical to BGE-m3 on homogeneous. Faster (181ms). |
+| bge-large MRR (homogeneous) | 0.456 (+9.9%) | 560M params. Same as bge-base on homogeneous. Slower (468ms). |
+| **BGE-m3 MRR (homogeneous)** | **0.459 (+10.6%)** | Multilingual, 568M params. Best on homogeneous by a hair. 424ms. |
+| **Diverse corpus** (57 docs, 8 types, avg 7,218 chars) | | 12 original + 45 LLM-generated Polish logistics docs (safety, HR, tech, incidents, meetings, SOPs, compliance, vendors). |
+| NoOp MRR (diverse) | 0.361 | Baseline. Noise docs + long documents confuse bi-encoder retrieval. |
+| TinyBERT MRR (diverse) | 0.268 (**-25.5%**) | Worst performer. Destroys synonym (-0.500), typo (-0.500), Polish (-0.146). |
+| ms-marco MRR (diverse) | 0.350 (-3.0%) | Better than TinyBERT but still hurts. English-only = not viable for Polish company. |
+| mmarco-multi MRR (diverse) | 0.337 (**-6.6%**) | Surprise failure — despite "multilingual" label, HURTS on diverse corpus. Synonym (-0.500), typo (-0.250), NL (-0.125). |
+| bge-base MRR (diverse) | 0.362 (+0.3%) | Neutral. Helps jargon (+0.542), multi_hop (+0.188) but hurts exact_code (-0.104), Polish (-0.146), synonym (-0.250). Net zero. |
+| **bge-large MRR (diverse)** | **0.446 (+23.5%)** | Strong second. Best at ranking (+0.312), multi_hop (+0.188). Similar to BGE-m3 but slightly worse on exact_code and negation. |
+| **BGE-m3 MRR (diverse)** | **0.454 (+25.8%)** | **Best overall.** 7/10 categories improved. Best gains: jargon +0.542, ranking +0.250, NL +0.125, negation +0.111. |
+| **6-model comparison** | | |
+| TinyBERT latency | 28-72ms | Fastest. Air-gapped/on-prem candidate (Phase 6) for English-only corpora. |
+| ms-marco latency | 74-105ms | Deprecated — slower than TinyBERT, same failures. |
+| mmarco-multi latency | 62-105ms | Fast but useless — "multilingual" label is misleading. Translated training data ≠ multilingual understanding. |
+| bge-base latency | 144-181ms | Good latency but near-zero improvement on diverse corpus. |
+| bge-large latency | 468-500ms | Similar latency to BGE-m3 but -2.4% MRR gap on diverse. No reason to prefer over m3. |
+| BGE-m3 latency | 424-480ms | Best quality, acceptable latency. Latency scales with doc length. |
+| **KEY FINDING**: BGE-m3 wins the 6-model comparison | Of 6 models benchmarked: 3 English-only HURT (TinyBERT -25.5%, ms-marco -3%, mmarco-multi -6.6%). BGE-base is NEUTRAL (+0.3%). Only BGE-m3 (+25.8%) and BGE-large (+23.5%) meaningfully improve retrieval. **"Multilingual" training data does NOT guarantee multilingual effectiveness** — mmarco-multi (trained on translated ms-marco) still hurts. BGE-m3's dedicated m3 objective (multi-lingual, multi-functionality, multi-granularity) is what makes the difference. | **RECOMMENDATION: BGE-m3 as default. BGE-large as backup. Never use mmarco-multi despite "multilingual" label. TinyBERT for air-gapped English-only only.** |
 
 ## Screenshots Captured
 
@@ -174,16 +194,22 @@
 4. HyDE re-evaluation trigger: "Activate when correct doc shares >0.85 cosine similarity with 5+ other docs."
 5. Hybrid-vs-dense boundary condition: "Hybrid wins when >25% of queries are exact codes; dense-only wins otherwise."
 
+### From Phase Review #3 (2026-03-07, Score: 27/30, Verdict: PROCEED)
+
+All major items already captured above. One additional gap:
+12. Chunking -> retrieval precision: clause integrity (structural) is not the same as retrieval MRR. Need end-to-end benchmark: ingest with semantic vs fixed-size chunking, run 52 queries, compare MRR. Maps to Phase R.
+
 **Benchmark Expansion (future phases):**
 7. Add 3-6 adversarial queries to ground truth (injection attempts through full enhanced_search pipeline). Maps to Phase 10.
 8. Test semantic chunking on documents of 1/5/20/50 pages to find latency boundary. Maps to Phase R.
-9. Test cross-encoder behavior on German-English code-switching queries. Maps to Phase 5.
+9. Test cross-encoder behavior on Polish-English code-switching queries. Maps to Phase 5.
 10. Exact-code proportion crossover sweep (20%, 30%, 40%, 50%) to find hybrid-vs-dense boundary. Maps to Phase R.
 11. Document scale test (100, 500 docs) to find small-vs-large embedding model crossover. Maps to Phase R.
+12. Chunking strategy -> retrieval MRR comparison (semantic vs fixed-size ingest, 52-query benchmark). Maps to Phase R.
 
 ## Content Status
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | — | | |
-| Medium article | — | | "We Tried 3 Chunking Strategies. Only One Survived." |
+| LinkedIn post | draft | 2026-03-08 | `docs/content/linkedin/phase-2-post.md` — 6-model re-ranking benchmark, "multilingual" lie hook |
+| Medium article | draft | 2026-03-08 | `docs/content/medium/phase-2-reranking-multilingual-lie.md` — "Multilingual Re-Ranking Is a Lie" |

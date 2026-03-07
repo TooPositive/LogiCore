@@ -101,7 +101,7 @@ DOCS = [
     (
         "Employee Termination Procedures HR CONFIDENTIAL. Performance-based "
         "termination: two consecutive quarterly reviews below 2.0/5.0. "
-        "Notice periods per German labor law. Severance formula: 0.5 months "
+        "Notice periods per Kodeks Pracy Art. 36. Severance formula: 0.5 months "
         "salary per year of service.",
         "DOC-HR-004", "hr", 3, "termination.txt",
     ),
@@ -254,30 +254,30 @@ HARD_QUERIES = [
         "jargon",
         "Technical jargon NOT in corpus — tests false positive rate",
     ),
-    # -- MULTILINGUAL queries: German company, German workforce --
+    # -- MULTILINGUAL queries: Polish company, Polish workforce --
     (
-        "Gefahrgut Vorschriften",
+        "towary niebezpieczne przepisy",
         "DOC-LEGAL-004",  # ChemTrans hazmat
         "multilingual",
-        "German for 'dangerous goods regulations'",
+        "Polish for 'dangerous goods regulations'",
     ),
     (
-        "Arbeitszeit Regelung LKW Fahrer",
+        "czas pracy kierowcy ciezarowki",
         "DOC-HR-003",  # driver safety, driving hours
         "multilingual",
-        "German for 'working hours regulation truck driver'",
+        "Polish for 'working hours truck driver'",
     ),
     (
-        "Kuendigungsfristen",
+        "okresy wypowiedzenia umowy o prace",
         "DOC-HR-004",  # termination procedures, notice periods
         "multilingual",
-        "German for 'notice periods'",
+        "Polish for 'employment contract notice periods'",
     ),
     (
-        "Qualitaetskontrolle Lager",
+        "kontrola jakosci magazyn",
         "DOC-SAFETY-001",  # quality manual, warehouse
         "multilingual",
-        "German for 'quality control warehouse'",
+        "Polish for 'quality control warehouse'",
     ),
     # -- TYPO queries: real users misspell --
     (
@@ -510,7 +510,7 @@ class TestHonestBenchmark:
             "exact_code": "Exact Code",
             "ranking": "Ranking",
             "jargon": "Jargon",
-            "multilingual": "German",
+            "multilingual": "Polish",
             "typo": "Typo",
             "negation": "Negation",
         }
@@ -571,7 +571,7 @@ class TestHonestBenchmark:
             f"exact codes at rank 1 vs dense {dn_ec}/4."
         )
         print(
-            f"  - German queries: Dense {dn_ml}/4 — "
+            f"  - Polish queries: Dense {dn_ml}/4 — "
             "cross-lingual embedding quality. Phase 2: query translation."
         )
         print(
@@ -681,7 +681,7 @@ class TestEmbeddingModelComparison:
             "exact_code": "Exact Code",
             "ranking": "Ranking",
             "jargon": "Jargon",
-            "multilingual": "German",
+            "multilingual": "Polish",
             "typo": "Typo",
             "negation": "Negation",
         }

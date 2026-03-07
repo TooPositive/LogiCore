@@ -225,7 +225,7 @@ class TestGroundTruthDataset:
         categories = get_all_categories()
         expected = {
             "exact_code", "natural_language", "vague", "negation",
-            "german", "synonym", "typo", "jargon", "ranking", "multi_hop",
+            "polish", "synonym", "typo", "jargon", "ranking", "multi_hop",
         }
         assert set(categories) == expected
 

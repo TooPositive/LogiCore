@@ -44,18 +44,18 @@ def text_to_sparse_vector(text: str) -> SparseVector:
 
 works great for exact terms. "CTR-2024-001" finds the PharmaCorp contract instantly. "ISO-9001" finds the quality manual. rank 1, every time. this is BM25's strength: when the user types the exact string that exists in the document, nothing beats it.
 
-then I ran 26 queries designed to break things. 7 categories: synonyms, exact codes, ranking, industry jargon, German, typos, negation.
+then I ran 26 queries designed to break things. 7 categories: synonyms, exact codes, ranking, industry jargon, Polish, typos, negation.
 
 BM25 scored 16/26.
 
 the failure pattern was consistent across 4 categories:
 
 - **Synonyms (2/4)**: "letting go of staff" returns zero results. the document says "termination procedures." "dangerous goods" returns nothing because the doc says "hazardous materials." real users describe what they need, they dont quote the document back at it.
-- **German (2/4)**: "Gefahrgut Vorschriften" (hazmat regulations) returns garbage. the documents are in English. BM25 has no concept of cross-lingual similarity.
+- **Polish (2/4)**: "towary niebezpieczne przepisy" (hazmat regulations) returns garbage. the documents are in English. BM25 has no concept of cross-lingual similarity.
 - **Typos (2/4)**: "pharamcorp" (typo for PharmaCorp) returns nothing. "tempature" returns nothing. BM25 needs exact character matches.
 - **Jargon (2/4)**: "GDP compliance" returns nothing because the doc uses "Good Distribution Practice" without the acronym.
 
-the pattern is clear: BM25 only works when the user already knows the exact terminology in the exact language, spelled perfectly. in a logistics company where warehouse workers search in German and managers use industry acronyms, thats maybe half the queries on a good day.
+the pattern is clear: BM25 only works when the user already knows the exact terminology in the exact language, spelled perfectly. in a logistics company where warehouse workers search in Polish and managers use industry acronyms, thats maybe half the queries on a good day.
 
 **2ms average latency though. fast results that are wrong half the time.**
 
@@ -64,7 +64,7 @@ the pattern is clear: BM25 only works when the user already knows the exact term
 Dense embeddings (text-embedding-3-small, 1536 dimensions, $0.02/1M tokens) scored 23/26 on the same queries.
 
 - Synonyms: 4/4. "letting go of staff" finds termination procedures at rank 1.
-- German: 4/4. "Gefahrgut Vorschriften" finds the hazmat contract at rank 1. cross-lingual embedding quality is surprisingly strong.
+- Polish: 4/4. "towary niebezpieczne przepisy" finds the hazmat contract at rank 1. cross-lingual embedding quality is surprisingly strong.
 - Typos: 4/4. "pharamcorp" finds PharmaCorp at rank 1. embeddings absorb common misspellings.
 - Jargon: 3/4. "GDP compliance" finds Good Distribution Practice docs.
 
@@ -208,7 +208,7 @@ the ingest endpoint also validates file paths against an allowlist directory. so
 
 26 queries across 7 categories, 12 documents. queries designed to break specific modes.
 
-| Mode | Synonym (4) | Exact Code (4) | Ranking (4) | Jargon (4) | German (4) | Typo (4) | Negation (2) | Total |
+| Mode | Synonym (4) | Exact Code (4) | Ranking (4) | Jargon (4) | Polish (4) | Typo (4) | Negation (2) | Total |
 |---|---|---|---|---|---|---|---|---|
 | BM25 (free, 2ms) | 2/4 | 4/4 | 2/4 | 2/4 | 2/4 | 2/4 | 2/2 | **16/26** |
 | Dense ($0.02/1M, 147ms) | 4/4 | 4/4 | 3/4 | 3/4 | 4/4 | 4/4 | 1/2 | **23/26** |
@@ -282,7 +282,7 @@ these are boundaries I found during Phase 1. each one maps to a future phase.
 
 **Negation is fragile.** "contracts without temperature requirements" in dense mode matches documents that mention temperature (wrong). hybrid saves it because BM25 matches "non-perishable" by keyword, which is what the user actually wanted. but this is a coincidence, not robust negation understanding. Phase 2 adds query understanding and re-ranking.
 
-**German works but untested at depth.** 4/4 on simple German terms ("Gefahrgut Vorschriften", "Kuendigungsfristen"). unknown: compound nouns like Gefahrguttransportvorschriften, mixed German-English queries, Swiss German dialect. Phase 2 needs multilingual evaluation at scale.
+**Polish works but untested at depth.** 4/4 on simple Polish terms ("towary niebezpieczne przepisy", "okresy wypowiedzenia"). unknown: complex multi-word phrases like przepisy dotyczące transportu towarów niebezpiecznych, mixed Polish-English queries, colloquial Polish. Phase 2 needs multilingual evaluation at scale.
 
 **No confidence threshold.** "HNSW index parameters" (completely irrelevant to the logistics corpus) still returns top_k results. all modes scored 0/1 on false positive detection. the system never returns empty. without precision@k metrics, every query looks like it "worked." Phase 5 adds evaluation rigor.
 

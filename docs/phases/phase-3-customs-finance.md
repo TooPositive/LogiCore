@@ -209,7 +209,7 @@ Most "multi-agent" demos are fixed pipelines — A → B → C. That's an orches
 
 ### The Problem
 
-The Auditor Agent finds a discrepancy on INV-2024-0847. While investigating, it discovers the contract was amended 3 months ago with a temporary surcharge clause — but the amendment is in German, in a separate legal document. The Auditor Agent doesn't have access to legal docs (clearance level 3, it operates at level 2). It can't just ignore the clause.
+The Auditor Agent finds a discrepancy on INV-2024-0847. While investigating, it discovers the contract was amended 3 months ago with a temporary surcharge clause — but the amendment is in Polish, in a separate legal document. The Auditor Agent doesn't have access to legal docs (clearance level 3, it operates at level 2). It can't just ignore the clause.
 
 ### Dynamic Delegation Pattern
 

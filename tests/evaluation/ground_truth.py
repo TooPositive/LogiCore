@@ -1,7 +1,7 @@
 """Ground truth dataset for retrieval quality evaluation.
 
 50+ test queries across 10 categories, with expected document IDs.
-Built from the 12-document LogiCore corpus (Phase 1 benchmark).
+Built from the 12-document LogiCore corpus (Polish logistics company).
 
 Each query represents a realistic logistics worker search — the kind
 of thing a warehouse operator, HR director, or CEO would actually type.
@@ -43,7 +43,7 @@ class GroundTruthQuery:
 # natural_language — clear factual question in plain language
 # vague         — broad, exploratory, underspecified
 # negation      — "without", "non-", "excluding"
-# german        — German language queries (LogiCore is a German company)
+# polish        — Polish language queries (LogiCore is a Polish company)
 # synonym       — no keyword overlap with target document
 # typo          — common misspellings
 # jargon        — industry abbreviations, acronyms
@@ -116,7 +116,7 @@ GROUND_TRUTH: list[GroundTruthQuery] = [
         query="how long is the probation period for new employees",
         category="natural_language",
         relevant_doc_ids=["DOC-HR-005"],
-        description="Onboarding handbook mentions 6-month probation",
+        description="Onboarding handbook mentions 3-month probation per Kodeks Pracy",
     ),
     GroundTruthQuery(
         query="what is the maximum driving time per day",
@@ -239,31 +239,31 @@ GROUND_TRUTH: list[GroundTruthQuery] = [
         description="Only onboarding handbook is non-confidential HR doc",
     ),
     # =========================================================================
-    # GERMAN (4 queries)
+    # POLISH (4 queries)
     # =========================================================================
     GroundTruthQuery(
-        query="Gefahrgut Vorschriften",
-        category="german",
+        query="towary niebezpieczne przepisy",
+        category="polish",
         relevant_doc_ids=["DOC-LEGAL-004"],
-        description="German for 'dangerous goods regulations' -> ChemTrans hazmat",
+        description="Polish for 'dangerous goods regulations' -> ChemTrans hazmat",
     ),
     GroundTruthQuery(
-        query="Arbeitszeit Regelung LKW Fahrer",
-        category="german",
+        query="czas pracy kierowcy ciezarowki",
+        category="polish",
         relevant_doc_ids=["DOC-HR-003"],
-        description="German for 'working hours regulation truck driver'",
+        description="Polish for 'working hours truck driver'",
     ),
     GroundTruthQuery(
-        query="Kuendigungsfristen",
-        category="german",
+        query="okresy wypowiedzenia umowy o prace",
+        category="polish",
         relevant_doc_ids=["DOC-HR-004"],
-        description="German for 'notice periods' -> termination procedures",
+        description="Polish for 'employment contract notice periods'",
     ),
     GroundTruthQuery(
-        query="Qualitaetskontrolle Lager",
-        category="german",
+        query="kontrola jakosci magazyn",
+        category="polish",
         relevant_doc_ids=["DOC-SAFETY-001"],
-        description="German for 'quality control warehouse'",
+        description="Polish for 'quality control warehouse'",
     ),
     # =========================================================================
     # SYNONYM (4 queries)

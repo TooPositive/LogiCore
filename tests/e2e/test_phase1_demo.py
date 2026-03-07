@@ -83,8 +83,8 @@ async def seeded_qdrant(qdrant: AsyncQdrantClient):
             "exec-compensation.txt",
         ),
         (
-            "Employee Termination Procedures HR CONFIDENTIAL. Notice periods under "
-            "German labor law. Severance formula: 0.5 months per year.",
+            "Employee Termination Procedures HR CONFIDENTIAL. Notice periods per "
+            "Kodeks Pracy Art. 36. Severance formula: 0.5 months per year.",
             "DOC-HR-004",
             "hr",
             3,

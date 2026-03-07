@@ -49,14 +49,14 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-LEGAL-001",
         text=(
             "SERVICE AGREEMENT CTR-2024-001\n"
-            "Between: PharmaCorp AG (Client) and LogiCore Transport GmbH (Provider)\n"
+            "Between: PharmaCorp Polska Sp. z o.o. (Client) and LogiCore Sp. z o.o. (Provider)\n"
             "Effective: 2024-03-01 — 2026-02-28\n\n"
             "1. Scope of Services\n"
-            "LogiCore Transport GmbH shall provide temperature-controlled "
-            "pharmaceutical logistics services for PharmaCorp AG, including "
+            "LogiCore Sp. z o.o. shall provide temperature-controlled "
+            "pharmaceutical logistics services for PharmaCorp Polska Sp. z o.o., including "
             "collection from manufacturing facilities, warehousing at certified "
             "GDP-compliant facilities, and last-mile delivery to pharmacies and "
-            "hospitals across Germany, Austria, and Switzerland.\n\n"
+            "hospitals across Poland.\n\n"
             "2. Service Level Agreement\n"
             "SLA: on-time delivery >= 98.5%. On-time is defined as delivery "
             "within the agreed 4-hour window. Measurement period: calendar month. "
@@ -89,14 +89,14 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-LEGAL-004",
         text=(
             "HAZARDOUS MATERIALS TRANSPORT AGREEMENT CTR-2024-004\n"
-            "Between: ChemTrans GmbH (Client) and LogiCore Transport GmbH (Provider)\n"
+            "Between: ChemTrans S.A. (Client) and LogiCore Sp. z o.o. (Provider)\n"
             "Effective: 2024-01-15 — 2025-12-31\n\n"
             "1. Scope of Services\n"
-            "LogiCore Transport GmbH shall provide ADR-certified hazardous "
-            "materials transport services for ChemTrans GmbH. Cargo classes: "
+            "LogiCore Sp. z o.o. shall provide ADR-certified hazardous "
+            "materials transport services for ChemTrans S.A.. Cargo classes: "
             "UN Class 3 (flammable liquids), Class 6.1 (toxic substances), "
-            "and Class 8 (corrosives). Routes: Ludwigshafen to 14 chemical "
-            "processing plants across Bavaria, Baden-Württemberg, and Hessen.\n\n"
+            "and Class 8 (corrosives). Routes: Płock refinery to chemical "
+            "plants in Tarnów, Police, and Puławy.\n\n"
             "2. Safety and Compliance\n"
             "All shipments require UN-approved packaging verified by shipper. "
             "Every driver must hold a valid ADR certificate (renewed every 5 years). "
@@ -107,7 +107,7 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
             "expired ADR certificate, missing or incorrect placarding, unsealed "
             "containment, or failure to report spill within 1 hour.\n"
             "3.2 Regulatory fine passthrough: LogiCore bears 100% of fines "
-            "imposed by Gefahrgutbeauftragter (dangerous goods safety advisor) "
+            "imposed by DGSA (Dangerous Goods Safety Adviser) "
             "inspection.\n"
             "3.3 Insurance premium surcharge: 15% increase for any quarter with "
             "2+ compliance incidents.\n\n"
@@ -130,7 +130,7 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-HR-003",
         text=(
             "DRIVER SAFETY PROTOCOL\n"
-            "LogiCore Transport GmbH — Operations Department\n"
+            "LogiCore Sp. z o.o. — Operations Department\n"
             "Version 4.1 — Effective 2024-06-01\n\n"
             "1. Pre-Trip Inspection\n"
             "Every driver must complete the 15-point pre-trip inspection "
@@ -173,7 +173,7 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-HR-004",
         text=(
             "EMPLOYEE TERMINATION PROCEDURES — HR CONFIDENTIAL\n"
-            "LogiCore Transport GmbH — HR Department\n"
+            "LogiCore Sp. z o.o. — HR Department\n"
             "Version 2.3 — Last Updated 2024-09-15\n\n"
             "1. Grounds for Termination\n"
             "1.1 Performance-based: Two consecutive quarterly reviews below "
@@ -186,12 +186,12 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
             "discipline: verbal warning → written warning → final warning → "
             "termination.\n"
             "1.3 Redundancy: Role elimination due to restructuring. Selection "
-            "criteria per social selection (Sozialauswahl) under German labor law.\n\n"
+            "criteria per social selection under Kodeks Pracy.\n\n"
             "2. Notice Periods\n"
-            "Per German labor law (§622 BGB): 4 weeks during probation, "
-            "1 month after 2 years, 2 months after 5 years, 3 months after "
-            "8 years, 7 months after 20 years. Works Council (Betriebsrat) "
-            "must be consulted before any termination — BetrVG Section 102.\n\n"
+            "Per Kodeks Pracy Art. 36: 2 weeks (< 6 months tenure), "
+            "1 month (6 months to 3 years), 3 months (> 3 years). "
+            "Trade union (Związki Zawodowe) must be consulted before any "
+            "termination per Art. 38 KP.\n\n"
             "3. Severance Calculations\n"
             "Severance formula: 0.5 months salary per year of service. Calculated "
             "on gross monthly salary including regular bonuses. Pro-rated for "
@@ -203,11 +203,11 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
             "returned within 5 business days. Final paycheck including accrued "
             "vacation within 30 days. Exit interview conducted by HR (optional "
             "for employee, mandatory for HR to offer). Reference letter "
-            "(Arbeitszeugnis) issued within 14 days of last working day.\n\n"
+            "(świadectwo pracy) issued within 14 days of last working day.\n\n"
             "5. Documentation Requirements\n"
             "All termination decisions must be documented in HR system with: "
             "grounds, supporting evidence, consultation records, employee "
-            "acknowledgment. Records retained for 10 years per German data "
+            "acknowledgment. Records retained for 10 years per RODO data "
             "retention requirements."
         ),
         department="hr",
@@ -217,8 +217,8 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-SAFETY-002",
         text=(
             "WAREHOUSE FIRE SAFETY PLAN\n"
-            "LogiCore Transport GmbH — Warehouse Schwechat\n"
-            "Version 3.0 — Approved by Feuerwehr Schwechat 2024-04-20\n\n"
+            "LogiCore Sp. z o.o. — Warehouse Warszawa\n"
+            "Version 3.0 — Approved by PSP Warszawa 2024-04-20\n\n"
             "1. Fire Detection Systems\n"
             "Aspirating smoke detection (VESDA) in all storage halls. Point-type "
             "heat detectors in loading bays (where smoke detection is unreliable "
@@ -249,8 +249,8 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
             "Spill containment: bunded floor with 110% capacity. No ignition "
             "sources within 10 meters (ATEX zone 2 classification).\n\n"
             "6. Emergency Contacts\n"
-            "Fire brigade: 122. Internal emergency: ext. 9999. Facility manager "
-            "on-call: +43 (0) 664 XXX XXXX. Insurance hotline: documented in "
+            "Fire brigade: 998. Internal emergency: ext. 9999. Facility manager "
+            "on-call: +48 22 XXX XXXX. Insurance hotline: documented in "
             "emergency folder at reception."
         ),
         department="warehouse",
@@ -260,7 +260,7 @@ EXPANDED_CORPUS: list[CorpusDocument] = [
         doc_id="DOC-HR-005",
         text=(
             "EMPLOYEE ONBOARDING HANDBOOK\n"
-            "LogiCore Transport GmbH — HR Department\n"
+            "LogiCore Sp. z o.o. — HR Department\n"
             "Version 5.1 — Updated 2024-08-01\n\n"
             "1. First Week Schedule\n"
             "New hire orientation: first 3 days. Day 1: HR paperwork, IT setup, "

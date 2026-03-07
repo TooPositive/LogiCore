@@ -49,11 +49,14 @@ def text_to_sparse_vector(text: str) -> SparseVector:
     tf = Counter(tokens)
 
     # Map tokens to indices via deterministic hash
-    indices = []
-    values = []
+    # Merge colliding indices by summing values (hash collisions are rare
+    # with 65536 buckets, but must be handled for Qdrant's unique constraint)
+    index_map: dict[int, float] = {}
     for token, count in tf.items():
         idx = hash(token) % _VOCAB_SIZE
-        indices.append(idx)
-        values.append(float(count))
+        index_map[idx] = index_map.get(idx, 0.0) + float(count)
+
+    indices = list(index_map.keys())
+    values = list(index_map.values())
 
     return SparseVector(indices=indices, values=values)

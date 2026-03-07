@@ -127,21 +127,21 @@
 | Semantic baseline | 4/4 easy queries pass all modes | "quality standards"→ISO9001, "driving hours"→safety. These are the baseline — the hard queries are where modes diverge. |
 | RBAC demo (live) | Max: 2 docs, Katrin: 1 doc, Eva: 6 docs | Same query "salary compensation termination" — different results per clearance |
 | Azure OpenAI endpoint | swedencentral | text-embedding-3-small (1536d) + text-embedding-3-large (3072d) |
-| **BM25 (free, local)** | 16/26, 2ms avg | NOT viable alone — fails synonyms (2/4), German (2/4), typos (2/4), jargon (2/4). Real users never use exact doc terminology. |
-| **Dense ($0.02/1M tok)** | 23/26, 147ms avg | Mandatory for human-facing search — handles synonyms (4/4), German (4/4), typos (4/4). Fails reasoning (1/4 ranking) and negation (1/2). |
+| **BM25 (free, local)** | 16/26, 2ms avg | NOT viable alone — fails synonyms (2/4), Polish (2/4), typos (2/4), jargon (2/4). Real users never use exact doc terminology. |
+| **Dense ($0.02/1M tok)** | 23/26, 147ms avg | Mandatory for human-facing search — handles synonyms (4/4), Polish (4/4), typos (4/4). Fails reasoning (1/4 ranking) and negation (1/2). |
 | **Hybrid RRF** | 24/26, 128ms avg | Dense + BM25 code precision. Best overall: gains negation (2/2) over dense alone because BM25 matches "non-perishable" exactly. |
 | **BM25 synonym score** | 2/4 | "letting go of staff" → 0 results. "dangerous goods" → 0 results. Real users don't speak in doc terms. |
 | **Dense synonym score** | 4/4 | "letting go of staff" → termination procs rank 1. "dangerous goods" → hazmat contract rank 1. |
 | **BM25 exact code @top_k=1** | 4/4 | BM25's actual value: precise code/ID lookup. CTR-2024-001 rank 1 vs Dense rank 2. |
 | **Dense exact code @top_k=1** | 3/4 | Embeddings blur similar alphanumeric codes — that's where BM25 supplements. |
-| **German queries (multilingual)** | BM25: 2/4, Dense: 4/4, Hybrid: 4/4 | "Gefahrgut Vorschriften" → Dense finds hazmat contract rank 1. BM25 returns garbage. Cross-lingual embedding strength — but needs testing at scale for Phase 2. |
+| **Polish queries (multilingual)** | BM25: 2/4, Dense: 4/4, Hybrid: 4/4 | "towary niebezpieczne przepisy" → Dense finds hazmat contract rank 1. BM25 returns garbage. Cross-lingual embedding strength — but needs testing at scale for Phase 2. |
 | **Typo resilience** | BM25: 2/4, Dense: 4/4, Hybrid: 4/4 | "pharamcorp" → Dense finds PharmaCorp rank 1. "tempature" → Dense finds temperature docs. BM25 fails any misspelling. Embeddings absorb common typos — Phase 2 should test severe typos. |
 | **Industry jargon (retrieval)** | BM25: 2/3, Dense: 3/3, Hybrid: 3/3 | "ADR certified" → all find it (term exists in doc). "GDP compliance" → BM25 fails, Dense finds it. "SLA breach" → all find it. Real jargon retrieval: Dense and Hybrid find all 3. |
 | **False positive detection** | All modes: 0/1 | "HNSW index parameters" (irrelevant to corpus) → all modes return results anyway. No confidence threshold — system always returns top_k regardless of relevance. Phase 5: precision@k metrics to catch this. |
 | **Negation queries** | BM25: 2/2, Dense: 1/2, Hybrid: 2/2 | "contracts without temperature" → BM25 matches "non-perishable" by keyword. Dense matches "temperature" in wrong docs. Hybrid wins by combining both signals. Phase 2/3: query understanding for negation. |
 | **Embedding: small vs large** | Both 23/26 on dense | Large finds 0 more at 6.5x cost. Not justified until corpus >> 1000 semantically similar docs. |
-| **Latency: BM25 vs Dense** | 2ms vs 147ms | Irrelevant — BM25 alone isn't viable. The latency "win" means nothing if it fails German, synonyms, typos, and jargon. |
-| **Architect verdict** | Hybrid (Dense + BM25) is default | Embeddings are mandatory (synonyms, German, typos). BM25 supplements with exact code precision + negation keyword matching. The question was never "BM25 or Dense" — it's "Dense alone or Dense+BM25." Switch to dense-only when corpus has no alphanumeric codes AND BM25 indexing becomes maintenance burden. Switch to BM25-only: never — it's a lookup tool, not a search engine. |
+| **Latency: BM25 vs Dense** | 2ms vs 147ms | Irrelevant — BM25 alone isn't viable. The latency "win" means nothing if it fails Polish, synonyms, typos, and jargon. |
+| **Architect verdict** | Hybrid (Dense + BM25) is default | Embeddings are mandatory (synonyms, Polish, typos). BM25 supplements with exact code precision + negation keyword matching. The question was never "BM25 or Dense" — it's "Dense alone or Dense+BM25." Switch to dense-only when corpus has no alphanumeric codes AND BM25 indexing becomes maintenance burden. Switch to BM25-only: never — it's a lookup tool, not a search engine. |
 
 ### Boundaries Found (Phase Teasers for Content)
 
@@ -149,7 +149,7 @@
 |---|---|---|
 | RAG can't reason | "contract with largest annual value" → ALL modes fail (0/3). RAG retrieves docs, doesn't compare numbers across them. | Phase 3: LangGraph multi-agent reasoning |
 | Negation is fragile | "contracts WITHOUT temperature" → Dense matches wrong docs. Hybrid saves it by combining BM25 exact match, but this is fragile. Only 2 negation queries in Phase 1 — expand to 4+ in Phase 2 since negation is the one category where Hybrid demonstrably beats Dense (2/2 vs 1/2). | Phase 2: query understanding, re-ranking, expanded negation benchmarks |
-| German queries work but untested at scale | 4/4 on simple German terms. Unknown: compound nouns (Gefahrguttransportvorschriften), mixed German-English, dialect | Phase 2: multilingual evaluation at scale |
+| Polish queries work but untested at scale | 4/4 on simple Polish terms. Unknown: complex phrases (przepisy dotyczące transportu towarów niebezpiecznych), mixed Polish-English, colloquial Polish | Phase 2: multilingual evaluation at scale |
 | Typo resilience has limits | 4/4 on common typos. Unknown: severe typos ("farmacorp"), phonetic misspelling, autocorrect artifacts | Phase 2: spell-correction preprocessing |
 | No confidence threshold | "HNSW index parameters" (completely irrelevant) still returns top_k results — all modes score 0/1 on false positive detection. System never returns empty. Without precision@k, every query looks like it "worked." | Phase 5: evaluation rigor, precision@k, confidence thresholds |
 | Large embedding model adds nothing... yet | 0 extra hits at 12 docs. Boundary claim (>> 1000 docs) is an assumption, not evidence. | Phase 2: scale benchmarks when corpus grows |

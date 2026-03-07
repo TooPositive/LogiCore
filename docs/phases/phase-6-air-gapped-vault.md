@@ -2,7 +2,7 @@
 
 ## Business Problem
 
-Swiss banks, German manufacturers, EU healthcare providers — they cannot send sensitive data to OpenAI's API. Regulatory requirements mandate that financial documents, patient records, and trade secrets never leave the internal network. Cloud AI is a non-starter.
+Swiss banks, Polish manufacturers, EU healthcare providers — they cannot send sensitive data to OpenAI's API. Regulatory requirements mandate that financial documents, patient records, and trade secrets never leave the internal network. Cloud AI is a non-starter.
 
 **CTO pain**: "Our legal team says we can't use OpenAI for anything touching customer financial data. But the board wants AI. Build it on-premise."
 
@@ -259,7 +259,7 @@ The gap between local and cloud models has narrowed dramatically since 2024.
 ## LinkedIn Post Template
 
 ### Hook
-"Swiss banks and German manufacturers can't send their data to OpenAI. Here's the modern on-premise AI stack for 2026."
+"Swiss banks and Polish manufacturers can't send their data to OpenAI. Here's the modern on-premise AI stack for 2026."
 
 ### Body
 Built the same multi-agent system running 100% locally. Zero external API calls.

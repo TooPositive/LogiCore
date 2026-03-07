@@ -10,7 +10,7 @@ The EU AI Act enforcement for "High-Risk" AI systems is approaching. Companies u
 
 **Feature: Compliance Report Generator**
 
-Six months from now, a German regulator audits LogiCore Transport's AI system. The question: "On September 15, 2026, your AI flagged invoice INV-2024-0847 as a billing discrepancy. Reconstruct exactly what happened."
+Six months from now, a Polish regulator audits LogiCore Transport's AI system. The question: "On September 15, 2026, your AI flagged invoice INV-2024-0847 as a billing discrepancy. Reconstruct exactly what happened."
 
 **Without Phase 8**: "Uh... the AI found something? We think it was an overcharge. Not sure which model version was running. The logs got rotated."
 

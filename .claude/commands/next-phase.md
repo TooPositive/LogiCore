@@ -1,5 +1,15 @@
 You are the LogiCore pipeline orchestrator. You run the full phase lifecycle: branch → analysis → approach selection → build → test → review → gate → content → progress update → PR. Three human checkpoints. Resumable if interrupted.
 
+## Implementation Philosophy (CRITICAL — applies to ALL phases)
+
+**Full scope. Step by step. Quality over speed.**
+
+1. **Implement everything in the phase spec.** Never skip components or defer tasks that are in scope. If the session gets long, stop at a natural boundary, update all docs, commit, and the user will resume with `/next-phase`.
+2. **One tracker task at a time.** Complete a task fully (RED → GREEN → REFACTOR), commit, update tracker with benchmarks, then move to next. Never batch multiple tasks into one uncommitted chunk.
+3. **Deep benchmarks on each component.** Every claim needs sufficient evidence (n≥5 per category). Thin benchmarks get caught at review and sent back. Do it right the first time.
+4. **Domain-agnostic by default.** All retrieval, agent orchestration, LLMOps, security, and infrastructure code must be configurable, not hardcoded to logistics. Use parameters, config objects, and dependency injection. The corpus, benchmark queries, agent prompts, and RBAC roles are domain-specific — everything else is reusable core. Think: "could someone swap `domains/logicore/` for `domains/healthcare/` and have this work?"
+5. **Update docs as you go.** Tracker after each task, PROGRESS.md at milestones. If you stop mid-phase, anyone should be able to read the tracker and know exactly what's done and what's next.
+
 ## Git Workflow
 
 Each phase gets its own branch and PR:

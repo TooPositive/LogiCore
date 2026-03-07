@@ -41,6 +41,24 @@ class SearchResult(BaseModel):
     chunk_index: int
 
 
+class EnhancedSearchResult(BaseModel):
+    """Extended search result with pipeline metadata.
+
+    Extends SearchResult fields with reranking scores and pipeline stage info.
+    Used by enhanced_search() in Phase 2+. SearchResult remains for Phase 1.
+    """
+
+    content: str
+    score: float  # final score (rerank_score if reranked, search_score if not)
+    source: str
+    document_id: str
+    chunk_index: int
+    search_score: float  # original vector/hybrid search score
+    rerank_score: float | None = None  # cross-encoder score if reranked
+    pipeline_stage: str = "search"  # "search" or "reranked"
+    query_category: str | None = None  # from router: keyword/standard/vague/multi_hop
+
+
 class SearchResponse(BaseModel):
     results: list[SearchResult]
     query: str

@@ -77,9 +77,9 @@ DOCS = [
     (
         "Employee Termination Procedures HR CONFIDENTIAL. Performance-based "
         "termination: two consecutive quarterly reviews below 2.0/5.0. "
-        "Notice periods per German labor law. Severance formula: 0.5 months "
-        "salary per year of service. Works Council must be notified per "
-        "BetrVG Section 102.",
+        "Notice periods per Kodeks Pracy Art. 36. Severance formula: 0.5 months "
+        "salary per year of service. Works Council (Zwiazki Zawodowe) must be "
+        "notified per Art. 38 KP.",
         "DOC-HR-004",
         "hr",
         3,

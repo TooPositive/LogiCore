@@ -155,7 +155,7 @@ RAG adds latency (~200-500ms for retrieval) and cost (embedding + search + gener
 |---|---|---|
 | Structured data ("How many invoices this month?") | SQL query (direct or via SQL Agent) | Data is already structured — vectorizing it loses precision |
 | Real-time data ("Current warehouse temperature") | API call / sensor feed | RAG indexes are stale by definition (minutes to hours) |
-| Simple key-value lookup ("What's driver ID for Hans Muller?") | Cache / database lookup | Sub-millisecond vs 300ms RAG round-trip |
+| Simple key-value lookup ("What's driver ID for Jan Kowalski?") | Cache / database lookup | Sub-millisecond vs 300ms RAG round-trip |
 | Repetitive identical queries | Response cache (Redis) | Same question → same answer, no need to re-retrieve |
 | Data already in the prompt / session | Just use context window | Don't retrieve what you already have |
 
@@ -243,7 +243,7 @@ A logistics platform serving 50 clients. Each client has:
 - Their own contracts, invoices, documents (data isolation)
 - Different clearance level structures (RBAC per tenant)
 - Different model budgets (PharmaCorp pays for GPT-5.2, small clients get GPT-5 nano)
-- Different compliance requirements (Swiss client = air-gapped, German client = cloud OK)
+- Different compliance requirements (Swiss client = air-gapped, Polish client = cloud OK)
 
 ### Qdrant Multi-Tenancy Strategy
 

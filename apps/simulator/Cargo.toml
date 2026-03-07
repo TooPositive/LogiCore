@@ -1,0 +1,31 @@
+[package]
+name = "logicore-simulator"
+version = "0.1.0"
+edition = "2021"
+description = "High-throughput fleet & data simulator for LogiCore Transport GmbH"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rdkafka = { version = "0.36", features = ["cmake-build"], optional = true }
+tower-http = { version = "0.6", features = ["cors"] }
+
+[features]
+default = []
+kafka = ["rdkafka"]
+
+[[bin]]
+name = "logicore-simulator"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

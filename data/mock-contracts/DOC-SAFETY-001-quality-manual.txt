@@ -1,0 +1,23 @@
+ISO 9001 Quality Management Manual
+LogiCore Transport GmbH — Version 3.2
+
+Section 1: Scope
+This quality manual applies to all LogiCore Transport operations including warehousing, fleet management, and customs clearance processes.
+
+Section 2: Quality Policy
+LogiCore Transport is committed to providing reliable logistics services that meet ISO 9001:2015 standards. All employees are responsible for maintaining quality in their daily operations.
+
+Section 3: Process Management
+3.1 Warehouse Operations
+All incoming goods must be inspected within 4 hours of receipt. Temperature-sensitive cargo (pharma, food) requires continuous monitoring per DOC-OPS-007.
+
+3.2 Fleet Management
+Vehicle maintenance follows a 10,000 km interval schedule. Pre-trip inspections are mandatory. Any vehicle failing inspection is immediately removed from service.
+
+Section 4: Documentation Requirements
+4.1 All quality records must be retained for 7 years.
+4.2 Non-conformance reports (NCRs) must be filed within 24 hours of detection.
+4.3 Corrective actions must be implemented within 30 days.
+
+Section 5: Continuous Improvement
+Monthly quality KPIs are reviewed by the Operations Manager. Annual management reviews include trend analysis of NCRs, customer complaints, and delivery performance metrics.

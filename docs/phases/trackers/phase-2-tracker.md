@@ -8,7 +8,7 @@
 
 - [x] `apps/api/src/rag/chunking.py` — multiple chunking strategies: fixed-size, semantic, parent-child (48 tests)
 - [x] `apps/api/src/rag/reranker.py` — cross-encoder re-ranking (Cohere + local model) (42 tests)
-- [ ] `apps/api/src/rag/query_transform.py` — HyDE, multi-query expansion, query decomposition
+- [x] `apps/api/src/rag/query_transform.py` — HyDE, multi-query expansion, query decomposition, query router, query sanitizer (68 tests)
 - [ ] `apps/api/src/rag/embeddings.py` — MODIFY: support multiple embedding models, benchmark harness
 - [ ] `apps/api/src/rag/retriever.py` — MODIFY: integrate re-ranking + query transform
 - [ ] `scripts/benchmark_chunking.py` — compare chunking strategies
@@ -44,6 +44,10 @@
 - **RerankResult is a dataclass, not Pydantic.** Same rationale as ChunkResult — internal pipeline data that never crosses API boundaries. Lightweight over Pydantic for intermediary data structures.
 - **CrossEncoder import guarded with try/except.** `sentence-transformers` is optional — not all deployments need local cross-encoder. If missing, `LocalCrossEncoderReranker.rerank()` raises `RerankerError` with an install hint. This keeps the dependency optional for cloud-only deployments using CohereReranker.
 - **CohereReranker uses httpx, not Cohere SDK.** Minimizes external dependencies. The Cohere Rerank v2 API is a single POST endpoint — a full SDK adds complexity with no benefit for a single API call.
+- **TransformResult/QueryClassification are dataclasses, not Pydantic.** Same rationale as ChunkResult/RerankResult — internal pipeline data that never crosses API boundaries.
+- **All transformers accept `llm_fn` callable, not a specific LLM client.** This makes unit testing trivial (pass a mock async function) and keeps the module framework-agnostic. The caller adapts their LLM client to this interface.
+- **QueryRouter is a separate class, not a BaseQueryTransformer subclass.** Router classifies queries, it does not transform them. Different interface (classify vs transform) reflects different responsibility.
+- **QuerySanitizer custom patterns REPLACE defaults, not supplement.** When you specify custom injection patterns, you get exactly those and no hidden defaults. This is intentional — domain-specific deployments may need entirely different pattern sets (e.g., SQL injection patterns instead of prompt injection patterns).
 
 ## Code Artifacts
 
@@ -53,6 +57,8 @@
 | `tests/unit/test_chunking.py` | feat(phase-2) | 48 tests: 12 FixedSize, 13 Semantic, 14 ParentChild, 5 factory, 3 ChunkResult, 3 BaseChunker ABC. Semantic tests use deterministic topic-based fake embedder. |
 | `apps/api/src/rag/reranker.py` | feat(phase-2) | 5 reranker implementations (NoOp, Cohere, LocalCrossEncoder, CircuitBreaker, BaseReranker ABC), factory function, RerankResult dataclass, RerankerError, RerankerStrategy enum. All configurable via params. CircuitBreaker is composable (wraps any primary/fallback pair). CrossEncoder import is optional (guarded try/except). CohereReranker uses httpx directly. |
 | `tests/unit/test_reranker.py` | feat(phase-2) | 42 tests: 2 RerankResult, 3 BaseReranker ABC, 7 NoOpReranker, 7 CohereReranker (mocked httpx), 7 LocalCrossEncoderReranker (mocked CrossEncoder), 8 CircuitBreakerReranker (CLOSED/OPEN/HALF_OPEN states, configurable threshold/timeout, failure reset), 7 factory, 1 enum. |
+| `apps/api/src/rag/query_transform.py` | feat(phase-2) | 6 components: QuerySanitizer (9 default injection patterns, configurable max_length/patterns), HyDETransformer (hypothetical document for embedding), MultiQueryTransformer (configurable num_queries), QueryDecomposer (multi-hop splitting), QueryRouter (4-category classification with JSON parsing + fallback), BaseQueryTransformer ABC. Factory function for all transformer strategies. All transformers auto-sanitize input via composable QuerySanitizer. LLM-agnostic via injectable llm_fn callable. |
+| `tests/unit/test_query_transform.py` | feat(phase-2) | 68 tests: 21 QuerySanitizer (injection stripping x9 patterns, case-insensitive, truncation, control chars, unicode, empty input, configurable max_length/patterns, custom-replaces-defaults, multi-pattern), 3 TransformResult, 2 QueryClassification, 1 TransformStrategy, 8 HyDETransformer (result structure, sanitization, LLM error, configurable model/prompt/sanitizer, metadata), 7 MultiQueryTransformer (expansion, configurable num_queries, default limit, LLM error, sanitization, empty line filtering, metadata), 6 QueryDecomposer (multi-hop split, single-hop passthrough, LLM error, sanitization, empty lines, metadata), 12 QueryRouter (4 categories, LLM error default, configurable default/model, sanitization, raw/sanitized preservation, malformed JSON fallback, unknown category fallback), 6 factory, 2 ABC. |
 
 ## Test Results
 
@@ -62,6 +68,8 @@
 | Full suite (112 tests) | PASS | No regressions from Phase 1 (64 existing tests unaffected) |
 | `tests/unit/test_reranker.py` (42 tests) | PASS | NoOp: order preservation, empty input, top_k, content/metadata preservation, confidence threshold (filter/exclude/all-below-empty). Cohere: API call structure, reorder by score, top_k, API error -> RerankerError, configurable model, confidence threshold. LocalCrossEncoder: predict call with pairs, reorder by score, top_k, model load failure -> RerankerError, configurable model, confidence threshold. CircuitBreaker: primary when healthy, fallback after N failures, configurable threshold, reset on success, half-open after timeout, half-open failure reopens, half-open success closes, stays open within timeout. Factory: all strategies + invalid. |
 | Full suite (154 tests) | PASS | No regressions. 42 new reranker + 48 chunking + 64 Phase 1 tests. |
+| `tests/unit/test_query_transform.py` (68 tests) | PASS | QuerySanitizer: 9 injection patterns stripped (case-insensitive), control char removal, truncation, unicode preservation, empty/whitespace handling, configurable patterns (replace not supplement), multi-pattern stripping. HyDE: result structure, sanitization before LLM, error handling, configurable model/prompt/sanitizer, metadata. MultiQuery: expansion + limit to num_queries, empty line filtering, sanitization. Decomposer: multi-hop split, single-hop passthrough, sanitization. Router: 4 categories, JSON parsing, malformed JSON fallback, unknown category fallback, configurable default, raw/sanitized preservation. Factory: all strategies + string input + invalid error. ABC: instantiation blocked. |
+| Full suite (222 tests) | PASS | No regressions. 68 new query_transform + 42 reranker + 48 chunking + 64 Phase 1 tests. |
 
 ## Benchmarks & Metrics (Content Grounding Data)
 

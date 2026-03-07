@@ -7,7 +7,7 @@
 ## Implementation Tasks
 
 - [x] `apps/api/src/rag/chunking.py` — multiple chunking strategies: fixed-size, semantic, parent-child (48 tests)
-- [ ] `apps/api/src/rag/reranker.py` — cross-encoder re-ranking (Cohere + local model)
+- [x] `apps/api/src/rag/reranker.py` — cross-encoder re-ranking (Cohere + local model) (42 tests)
 - [ ] `apps/api/src/rag/query_transform.py` — HyDE, multi-query expansion, query decomposition
 - [ ] `apps/api/src/rag/embeddings.py` — MODIFY: support multiple embedding models, benchmark harness
 - [ ] `apps/api/src/rag/retriever.py` — MODIFY: integrate re-ranking + query transform
@@ -41,6 +41,9 @@
 
 - **ChunkResult is a dataclass, not Pydantic.** The spec shows `ChunkResult` as a plain data container. Using `@dataclass` is lighter than Pydantic for internal pipeline data that never crosses API boundaries. Domain `Chunk` (Pydantic) is applied at ingestion time.
 - **SemanticChunker uses synchronous embed_fn.** The chunker itself is CPU-bound (sentence splitting, similarity math). The embed_fn is called once per chunk() call with all sentences batched. Async is unnecessary here — the caller can await externally if needed.
+- **RerankResult is a dataclass, not Pydantic.** Same rationale as ChunkResult — internal pipeline data that never crosses API boundaries. Lightweight over Pydantic for intermediary data structures.
+- **CrossEncoder import guarded with try/except.** `sentence-transformers` is optional — not all deployments need local cross-encoder. If missing, `LocalCrossEncoderReranker.rerank()` raises `RerankerError` with an install hint. This keeps the dependency optional for cloud-only deployments using CohereReranker.
+- **CohereReranker uses httpx, not Cohere SDK.** Minimizes external dependencies. The Cohere Rerank v2 API is a single POST endpoint — a full SDK adds complexity with no benefit for a single API call.
 
 ## Code Artifacts
 
@@ -48,6 +51,8 @@
 |---|---|---|
 | `apps/api/src/rag/chunking.py` | feat(phase-2) | 3 strategies (FixedSize, Semantic, ParentChild), factory function, ChunkResult dataclass. All domain-agnostic — strategy, chunk_size, overlap, similarity_threshold, section_pattern all configurable. SemanticChunker accepts injectable embed_fn for testability. |
 | `tests/unit/test_chunking.py` | feat(phase-2) | 48 tests: 12 FixedSize, 13 Semantic, 14 ParentChild, 5 factory, 3 ChunkResult, 3 BaseChunker ABC. Semantic tests use deterministic topic-based fake embedder. |
+| `apps/api/src/rag/reranker.py` | feat(phase-2) | 5 reranker implementations (NoOp, Cohere, LocalCrossEncoder, CircuitBreaker, BaseReranker ABC), factory function, RerankResult dataclass, RerankerError, RerankerStrategy enum. All configurable via params. CircuitBreaker is composable (wraps any primary/fallback pair). CrossEncoder import is optional (guarded try/except). CohereReranker uses httpx directly. |
+| `tests/unit/test_reranker.py` | feat(phase-2) | 42 tests: 2 RerankResult, 3 BaseReranker ABC, 7 NoOpReranker, 7 CohereReranker (mocked httpx), 7 LocalCrossEncoderReranker (mocked CrossEncoder), 8 CircuitBreakerReranker (CLOSED/OPEN/HALF_OPEN states, configurable threshold/timeout, failure reset), 7 factory, 1 enum. |
 
 ## Test Results
 
@@ -55,6 +60,8 @@
 |---|---|---|
 | `tests/unit/test_chunking.py` (48 tests) | PASS | FixedSize: word boundary, overlap, coverage, empty/single/long inputs. Semantic: topic clustering, boundary detection, min/max size, configurable threshold. ParentChild: parent-child hierarchy, child-references-parent, metadata, custom patterns, min_child_size merge, max_parent_size split. Factory: all strategies + invalid strategy error. |
 | Full suite (112 tests) | PASS | No regressions from Phase 1 (64 existing tests unaffected) |
+| `tests/unit/test_reranker.py` (42 tests) | PASS | NoOp: order preservation, empty input, top_k, content/metadata preservation, confidence threshold (filter/exclude/all-below-empty). Cohere: API call structure, reorder by score, top_k, API error -> RerankerError, configurable model, confidence threshold. LocalCrossEncoder: predict call with pairs, reorder by score, top_k, model load failure -> RerankerError, configurable model, confidence threshold. CircuitBreaker: primary when healthy, fallback after N failures, configurable threshold, reset on success, half-open after timeout, half-open failure reopens, half-open success closes, stays open within timeout. Factory: all strategies + invalid. |
+| Full suite (154 tests) | PASS | No regressions. 42 new reranker + 48 chunking + 64 Phase 1 tests. |
 
 ## Benchmarks & Metrics (Content Grounding Data)
 

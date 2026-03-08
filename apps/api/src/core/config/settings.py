@@ -37,6 +37,15 @@ class Settings(BaseSettings):
     langfuse_secret_key: str = ""
     langfuse_host: str = "http://localhost:3001"
 
+    # Resilience (Phase 7)
+    circuit_breaker_failure_threshold: int = 5
+    circuit_breaker_reset_timeout: float = 60.0
+    circuit_breaker_success_threshold: int = 3
+    retry_max_attempts: int = 3
+    retry_base_delay: float = 1.0
+    retry_max_delay: float = 30.0
+    quality_gate_min_length: int = 10
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

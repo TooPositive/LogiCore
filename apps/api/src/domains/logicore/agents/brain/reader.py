@@ -77,6 +77,12 @@ class ReaderAgent:
             response = await self._llm.ainvoke(prompt)
             content = response.content.strip()
 
+            # Strip <think>...</think> tags (common in Ollama/qwen3 output)
+            think_pattern = re.compile(
+                r"<think>.*?</think>", re.DOTALL
+            )
+            content = think_pattern.sub("", content).strip()
+
             # Strip markdown code fences if present
             if content.startswith("```"):
                 content = content.split("\n", 1)[-1]

@@ -3,13 +3,11 @@
 RED phase: all tests written before implementation.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from apps.api.src.core.infrastructure.llm.retry import RetryPolicy
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -253,16 +251,16 @@ class TestRetryPolicyExecute:
     async def test_configurable_retriable_exceptions(self):
         """Can add custom exception types as retriable."""
 
-        class CustomRetriable(Exception):
+        class CustomRetriableError(Exception):
             pass
 
         rp = RetryPolicy(
             max_retries=2,
             base_delay=0.01,
             jitter=False,
-            retriable_exceptions=(CustomRetriable,),
+            retriable_exceptions=(CustomRetriableError,),
         )
-        fn = AsyncMock(side_effect=[CustomRetriable("custom"), "ok"])
+        fn = AsyncMock(side_effect=[CustomRetriableError("custom"), "ok"])
         result = await rp.execute(fn)
         assert result == "ok"
 

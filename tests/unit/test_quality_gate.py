@@ -15,11 +15,9 @@ from apps.api.src.core.infrastructure.llm.circuit_breaker import CircuitBreaker
 from apps.api.src.core.infrastructure.llm.provider import LLMResponse
 from apps.api.src.core.infrastructure.llm.provider_chain import (
     ProviderChain,
-    ProviderChainResponse,
     ProviderEntry,
     ResponseQualityGate,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

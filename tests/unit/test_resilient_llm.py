@@ -8,7 +8,7 @@ The ResilientLLM orchestrator:
 RED phase: all tests written before implementation.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -21,7 +21,6 @@ from apps.api.src.core.infrastructure.llm.provider_chain import (
     ProviderEntry,
 )
 from apps.api.src.core.infrastructure.llm.resilient_llm import ResilientLLM
-
 
 # ---------------------------------------------------------------------------
 # Helpers

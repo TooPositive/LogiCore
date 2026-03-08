@@ -7,7 +7,6 @@ RED phase: all tests written before implementation.
 """
 
 import asyncio
-import time
 
 import pytest
 
@@ -16,7 +15,6 @@ from apps.api.src.core.infrastructure.llm.circuit_breaker import (
     CircuitOpenError,
     CircuitState,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -605,19 +603,19 @@ class TestCircuitBreakerEdgeCases:
     async def test_excluded_exceptions_configurable(self):
         """Can configure which exceptions are excluded from failure count."""
 
-        class CustomNonFailure(Exception):
+        class CustomNonFailureError(Exception):
             pass
 
         async def custom_error_fn():
-            raise CustomNonFailure("not a provider issue")
+            raise CustomNonFailureError("not a provider issue")
 
         cb = CircuitBreaker(
             name="test",
             failure_threshold=2,
-            excluded_exceptions=(CustomNonFailure,),
+            excluded_exceptions=(CustomNonFailureError,),
         )
         for _ in range(5):
-            with pytest.raises(CustomNonFailure):
+            with pytest.raises(CustomNonFailureError):
                 await cb.call(custom_error_fn)
         assert cb.state == CircuitState.CLOSED
         assert cb.metrics.total_failures == 0

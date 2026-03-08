@@ -6,14 +6,12 @@ Last resort: SemanticCache lookup with disclaimer text.
 RED phase: all tests written before implementation.
 """
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from apps.api.src.core.infrastructure.llm.circuit_breaker import (
     CircuitBreaker,
-    CircuitOpenError,
 )
 from apps.api.src.core.infrastructure.llm.provider import LLMResponse
 from apps.api.src.core.infrastructure.llm.provider_chain import (
@@ -23,7 +21,6 @@ from apps.api.src.core.infrastructure.llm.provider_chain import (
     ProviderEntry,
 )
 from apps.api.src.core.infrastructure.llm.retry import RetryPolicy
-
 
 # ---------------------------------------------------------------------------
 # Helpers

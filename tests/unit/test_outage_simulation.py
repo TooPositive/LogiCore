@@ -21,7 +21,6 @@ from apps.api.src.core.infrastructure.llm.provider_chain import (
     ProviderEntry,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -211,8 +210,7 @@ class TestRoutingCostBenchmark:
 
     def test_misclassification_cost(self):
         """Each misrouted complex query costs the difference in quality."""
-        correct_cost = 0.014  # GPT-5.2 gets it right
-        wrong_cost = 0.0004  # Nano gets it wrong (partial answer)
+        # Cost gap: GPT-5.2 (EUR 0.014) vs Nano (EUR 0.0004) = EUR 0.0136/query
         # At 5% misclassification rate and 100 complex queries/day
         complex_per_day = 100
         misclass_rate = 0.05

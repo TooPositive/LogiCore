@@ -5,10 +5,7 @@ RED phase: all tests written before implementation.
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from apps.api.src.core.config.settings import Settings
-
 
 # ===========================================================================
 # Settings — new Phase 7 fields

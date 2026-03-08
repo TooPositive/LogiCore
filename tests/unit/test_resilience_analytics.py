@@ -18,7 +18,6 @@ from apps.api.src.core.infrastructure.llm.provider_chain import (
     ProviderEntry,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -59,10 +58,10 @@ def _make_test_chain() -> ProviderChain:
 class TestResilienceAnalytics:
     @pytest.mark.asyncio
     async def test_endpoint_returns_200(self):
+        from fastapi import FastAPI
+
         from apps.api.src.core.api.v1.analytics import create_analytics_router
         from apps.api.src.core.telemetry.cost_tracker import CostTracker
-
-        from fastapi import FastAPI
 
         chain = _make_test_chain()
         app = FastAPI()
@@ -82,10 +81,10 @@ class TestResilienceAnalytics:
 
     @pytest.mark.asyncio
     async def test_endpoint_returns_provider_states(self):
+        from fastapi import FastAPI
+
         from apps.api.src.core.api.v1.analytics import create_analytics_router
         from apps.api.src.core.telemetry.cost_tracker import CostTracker
-
-        from fastapi import FastAPI
 
         chain = _make_test_chain()
         app = FastAPI()
@@ -110,10 +109,10 @@ class TestResilienceAnalytics:
 
     @pytest.mark.asyncio
     async def test_endpoint_returns_routing_stats(self):
+        from fastapi import FastAPI
+
         from apps.api.src.core.api.v1.analytics import create_analytics_router
         from apps.api.src.core.telemetry.cost_tracker import CostTracker
-
-        from fastapi import FastAPI
 
         chain = _make_test_chain()
         # Generate some traffic
@@ -142,10 +141,10 @@ class TestResilienceAnalytics:
     @pytest.mark.asyncio
     async def test_endpoint_without_chain_returns_empty(self):
         """If no chain is provided, endpoint returns empty state."""
+        from fastapi import FastAPI
+
         from apps.api.src.core.api.v1.analytics import create_analytics_router
         from apps.api.src.core.telemetry.cost_tracker import CostTracker
-
-        from fastapi import FastAPI
 
         app = FastAPI()
         cost_tracker = CostTracker()

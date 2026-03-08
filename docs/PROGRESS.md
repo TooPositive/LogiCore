@@ -1,6 +1,6 @@
 # LogiCore Progress Tracker
 
-> Last updated: 2026-03-07
+> Last updated: 2026-03-08
 
 ## Phase Status
 
@@ -10,7 +10,7 @@
 | 0.5 | Simulator Service | DONE | 100% | — | — | — | — |
 | 1 | Corporate Brain (RAG + RBAC) | TESTED | 100% | 100% (80/80) | — | — | — |
 | 2 | Retrieval Engineering | CODE COMPLETE | 100% | 100% (329 total, 265 new) | — | — | Phase 1 |
-| 3 | Customs & Finance (Multi-Agent) | NOT STARTED | 0% | 0% | — | — | Phase 1 |
+| 3 | Customs & Finance (Multi-Agent) | IN PROGRESS | 90% | 161 new (490 total) | — | — | Phase 1 |
 | 4 | Trust Layer (LLMOps) | NOT STARTED | 0% | 0% | — | — | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | NOT STARTED | 0% | 0% | — | — | Phase 4 |
 | 6 | Air-Gapped Vault (Local Inference) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
@@ -190,8 +190,50 @@ Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
 - Reasoning over negation failures → Phase 3 (Multi-Agent with LangGraph)
 - Adversarial query tests → Phase 10 (LLM Firewall)
 
-**Next up**: Phase 3 (Multi-Agent) — unblocked
-Run `/write-phase-post 2` to generate Phase 2 LinkedIn + Medium content
+**Next up**: Phase 3 remaining items (router registration, seed script, integration/E2E tests)
+
+## Phase 3 Sprint Summary (IN PROGRESS)
+
+### What's Built (8 Layers, 161 Tests)
+
+| Layer | What | Tests | Commit |
+|---|---|---|---|
+| 1 | Domain models (7 Pydantic v2) + mock data (22 invoices, 5 contracts) | 55 | 67fe545 |
+| 2 | Standalone agents (Reader, Auditor, SQL, Report) | 34 | b3babda |
+| 3 | LangGraph graph wiring (reader->sql->auditor->hitl->report) | 12 | 97f430b |
+| 4 | HITL gateway (interrupt_before) | 5 | 830188c |
+| 5 | Dynamic delegation + ClearanceFilter | 16 | 889ffd2 |
+| 6 | Crash recovery + checkpointing (MemorySaver, PostgreSQL fallback) | 9 | fc62d7e |
+| 7 | API endpoints (start, status, approve) | 12 | 11da996 |
+| 8 | Red-team security (SQL injection, clearance leaks, HITL bypass, race, prompt injection) | 18 | 3ab56e0 |
+
+### Key Architecture Decisions
+
+| Decision | What We Built | Why Not The Alternative |
+|---|---|---|
+| HITL via interrupt_before | hitl_gate is a pass-through node; interrupt_before blocks before it | interrupt() inside a node is more complex and requires the node to be aware of HITL. interrupt_before keeps HITL orthogonal to node logic. |
+| ClearanceFilter as architectural guard | Findings above parent_clearance stripped before return | Post-retrieval filtering is a defense-in-depth layer. The LLM never sees unauthorized content — zero-trust at the data level. |
+| Keyword-based delegation trigger | needs_legal_context() checks for 10 keywords (amendment, surcharge, etc.) | LLM-based trigger adds latency and non-determinism. Keywords are auditable and fast. False positives (unnecessary compliance check) are cheap; false negatives (missed legal clause) are expensive. |
+| MemorySaver for tests | Unit tests use MemorySaver; production uses PostgreSQL | Docker dependency for unit tests makes CI slow and fragile. MemorySaver validates the same checkpoint/resume behavior. |
+| Uncompiled graph factory | build_audit_graph() returns StateGraph, not compiled | Caller decides checkpointer + interrupt points. Different configs for tests vs production without code changes. |
+
+### Security Model (Red-Team Verified)
+
+| Attack | Defense | Tests |
+|---|---|---|
+| SQL injection (5 patterns) | $1 parameterized queries via asyncpg | DROP TABLE, UNION SELECT, boolean blind, stacked, comment |
+| Clearance leak via delegation | ClearanceFilter strips findings > parent_clearance | All 4 clearance levels, missing field defaults to 1 |
+| HITL bypass | 409 Conflict for any state != awaiting_approval | Processing, completed, rejected states |
+| Double-approval race | State transition is atomic — second attempt sees changed state | First succeeds, second gets 409 |
+| Prompt injection | Sanitize injection patterns before LLM prompt | 5 injection patterns stripped |
+
+### Remaining
+- Register audit router in main.py
+- scripts/seed_invoices.py for PostgreSQL
+- PostgreSQL read-only role (logicore_reader) migration
+- Integration tests (Docker-dependent)
+- E2E tests through API
+- Langfuse tracing
 
 ## Phase 1 Sprint Summary
 

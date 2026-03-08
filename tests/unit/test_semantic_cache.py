@@ -379,6 +379,90 @@ class TestStalenessDetection:
         assert result is not None
 
 
+    @pytest.mark.asyncio
+    async def test_multi_source_doc_one_stale_returns_miss(self, mock_embedder):
+        """Entry with 3 source docs — if ANY one is updated, entry is stale."""
+        from apps.api.src.infrastructure.llm.cache import SemanticCache
+
+        cache = SemanticCache(similarity_threshold=0.95)
+
+        await cache.put(
+            query="What are the combined contract terms?",
+            response="Terms from docs 1, 2, and 3...",
+            clearance_level=2,
+            departments=["logistics"],
+            entity_keys=[],
+            source_doc_ids=["doc-A", "doc-B", "doc-C"],
+            embed_fn=mock_embedder.embed,
+        )
+
+        # Only doc-B was updated — entry should still be stale
+        doc_updates = {"doc-B": datetime(2099, 6, 15, tzinfo=UTC)}
+        result = await cache.get(
+            query="What are the combined contract terms?",
+            clearance_level=2,
+            departments=["logistics"],
+            embed_fn=mock_embedder.embed,
+            doc_update_times=doc_updates,
+        )
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_no_doc_update_times_treats_as_fresh(self, mock_embedder):
+        """When doc_update_times is None, skip staleness check (treat as fresh)."""
+        from apps.api.src.infrastructure.llm.cache import SemanticCache
+
+        cache = SemanticCache(similarity_threshold=0.95)
+
+        await cache.put(
+            query="What is the delivery rate?",
+            response="Rate is EUR 0.45/kg",
+            clearance_level=2,
+            departments=["logistics"],
+            entity_keys=[],
+            source_doc_ids=["doc-001"],
+            embed_fn=mock_embedder.embed,
+        )
+
+        # No doc_update_times passed — should return cached response
+        result = await cache.get(
+            query="What is the delivery rate?",
+            clearance_level=2,
+            departments=["logistics"],
+            embed_fn=mock_embedder.embed,
+            doc_update_times=None,
+        )
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_unrelated_doc_update_does_not_stale(self, mock_embedder):
+        """Doc update for unrelated doc_id should NOT stale the entry."""
+        from apps.api.src.infrastructure.llm.cache import SemanticCache
+
+        cache = SemanticCache(similarity_threshold=0.95)
+
+        await cache.put(
+            query="What is the delivery rate?",
+            response="Rate is EUR 0.45/kg",
+            clearance_level=2,
+            departments=["logistics"],
+            entity_keys=[],
+            source_doc_ids=["doc-001"],
+            embed_fn=mock_embedder.embed,
+        )
+
+        # Different doc updated — entry's source (doc-001) is unchanged
+        doc_updates = {"doc-999": datetime(2099, 1, 1, tzinfo=UTC)}
+        result = await cache.get(
+            query="What is the delivery rate?",
+            clearance_level=2,
+            departments=["logistics"],
+            embed_fn=mock_embedder.embed,
+            doc_update_times=doc_updates,
+        )
+        assert result is not None
+
+
 class TestCacheInvalidation:
     """Explicit cache invalidation by document ID or full flush."""
 
@@ -412,6 +496,27 @@ class TestCacheInvalidation:
         assert removed >= 1
         # doc-003 entry should still exist
         assert cache.size() >= 1
+
+    @pytest.mark.asyncio
+    async def test_invalidate_nonexistent_doc_returns_zero(self, mock_embedder):
+        """Invalidating a doc_id not in any cache entry returns 0, no error."""
+        from apps.api.src.infrastructure.llm.cache import SemanticCache
+
+        cache = SemanticCache(similarity_threshold=0.95)
+
+        await cache.put(
+            query="What is the rate?",
+            response="Rate is EUR 0.45/kg",
+            clearance_level=2,
+            departments=["logistics"],
+            entity_keys=[],
+            source_doc_ids=["doc-001"],
+            embed_fn=mock_embedder.embed,
+        )
+
+        removed = cache.invalidate_by_doc("doc-nonexistent")
+        assert removed == 0
+        assert cache.size() == 1  # Original entry untouched
 
     @pytest.mark.asyncio
     async def test_flush_all(self, mock_embedder):

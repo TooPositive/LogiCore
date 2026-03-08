@@ -11,7 +11,7 @@
 - [x] `apps/api/src/telemetry/langfuse_handler.py` — Langfuse callback handler + fallback store (13 tests)
 - [x] `apps/api/src/telemetry/cost_tracker.py` — per-query cost calculation (25 tests)
 - [x] `apps/api/src/infrastructure/llm/router.py` — LLM-based model router with keyword overrides (27 tests)
-- [x] `apps/api/src/infrastructure/llm/cache.py` — RBAC-aware semantic cache (20 tests)
+- [x] `apps/api/src/infrastructure/llm/cache.py` — RBAC-aware semantic cache (24 tests)
 - [x] `apps/api/src/api/v1/analytics.py` — GET /costs, /quality endpoints (9 tests)
 - [x] `tests/evaluation/test_rag_quality.py` — automated RAG eval (13 tests)
 - [x] `tests/evaluation/eval_dataset.json` — 50 ground truth Q&A pairs (5 categories, >=5 per category)
@@ -82,12 +82,12 @@
 | test_cost_tracker.py | 25 | PASS | Pricing validation, routing economics (EUR 2.87 vs EUR 42/day), aggregation |
 | test_langfuse_handler.py | 13 | PASS | Non-blocking tracing, fallback, reconciliation, double-failure graceful |
 | test_model_router.py | 27 | PASS | 10 keyword overrides (parametrized), LLM classification, escalation, garbage defaults |
-| test_semantic_cache.py | 20 | PASS | RBAC partitioning (5 clearance tests), entity isolation (3), staleness (2), LRU (2) |
+| test_semantic_cache.py | 24 | PASS | RBAC partitioning (5 clearance tests), entity isolation (3), staleness (5 — multi-doc, no-update-times, unrelated-doc), invalidation (3 — by doc, nonexistent doc, flush), LRU (2) |
 | test_analytics_api.py | 9 | PASS | Costs endpoint, quality endpoint, period validation, 404 |
 | test_phase4_trust_layer.py (red team) | 24 | PASS | 8 attack categories: RBAC bypass, cross-client, stale cache, router override, outage, poison, cost, savings |
 | test_rag_quality.py (eval) | 13 | PASS | Dataset validation (50 Q&A, 5 categories, >=5/category), judge scoring, pipeline, quality gate |
 | test_analytics_e2e.py | 4 | PASS | E2E through main app: costs, quality 404, invalid period 422, health regression |
-| **Total Phase 4** | **162** | **ALL PASS** | **665 total project tests (162 new)** |
+| **Total Phase 4** | **166** | **ALL PASS** | **669 total project tests (166 new)** |
 
 ## Benchmarks & Metrics (Content Grounding Data)
 
@@ -95,14 +95,14 @@
 |---|---|---|
 | Daily AI spend (unrouted, all GPT-5.2) | EUR 42.00/day | **This is the cost of NOT building model routing.** At 2,400 queries/day, sending everything to GPT-5.2 costs EUR 15,120/year. This is the baseline a CTO compares against. |
 | Daily AI spend (routed + cached) | EUR 2.87/day | **93% cost reduction.** Routing saves by matching query complexity to model capability. 50% of queries are simple lookups that nano handles at 1/350th the cost. Caching eliminates 620 duplicate queries/day entirely. |
-| Cache hit rate (projected) | 35% | **Saves EUR 18/day at current volume.** At 10x scale (24K queries/day), cache savings reach EUR 180/day = EUR 65K/year. Cache hit rate depends on query repetition — logistics has high repetition (same questions across shifts). |
+| Cache hit rate (projected, pre-partition) | 35% | **35% is the theoretical max before RBAC+entity partitioning.** With 10+ client entities and 3 clearance levels, effective hit rate drops to 15-25% because identical queries in different partitions are separate cache misses. Adjusted savings: EUR 8-13/day (not EUR 18). The security guarantee is worth the reduced savings — serving one wrong cached response costs EUR 3,240 vs EUR 5-10/day in cache savings. At 10x scale, even 15% hit rate saves EUR 90/day = EUR 33K/year. |
 | Avg cost per query (search) | EUR 0.0015 | GPT-5 mini: 2800 input + 400 output tokens. At 800 queries/day = EUR 1.20/day. |
 | Avg cost per query (audit) | EUR 0.031 | GPT-5.2: 8200 input + 1200 output tokens. At 50 audits/day = EUR 1.55/day. |
 | Avg cost per query (fleet) | EUR 0.002 | GPT-5 mini: 4500 input + 600 output tokens. At 30 alerts/day = EUR 0.06/day. |
 | Avg cost per query (simple) | EUR 0.000065 | GPT-5 nano: 500 input + 100 output. At 900/day = EUR 0.06/day. Routing these to nano instead of GPT-5.2 saves EUR 21/day. |
-| Context precision (mock judge) | 0.89 | **Above 0.8 CI gate.** Mock judge approximates relevance via word overlap. Production judge uses GPT-5-mini for claim-by-claim scoring. Recommend live eval quarterly. |
-| Faithfulness (mock judge) | 0.83 | **Above 0.8 CI gate, but closest to threshold.** This is expected — faithfulness is the hardest metric (requires checking every claim against context). Production eval with real LLM judge will give more accurate scores. |
-| Answer relevancy (mock judge) | 0.89 | **Above 0.8 CI gate.** Measures whether the answer actually addresses the question. Low scores here indicate the RAG is retrieving relevant context but generating off-topic answers. |
+| Context precision (mock judge) | 0.89 | **Pipeline validation metric, not production quality measurement.** Mock judge uses word-overlap heuristics to prove the evaluation pipeline works end-to-end: dataset loads → judge scores → quality gate blocks/passes → CLI exits 0/1. Production scoring requires Phase 5's real LLM judge (GPT-5-mini claim-by-claim). Expect production faithfulness to drop 3-5 points due to position bias — Phase 5 quantifies and mitigates this. |
+| Faithfulness (mock judge) | 0.83 | **Pipeline validation, closest to 0.8 gate threshold.** This validates that the evaluation pipeline correctly identifies the hardest metric. A real LLM judge may score lower (position bias inflates by ~4 points). If true faithfulness is 0.79, the CI gate catches it — but only after Phase 5 calibrates the judge. Phase 4 builds the pipeline mechanics; Phase 5 makes the scores trustworthy. |
+| Answer relevancy (mock judge) | 0.89 | **Pipeline validation metric.** Proves the three-metric scoring pipeline runs correctly. Production calibration with real LLM judge deferred to Phase 5. The mock judge's value is proving the mechanics, not the absolute numbers. |
 | Cost reduction % (routing + caching) | 93% | **EUR 14,448/year savings at current volume. At 10x scale: EUR 144K/year.** The question is never "should we route?" — it's "what's the misclassification rate we can tolerate?" At EUR 3,240/incident for a misrouted complex query, the keyword override list is a EUR 40K/year insurance policy. |
 | Model routing savings | EUR 39.13/day | Difference between unrouted (EUR 42.00) and routed (EUR 2.87). The router itself costs ~EUR 0.06/day (900 nano classification calls). Net savings: EUR 39.07/day. |
 | Token budget: search queries | 2800 in + 400 out | Validates spec projection. Real-world variance: +/-20% depending on context length. |
@@ -114,7 +114,7 @@
 |---|---|---|---|
 | RBAC cache bypass | 5 | PASS | Cache partitioned by clearance_level — clearance-3 data structurally unreachable from clearance-1 partition. Not a filter applied after retrieval; it's a partition boundary that the code never crosses. |
 | Cross-client leakage | 3 | PASS | Entity keys in partition key — PharmaCorp and FreshFoods are separate partitions. Query without entity cannot match entity-scoped entry. Zero false positive risk. |
-| Stale cache | 2 | PASS | Staleness check: if any source doc was updated after cache entry creation, treat as miss. Invalidation by doc ID removes all entries referencing that document. |
+| Stale cache | 2 + 5 unit | PASS | Staleness check: if ANY source doc was updated after cache entry creation, treat as miss. 7 total staleness/invalidation tests: stale entry miss, fresh entry hit, multi-source-doc (1 of 3 updated → stale), no doc_update_times (treat as fresh), unrelated doc update (no false stale), nonexistent doc invalidation (returns 0), doc-ID invalidation removes correct entries. |
 | Model router override | 5 | PASS | 10 financial keywords force COMPLEX. LLM never called for keyword-matched queries. Garbage LLM response defaults to COMPLEX. Low confidence (<0.7) escalates. The router cannot route a financial query to nano. |
 | Langfuse outage | 2 | PASS | Non-blocking: Langfuse failure -> fallback store. Both fail -> log error, continue. LLM call result never blocked by telemetry failure. Reconciliation backfills after recovery. |
 | Cache poisoning | 2 | PASS | Partition isolation prevents cross-context contamination. Non-cacheable flag prevents storing suspicious responses. |
@@ -129,6 +129,14 @@
 
 - Production Redis Stack: when deploying, the in-memory SemanticCache swaps for Redis Stack RediSearch. The RBAC partitioning logic is identical; the vector similarity search moves from Python to Redis. Integration test needed with Docker Redis Stack.
 - Langfuse PostgreSQL fallback: current InMemoryFallbackStore loses traces on process restart. Production needs asyncpg-backed store writing to `llm_traces_fallback` table. Schema: trace_id, run_id, agent_name, model, prompt_tokens, completion_tokens, latency_ms, cost_eur, created_at.
+
+### From Phase Review (2026-03-08, 27/30 PROCEED)
+
+- ~~**[Framing]** Mock judge scores reframed as pipeline validation~~ FIXED: Benchmarks table now explicitly states "pipeline validation metric, not production quality measurement" for all 3 scores.
+- ~~**[Framing]** Cache hit rate partition impact added~~ FIXED: Benchmarks table now shows "pre-partition" qualifier with 15-25% effective range and adjusted EUR savings.
+- ~~**[Evidence]** Staleness detection expanded from n=4 to n=7~~ FIXED: Added 4 edge cases (multi-source-doc, no-update-times, unrelated-doc-update, nonexistent-doc-invalidation). Total staleness/invalidation tests: 7.
+- **[Benchmark expansion -- Phase 5]** Run 50 Q&A pairs through real LLM judge to calibrate mock vs production score gap. Add 20 adversarial entries (negation, temporal, injection).
+- **[Benchmark expansion -- Phase 12]** Measure router misclassification rate on 100+ real queries. Measure actual cache hit rate under entity partitioning with realistic user distribution.
 
 ## Content Status
 

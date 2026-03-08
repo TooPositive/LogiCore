@@ -37,6 +37,7 @@ class EmbeddingProvider(StrEnum):
     AZURE_OPENAI = "azure_openai"
     COHERE = "cohere"
     NOMIC = "nomic"
+    OLLAMA = "ollama"
     MOCK = "mock"
 
 
@@ -76,6 +77,9 @@ EMBEDDING_MODELS: dict[str, EmbeddingModel] = {
     ),
     "nomic-embed-text-v1.5": EmbeddingModel(
         "nomic-embed-text-v1.5", EmbeddingProvider.NOMIC, 768, 0.00
+    ),
+    "nomic-embed-text": EmbeddingModel(
+        "nomic-embed-text", EmbeddingProvider.OLLAMA, 768, 0.00
     ),
 }
 
@@ -278,6 +282,63 @@ class CohereEmbedder(BaseEmbedder):
 
 
 # ---------------------------------------------------------------------------
+# OllamaEmbedder
+# ---------------------------------------------------------------------------
+
+
+class OllamaEmbedder(BaseEmbedder):
+    """Ollama embedding via /api/embed endpoint (httpx, not LangChain).
+
+    Calls Ollama's REST API directly for embedding. Supports any
+    Ollama-compatible embedding model (nomic-embed-text, etc.).
+    Zero external API calls -- all inference on localhost or LAN.
+    """
+
+    def __init__(
+        self,
+        host: str = "http://localhost:11434",
+        model: str = "nomic-embed-text",
+        dimensions: int = 768,
+    ) -> None:
+        self._host = host.rstrip("/")
+        self._model = model
+        self._dimensions = dimensions
+
+    @property
+    def dimensions(self) -> int:
+        return self._dimensions
+
+    async def _call_embed(self, texts: list[str]) -> list[list[float]]:
+        """Call Ollama /api/embed endpoint."""
+        url = f"{self._host}/api/embed"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    json={
+                        "model": self._model,
+                        "input": texts,
+                    },
+                    timeout=60.0,
+                )
+                response.raise_for_status()
+                data = response.json()
+        except Exception as exc:
+            raise EmbeddingError(
+                f"Ollama embed API failed: {exc}"
+            ) from exc
+
+        return data["embeddings"]
+
+    async def embed_query(self, text: str) -> list[float]:
+        results = await self._call_embed([text])
+        return results[0]
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return await self._call_embed(texts)
+
+
+# ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
 
@@ -297,6 +358,7 @@ def get_embedder(provider: str | EmbeddingProvider, **kwargs) -> BaseEmbedder:
     constructors: dict[str, type[BaseEmbedder]] = {
         EmbeddingProvider.AZURE_OPENAI: AzureOpenAIEmbedder,
         EmbeddingProvider.COHERE: CohereEmbedder,
+        EmbeddingProvider.OLLAMA: OllamaEmbedder,
         EmbeddingProvider.MOCK: MockEmbedder,
     }
 

@@ -38,6 +38,29 @@ class AllProvidersDownError(Exception):
     pass
 
 
+class ResponseQualityGate:
+    """Validates response quality to catch 200-OK-garbage.
+
+    If a provider returns an empty or too-short response, it should
+    count as a failure and trigger fallback to the next provider.
+    The analysis identified this as the most expensive silent failure
+    mode (EUR 500-5,000/incident).
+
+    Args:
+        min_length: Minimum response length (after stripping whitespace).
+    """
+
+    def __init__(self, min_length: int = 10) -> None:
+        self.min_length = min_length
+
+    def is_acceptable(self, response: LLMResponse) -> bool:
+        """Check if response meets minimum quality standards."""
+        content = response.content.strip()
+        if len(content) < self.min_length:
+            return False
+        return True
+
+
 @dataclass(frozen=True)
 class ProviderChainResponse:
     """Response from the provider chain with routing metadata.
@@ -88,9 +111,11 @@ class ProviderChain:
         self,
         providers: list[ProviderEntry],
         cache_lookup: CacheLookupFn | None = None,
+        quality_gate: ResponseQualityGate | None = None,
     ) -> None:
         self._providers = providers
         self._cache_lookup = cache_lookup
+        self._quality_gate = quality_gate
 
         # Stats tracking
         self._total_requests = 0
@@ -128,6 +153,19 @@ class ProviderChain:
 
             try:
                 result = await self._call_provider(entry, prompt, method, **kwargs)
+
+                # Quality gate check: catch 200-OK-garbage
+                if self._quality_gate and not self._quality_gate.is_acceptable(result):
+                    logger.warning(
+                        "Provider '%s' returned low-quality response "
+                        "(length=%d, min=%d). Trying next.",
+                        entry.provider.model_name,
+                        len(result.content.strip()),
+                        self._quality_gate.min_length,
+                    )
+                    # Count as failure in the circuit breaker
+                    entry.breaker._on_failure()
+                    continue
 
                 # Track stats
                 provider_name = entry.provider.model_name

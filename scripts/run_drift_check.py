@@ -40,12 +40,12 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from apps.api.src.domain.telemetry import DriftSeverity
-from apps.api.src.telemetry.drift_detector import (
+from apps.api.src.core.domain.telemetry import DriftSeverity
+from apps.api.src.core.telemetry.drift_detector import (
     DriftDetector,
     LogAlertHandler,
 )
-from apps.api.src.telemetry.model_registry import ModelVersionRegistry
+from apps.api.src.core.telemetry.model_registry import ModelVersionRegistry
 
 
 def load_config(path: str) -> dict:

@@ -68,11 +68,11 @@ LogiCore (Air-Gapped Deployment)
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/infrastructure/llm/__init__.py` | Package init |
-| `apps/api/src/infrastructure/llm/provider.py` | Abstract LLM provider interface |
-| `apps/api/src/infrastructure/llm/azure_openai.py` | Azure OpenAI implementation |
-| `apps/api/src/infrastructure/llm/ollama.py` | Ollama implementation (local inference) |
-| `apps/api/src/config/settings.py` | Add LLM_PROVIDER toggle (azure \| ollama) |
+| `apps/api/src/core/infrastructure/llm/__init__.py` | Package init |
+| `apps/api/src/core/infrastructure/llm/provider.py` | Abstract LLM provider interface |
+| `apps/api/src/core/infrastructure/llm/azure_openai.py` | Azure OpenAI implementation |
+| `apps/api/src/core/infrastructure/llm/ollama.py` | Ollama implementation (local inference) |
+| `apps/api/src/core/config/settings.py` | Add LLM_PROVIDER toggle (azure \| ollama) |
 | `docker-compose.airgap.yml` | Full air-gapped compose (adds Ollama service) |
 | `scripts/benchmark_local.py` | Latency + throughput benchmark: Azure vs local |
 | `tests/integration/test_local_inference.py` | Ollama integration tests |

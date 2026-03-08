@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 
-from apps.api.src.api.v1.analytics import create_analytics_router
-from apps.api.src.api.v1.audit import router as audit_router
-from apps.api.src.api.v1.health import router as health_router
-from apps.api.src.api.v1.ingest import router as ingest_router
-from apps.api.src.api.v1.search import router as search_router
-from apps.api.src.telemetry.cost_tracker import CostTracker
+from apps.api.src.core.api.v1.analytics import create_analytics_router
+from apps.api.src.core.api.v1.health import router as health_router
+from apps.api.src.core.api.v1.ingest import router as ingest_router
+from apps.api.src.core.api.v1.search import router as search_router
+from apps.api.src.core.telemetry.cost_tracker import CostTracker
+from apps.api.src.domains.logicore.api.audit import router as audit_router
 
 app = FastAPI(
     title="LogiCore API",

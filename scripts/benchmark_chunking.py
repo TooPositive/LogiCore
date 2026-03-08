@@ -31,12 +31,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from apps.api.src.rag.chunking import (
+from apps.api.src.core.rag.chunking import (
     FixedSizeChunker,
     ParentChildChunker,
     SemanticChunker,
 )
-from apps.api.src.rag.embeddings import MockEmbedder
+from apps.api.src.core.rag.embeddings import MockEmbedder
 from tests.evaluation.corpus import CORPUS, CorpusDocument
 
 
@@ -437,7 +437,7 @@ def main():
     # Embedding function for semantic chunker
     if args.live:
         import asyncio
-        from apps.api.src.rag.embeddings import get_embeddings
+        from apps.api.src.core.rag.embeddings import get_embeddings
         embeddings = get_embeddings()
 
         def sync_embed(texts: list[str]) -> list[list[float]]:

@@ -15,14 +15,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from apps.api.src.domain.telemetry import DriftAlert, DriftSeverity
-from apps.api.src.telemetry.drift_detector import (
+from apps.api.src.core.domain.telemetry import DriftAlert, DriftSeverity
+from apps.api.src.core.telemetry.drift_detector import (
     AlertHandler,
     DriftDetector,
     LogAlertHandler,
     classify_drift_severity,
 )
-from apps.api.src.telemetry.model_registry import ModelVersionRegistry
+from apps.api.src.core.telemetry.model_registry import ModelVersionRegistry
 
 # =========================================================================
 # Drift severity classification (n>=5)

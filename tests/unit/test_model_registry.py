@@ -12,8 +12,8 @@ Tests cover:
 
 import pytest
 
-from apps.api.src.domain.telemetry import ModelVersion
-from apps.api.src.telemetry.model_registry import ModelVersionRegistry
+from apps.api.src.core.domain.telemetry import ModelVersion
+from apps.api.src.core.telemetry.model_registry import ModelVersionRegistry
 
 
 class TestModelVersionRegistry:

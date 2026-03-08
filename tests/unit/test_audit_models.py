@@ -16,59 +16,89 @@ class TestDiscrepancyBand:
     """Discrepancy band classification: <1%, 1-5%, 5-15%, >15%."""
 
     def test_band_auto_approve_under_one_percent(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("0.5")) == DiscrepancyBand.AUTO_APPROVE
 
     def test_band_auto_approve_zero(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("0.0")) == DiscrepancyBand.AUTO_APPROVE
 
     def test_band_investigate_one_to_five(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("3.2")) == DiscrepancyBand.INVESTIGATE
 
     def test_band_investigate_boundary_one_percent(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("1.0")) == DiscrepancyBand.INVESTIGATE
 
     def test_band_escalate_five_to_fifteen(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("10.0")) == DiscrepancyBand.ESCALATE
 
     def test_band_escalate_boundary_five_percent(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("5.0")) == DiscrepancyBand.ESCALATE
 
     def test_band_critical_over_fifteen(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("20.0")) == DiscrepancyBand.CRITICAL
 
     def test_band_critical_boundary_fifteen_percent(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("15.0")) == DiscrepancyBand.CRITICAL
 
     def test_band_critical_extreme_overcharge(self):
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("88.9")) == DiscrepancyBand.CRITICAL
 
     def test_band_negative_discrepancy_undercharge(self):
         """Negative discrepancy (undercharge) should use absolute value."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         # -3% means vendor undercharged -- still warrants investigation
         assert classify_discrepancy_band(Decimal("-3.0")) == DiscrepancyBand.INVESTIGATE
 
     def test_band_enum_values(self):
-        from apps.api.src.domain.audit import DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import DiscrepancyBand
 
         assert DiscrepancyBand.AUTO_APPROVE.value == "auto_approve"
         assert DiscrepancyBand.INVESTIGATE.value == "investigate"
@@ -80,7 +110,7 @@ class TestContractRate:
     """Contract rate extracted from RAG."""
 
     def test_create_contract_rate(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         rate = ContractRate(
             contract_id="CTR-2024-001",
@@ -96,7 +126,7 @@ class TestContractRate:
         assert rate.unit == "kg"
 
     def test_contract_rate_without_optional_fields(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         rate = ContractRate(
             contract_id="CTR-2024-002",
@@ -109,7 +139,7 @@ class TestContractRate:
         assert rate.cargo_type is None
 
     def test_contract_rate_serialization(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         rate = ContractRate(
             contract_id="CTR-2024-001",
@@ -122,7 +152,7 @@ class TestContractRate:
         assert data["rate"] == Decimal("0.45")
 
     def test_contract_rate_json_serialization(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         rate = ContractRate(
             contract_id="CTR-2024-001",
@@ -134,7 +164,7 @@ class TestContractRate:
         assert "CTR-2024-001" in json_str
 
     def test_contract_rate_clearance_level_bounds(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         with pytest.raises(ValidationError):
             ContractRate(
@@ -146,7 +176,7 @@ class TestContractRate:
             )
 
     def test_contract_rate_negative_rate_rejected(self):
-        from apps.api.src.domain.audit import ContractRate
+        from apps.api.src.domains.logicore.models.audit import ContractRate
 
         with pytest.raises(ValidationError):
             ContractRate(
@@ -161,7 +191,7 @@ class TestLineItem:
     """Invoice line item -- actual billing data from SQL."""
 
     def test_create_line_item(self):
-        from apps.api.src.domain.audit import LineItem
+        from apps.api.src.domains.logicore.models.audit import LineItem
 
         item = LineItem(
             description="Pharmaceutical cargo transport",
@@ -176,7 +206,7 @@ class TestLineItem:
 
     def test_line_item_computed_total(self):
         """Total should match quantity * unit_price."""
-        from apps.api.src.domain.audit import LineItem
+        from apps.api.src.domains.logicore.models.audit import LineItem
 
         item = LineItem(
             description="Standard cargo",
@@ -192,7 +222,7 @@ class TestInvoice:
     """Invoice model with line items."""
 
     def test_create_invoice(self):
-        from apps.api.src.domain.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
 
         invoice = Invoice(
             invoice_id="INV-2024-0847",
@@ -216,7 +246,7 @@ class TestInvoice:
         assert len(invoice.line_items) == 1
 
     def test_invoice_multiple_line_items(self):
-        from apps.api.src.domain.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
 
         invoice = Invoice(
             invoice_id="INV-2024-0900",
@@ -246,7 +276,7 @@ class TestInvoice:
         assert invoice.total_amount == Decimal("7500.00")
 
     def test_invoice_serialization_roundtrip(self):
-        from apps.api.src.domain.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
 
         invoice = Invoice(
             invoice_id="INV-2024-0847",
@@ -271,7 +301,7 @@ class TestInvoice:
         assert restored.line_items[0].quantity == invoice.line_items[0].quantity
 
     def test_invoice_empty_line_items_rejected(self):
-        from apps.api.src.domain.audit import Invoice
+        from apps.api.src.domains.logicore.models.audit import Invoice
 
         with pytest.raises(ValidationError):
             Invoice(
@@ -285,7 +315,7 @@ class TestInvoice:
             )
 
     def test_invoice_negative_total_rejected(self):
-        from apps.api.src.domain.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
 
         with pytest.raises(ValidationError):
             Invoice(
@@ -311,7 +341,7 @@ class TestDiscrepancy:
     """Discrepancy found by auditor."""
 
     def test_create_discrepancy(self):
-        from apps.api.src.domain.audit import Discrepancy, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import Discrepancy, DiscrepancyBand
 
         disc = Discrepancy(
             line_item_index=0,
@@ -329,7 +359,7 @@ class TestDiscrepancy:
         assert disc.band == DiscrepancyBand.CRITICAL
 
     def test_discrepancy_auto_approve_band(self):
-        from apps.api.src.domain.audit import Discrepancy, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import Discrepancy, DiscrepancyBand
 
         disc = Discrepancy(
             line_item_index=0,
@@ -346,7 +376,7 @@ class TestDiscrepancy:
         assert disc.band == DiscrepancyBand.AUTO_APPROVE
 
     def test_discrepancy_investigate_band(self):
-        from apps.api.src.domain.audit import Discrepancy, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import Discrepancy, DiscrepancyBand
 
         disc = Discrepancy(
             line_item_index=0,
@@ -363,7 +393,7 @@ class TestDiscrepancy:
         assert disc.band == DiscrepancyBand.INVESTIGATE
 
     def test_discrepancy_escalate_band(self):
-        from apps.api.src.domain.audit import Discrepancy, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import Discrepancy, DiscrepancyBand
 
         disc = Discrepancy(
             line_item_index=0,
@@ -380,7 +410,7 @@ class TestDiscrepancy:
         assert disc.band == DiscrepancyBand.ESCALATE
 
     def test_discrepancy_serialization(self):
-        from apps.api.src.domain.audit import Discrepancy, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import Discrepancy, DiscrepancyBand
 
         disc = Discrepancy(
             line_item_index=0,
@@ -403,7 +433,7 @@ class TestApprovalDecision:
     """HITL approval/rejection."""
 
     def test_create_approval(self):
-        from apps.api.src.domain.audit import ApprovalDecision
+        from apps.api.src.domains.logicore.models.audit import ApprovalDecision
 
         decision = ApprovalDecision(
             approved=True,
@@ -415,7 +445,7 @@ class TestApprovalDecision:
         assert decision.reviewer_id == "martin.lang"
 
     def test_create_rejection(self):
-        from apps.api.src.domain.audit import ApprovalDecision
+        from apps.api.src.domains.logicore.models.audit import ApprovalDecision
 
         decision = ApprovalDecision(
             approved=False,
@@ -426,7 +456,7 @@ class TestApprovalDecision:
         assert decision.approved is False
 
     def test_approval_auto_sets_timestamp(self):
-        from apps.api.src.domain.audit import ApprovalDecision
+        from apps.api.src.domains.logicore.models.audit import ApprovalDecision
 
         decision = ApprovalDecision(
             approved=True,
@@ -435,7 +465,7 @@ class TestApprovalDecision:
         assert decision.decided_at is not None
 
     def test_approval_serialization(self):
-        from apps.api.src.domain.audit import ApprovalDecision
+        from apps.api.src.domains.logicore.models.audit import ApprovalDecision
 
         decision = ApprovalDecision(
             approved=True,
@@ -451,7 +481,7 @@ class TestAuditReport:
     """Final audit report."""
 
     def test_create_report_with_discrepancies(self):
-        from apps.api.src.domain.audit import (
+        from apps.api.src.domains.logicore.models.audit import (
             ApprovalDecision,
             AuditReport,
             Discrepancy,
@@ -490,7 +520,7 @@ class TestAuditReport:
         assert report.approval.approved is True
 
     def test_create_report_no_discrepancies(self):
-        from apps.api.src.domain.audit import AuditReport, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import AuditReport, DiscrepancyBand
 
         report = AuditReport(
             run_id="run-002",
@@ -504,7 +534,7 @@ class TestAuditReport:
         assert report.approval is None
 
     def test_report_serialization_roundtrip(self):
-        from apps.api.src.domain.audit import AuditReport, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import AuditReport, DiscrepancyBand
 
         report = AuditReport(
             run_id="run-003",
@@ -520,7 +550,7 @@ class TestAuditReport:
         assert restored.max_band == report.max_band
 
     def test_report_json_includes_all_fields(self):
-        from apps.api.src.domain.audit import AuditReport, DiscrepancyBand
+        from apps.api.src.domains.logicore.models.audit import AuditReport, DiscrepancyBand
 
         report = AuditReport(
             run_id="run-004",
@@ -541,7 +571,10 @@ class TestDiscrepancyBandClassification:
 
     def test_auto_approve_band_cases(self):
         """5 cases in the <1% auto-approve band."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         cases = [
             Decimal("0.0"),
@@ -557,7 +590,10 @@ class TestDiscrepancyBandClassification:
 
     def test_investigate_band_cases(self):
         """5 cases in the 1-5% investigate band."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         cases = [
             Decimal("1.0"),
@@ -573,7 +609,10 @@ class TestDiscrepancyBandClassification:
 
     def test_escalate_band_cases(self):
         """5 cases in the 5-15% escalation band."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         cases = [
             Decimal("5.0"),
@@ -589,7 +628,10 @@ class TestDiscrepancyBandClassification:
 
     def test_critical_band_cases(self):
         """5 cases in the >15% critical band."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         cases = [
             Decimal("15.0"),
@@ -605,7 +647,10 @@ class TestDiscrepancyBandClassification:
 
     def test_negative_percentages_use_absolute_value(self):
         """Negative discrepancy (undercharge) classified by absolute value."""
-        from apps.api.src.domain.audit import DiscrepancyBand, classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import (
+            DiscrepancyBand,
+            classify_discrepancy_band,
+        )
 
         assert classify_discrepancy_band(Decimal("-0.5")) == DiscrepancyBand.AUTO_APPROVE
         assert classify_discrepancy_band(Decimal("-3.0")) == DiscrepancyBand.INVESTIGATE

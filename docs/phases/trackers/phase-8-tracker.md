@@ -6,15 +6,15 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/compliance/__init__.py`
-- [ ] `apps/api/src/compliance/audit_logger.py` — immutable audit log writer
-- [ ] `apps/api/src/compliance/data_lineage.py` — document → chunk → embedding versioning
-- [ ] `apps/api/src/compliance/report_generator.py` — EU AI Act compliance report
-- [ ] `apps/api/src/compliance/bias_detector.py` — statistical fairness checks
-- [ ] `apps/api/src/infrastructure/postgres/migrations/001_audit_log.sql` — append-only table
-- [ ] `apps/api/src/infrastructure/postgres/migrations/002_data_lineage.sql` — lineage tables
-- [ ] `apps/api/src/api/v1/compliance.py` — GET /audit-log, /report endpoints
-- [ ] `apps/api/src/domain/compliance.py` — AuditEntry, ComplianceReport, LineageRecord
+- [ ] `apps/api/src/domains/logicore/compliance/__init__.py`
+- [ ] `apps/api/src/domains/logicore/compliance/audit_logger.py` — immutable audit log writer
+- [ ] `apps/api/src/domains/logicore/compliance/data_lineage.py` — document → chunk → embedding versioning
+- [ ] `apps/api/src/domains/logicore/compliance/report_generator.py` — EU AI Act compliance report
+- [ ] `apps/api/src/domains/logicore/compliance/bias_detector.py` — statistical fairness checks
+- [ ] `apps/api/src/core/infrastructure/postgres/migrations/001_audit_log.sql` — append-only table
+- [ ] `apps/api/src/core/infrastructure/postgres/migrations/002_data_lineage.sql` — lineage tables
+- [ ] `apps/api/src/domains/logicore/api/compliance.py` — GET /audit-log, /report endpoints
+- [ ] `apps/api/src/domains/logicore/models/compliance.py` — AuditEntry, ComplianceReport, LineageRecord
 - [ ] `tests/unit/test_audit_logger.py` — immutability tests
 - [ ] `tests/integration/test_compliance_report.py` — full report generation
 

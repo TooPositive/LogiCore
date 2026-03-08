@@ -6,7 +6,12 @@ classifies discrepancies into 4 bands, and determines the overall action.
 
 from decimal import Decimal
 
-from apps.api.src.domain.audit import ContractRate, DiscrepancyBand, Invoice, LineItem
+from apps.api.src.domains.logicore.models.audit import (
+    ContractRate,
+    DiscrepancyBand,
+    Invoice,
+    LineItem,
+)
 
 
 def _make_invoice(
@@ -57,7 +62,7 @@ class TestAuditorAgent:
     """Auditor agent compares rates and classifies discrepancies."""
 
     async def test_no_discrepancy_when_rates_match(self):
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -78,7 +83,7 @@ class TestAuditorAgent:
 
     async def test_auto_approve_band_small_overcharge(self):
         """<1% difference -> AUTO_APPROVE."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -100,7 +105,7 @@ class TestAuditorAgent:
 
     async def test_investigate_band_moderate_overcharge(self):
         """1-5% difference -> INVESTIGATE."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -122,7 +127,7 @@ class TestAuditorAgent:
 
     async def test_escalate_band_significant_overcharge(self):
         """5-15% difference -> ESCALATE."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -144,7 +149,7 @@ class TestAuditorAgent:
 
     async def test_critical_band_major_overcharge(self):
         """>15% difference -> CRITICAL (the spec scenario: 0.45 vs 0.52)."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -166,7 +171,7 @@ class TestAuditorAgent:
         assert discrepancies[0].difference == Decimal("588.00")
 
     async def test_discrepancy_calculates_correct_amounts(self):
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -193,7 +198,7 @@ class TestAuditorAgent:
 
     async def test_multiple_line_items_mixed_bands(self):
         """One clean line, one overcharged -> only overcharged flagged."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(
             contract_id="CTR-002",
@@ -244,7 +249,7 @@ class TestAuditorAgent:
 
     async def test_undercharge_also_flagged(self):
         """Undercharges are flagged too (vendor billed less than contract)."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -267,7 +272,7 @@ class TestAuditorAgent:
 
     async def test_no_matching_rate_skips_line_item(self):
         """Line items without matching contract rate are skipped."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -288,7 +293,7 @@ class TestAuditorAgent:
 
     async def test_auditor_is_idempotent(self):
         """Same input produces same output (crash recovery safety)."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         invoice = _make_invoice(line_items=[
             LineItem(
@@ -312,7 +317,7 @@ class TestAuditorAgent:
 
     async def test_five_auto_approve_cases(self):
         """Comprehensive: 5 invoices in <1% band."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         agent = AuditorAgent()
         percentages = ["0.4502", "0.4510", "0.4520", "0.4540", "0.4544"]
@@ -337,7 +342,7 @@ class TestAuditorAgent:
 
     async def test_five_critical_cases(self):
         """Comprehensive: 5 invoices in >15% band."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
 
         agent = AuditorAgent()
         prices = ["0.52", "0.55", "0.60", "0.75", "0.85"]

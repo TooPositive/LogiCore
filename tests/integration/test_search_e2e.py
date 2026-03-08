@@ -9,12 +9,12 @@ import uuid
 import pytest
 from qdrant_client import AsyncQdrantClient, models
 
-from apps.api.src.domain.document import UserContext
-from apps.api.src.infrastructure.qdrant.collections import (
+from apps.api.src.core.domain.document import UserContext
+from apps.api.src.core.infrastructure.qdrant.collections import (
     COLLECTION_NAME,
     DENSE_VECTOR_SIZE,
 )
-from apps.api.src.security.rbac import build_qdrant_filter
+from apps.api.src.core.security.rbac import build_qdrant_filter
 
 pytestmark = pytest.mark.integration
 

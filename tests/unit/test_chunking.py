@@ -7,7 +7,7 @@ import math
 
 import pytest
 
-from apps.api.src.rag.chunking import (
+from apps.api.src.core.rag.chunking import (
     BaseChunker,
     ChunkingStrategy,
     ChunkResult,

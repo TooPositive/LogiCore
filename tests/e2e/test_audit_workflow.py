@@ -36,7 +36,7 @@ class TestAuditWorkflowE2E:
 
     async def test_start_reject_workflow(self):
         """Start audit, simulate awaiting_approval, then reject."""
-        from apps.api.src.api.v1.audit import _audit_store
+        from apps.api.src.domains.logicore.api.audit import _audit_store
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
@@ -142,7 +142,7 @@ class TestAuditWorkflowE2E:
 
     async def test_approve_conflict_states(self):
         """Approve endpoint rejects non-awaiting states."""
-        from apps.api.src.api.v1.audit import _audit_store
+        from apps.api.src.domains.logicore.api.audit import _audit_store
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"

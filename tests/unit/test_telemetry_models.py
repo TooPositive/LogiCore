@@ -15,7 +15,7 @@ class TestTraceRecord:
     """TraceRecord captures a single LLM call with full observability data."""
 
     def test_trace_record_creation_with_all_fields(self):
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         now = datetime.now(UTC)
         record = TraceRecord(
@@ -39,7 +39,7 @@ class TestTraceRecord:
         assert record.timestamp == now
 
     def test_trace_record_defaults(self):
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         record = TraceRecord(
             trace_id="trace-002",
@@ -60,7 +60,7 @@ class TestTraceRecord:
 
     def test_trace_record_cache_hit_zero_cost(self):
         """Cache hits MUST be recorded as EUR 0.00 cost."""
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         record = TraceRecord(
             trace_id="trace-003",
@@ -77,7 +77,7 @@ class TestTraceRecord:
         assert record.cost_eur == Decimal("0.00")
 
     def test_trace_record_negative_cost_rejected(self):
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         with pytest.raises(ValidationError):
             TraceRecord(
@@ -92,7 +92,7 @@ class TestTraceRecord:
             )
 
     def test_trace_record_negative_tokens_rejected(self):
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         with pytest.raises(ValidationError):
             TraceRecord(
@@ -107,7 +107,7 @@ class TestTraceRecord:
             )
 
     def test_trace_record_with_optional_metadata(self):
-        from apps.api.src.domain.telemetry import TraceRecord
+        from apps.api.src.core.domain.telemetry import TraceRecord
 
         record = TraceRecord(
             trace_id="trace-meta",
@@ -129,7 +129,7 @@ class TestCostSummary:
     """CostSummary aggregates costs by agent, user, or time period."""
 
     def test_cost_summary_creation(self):
-        from apps.api.src.domain.telemetry import CostSummary
+        from apps.api.src.core.domain.telemetry import CostSummary
 
         summary = CostSummary(
             period_start=datetime(2026, 3, 1, tzinfo=UTC),
@@ -146,7 +146,7 @@ class TestCostSummary:
         assert summary.by_agent["search"] == Decimal("1.20")
 
     def test_cost_summary_cache_hit_rate_bounds(self):
-        from apps.api.src.domain.telemetry import CostSummary
+        from apps.api.src.core.domain.telemetry import CostSummary
 
         with pytest.raises(ValidationError):
             CostSummary(
@@ -160,7 +160,7 @@ class TestCostSummary:
             )
 
     def test_cost_summary_negative_cache_hit_rate_rejected(self):
-        from apps.api.src.domain.telemetry import CostSummary
+        from apps.api.src.core.domain.telemetry import CostSummary
 
         with pytest.raises(ValidationError):
             CostSummary(
@@ -174,7 +174,7 @@ class TestCostSummary:
             )
 
     def test_cost_summary_zero_queries(self):
-        from apps.api.src.domain.telemetry import CostSummary
+        from apps.api.src.core.domain.telemetry import CostSummary
 
         summary = CostSummary(
             period_start=datetime(2026, 3, 1, tzinfo=UTC),
@@ -192,7 +192,7 @@ class TestEvalScore:
     """EvalScore captures RAG quality metrics from LLM-as-Judge evaluation."""
 
     def test_eval_score_creation(self):
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         now = datetime.now(UTC)
         score = EvalScore(
@@ -210,7 +210,7 @@ class TestEvalScore:
 
     def test_eval_score_passes_quality_gate(self):
         """All metrics must be > 0.8 to pass CI gate."""
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         score = EvalScore(
             eval_id="eval-pass",
@@ -222,7 +222,7 @@ class TestEvalScore:
         assert score.passes_quality_gate(threshold=0.8) is True
 
     def test_eval_score_fails_quality_gate(self):
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         score = EvalScore(
             eval_id="eval-fail",
@@ -234,7 +234,7 @@ class TestEvalScore:
         assert score.passes_quality_gate(threshold=0.8) is False
 
     def test_eval_score_bounds_validation(self):
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         with pytest.raises(ValidationError):
             EvalScore(
@@ -246,7 +246,7 @@ class TestEvalScore:
             )
 
     def test_eval_score_negative_rejected(self):
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         with pytest.raises(ValidationError):
             EvalScore(
@@ -258,7 +258,7 @@ class TestEvalScore:
             )
 
     def test_eval_score_quality_gate_with_custom_threshold(self):
-        from apps.api.src.domain.telemetry import EvalScore
+        from apps.api.src.core.domain.telemetry import EvalScore
 
         score = EvalScore(
             eval_id="eval-custom",
@@ -277,7 +277,7 @@ class TestCacheEntry:
     """CacheEntry represents a cached LLM response in Redis."""
 
     def test_cache_entry_creation(self):
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         now = datetime.now(UTC)
         entry = CacheEntry(
@@ -299,7 +299,7 @@ class TestCacheEntry:
 
     def test_cache_entry_rbac_partition_key(self):
         """RBAC partition key MUST include clearance_level + sorted departments."""
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         entry = CacheEntry(
             cache_key="key-002",
@@ -324,7 +324,7 @@ class TestCacheEntry:
 
     def test_cache_entry_departments_sorted_in_partition(self):
         """Same departments in different order must produce same partition key."""
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         kwargs = dict(
             cache_key="key-sort",
@@ -342,7 +342,7 @@ class TestCacheEntry:
 
     def test_cache_entry_entity_keys_in_partition(self):
         """Entity keys (client names) must be included in the partition key."""
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         kwargs = dict(
             cache_key="key-ent",
@@ -360,7 +360,7 @@ class TestCacheEntry:
 
     def test_cache_entry_is_stale(self):
         """Staleness check: if source docs updated after cache entry created."""
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         old_time = datetime(2026, 3, 1, tzinfo=UTC)
         entry = CacheEntry(
@@ -381,7 +381,7 @@ class TestCacheEntry:
         assert entry.is_stale(doc_updated_at=datetime(2026, 2, 28, tzinfo=UTC)) is False
 
     def test_cache_entry_clearance_validation(self):
-        from apps.api.src.domain.telemetry import CacheEntry
+        from apps.api.src.core.domain.telemetry import CacheEntry
 
         with pytest.raises(ValidationError):
             CacheEntry(
@@ -401,7 +401,7 @@ class TestModelRoute:
     """ModelRoute captures a routing decision with cost justification."""
 
     def test_model_route_simple(self):
-        from apps.api.src.domain.telemetry import ModelRoute, QueryComplexity
+        from apps.api.src.core.domain.telemetry import ModelRoute, QueryComplexity
 
         route = ModelRoute(
             query="What is shipment status?",
@@ -416,7 +416,7 @@ class TestModelRoute:
 
     def test_model_route_keyword_override(self):
         """Financial keywords force COMPLEX routing regardless of LLM classification."""
-        from apps.api.src.domain.telemetry import ModelRoute, QueryComplexity
+        from apps.api.src.core.domain.telemetry import ModelRoute, QueryComplexity
 
         route = ModelRoute(
             query="What is the penalty rate in the contract?",
@@ -431,7 +431,7 @@ class TestModelRoute:
 
     def test_model_route_confidence_escalation(self):
         """Low confidence (< 0.7) should escalate one tier."""
-        from apps.api.src.domain.telemetry import ModelRoute, QueryComplexity
+        from apps.api.src.core.domain.telemetry import ModelRoute, QueryComplexity
 
         route = ModelRoute(
             query="explain the implications of clause 7",
@@ -445,14 +445,14 @@ class TestModelRoute:
         assert route.confidence == 0.55
 
     def test_query_complexity_enum_values(self):
-        from apps.api.src.domain.telemetry import QueryComplexity
+        from apps.api.src.core.domain.telemetry import QueryComplexity
 
         assert QueryComplexity.SIMPLE == "SIMPLE"
         assert QueryComplexity.MEDIUM == "MEDIUM"
         assert QueryComplexity.COMPLEX == "COMPLEX"
 
     def test_model_route_confidence_bounds(self):
-        from apps.api.src.domain.telemetry import ModelRoute, QueryComplexity
+        from apps.api.src.core.domain.telemetry import ModelRoute, QueryComplexity
 
         with pytest.raises(ValidationError):
             ModelRoute(

@@ -29,16 +29,16 @@ import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from apps.api.src.config.settings import settings  # noqa: F401
-from apps.api.src.domain.document import UserContext
-from apps.api.src.infrastructure.qdrant.collections import (
+from apps.api.src.core.config.settings import settings  # noqa: F401
+from apps.api.src.core.domain.document import UserContext
+from apps.api.src.core.infrastructure.qdrant.collections import (
     COLLECTION_NAME,
     DENSE_VECTOR_SIZE,
     ensure_collection,
 )
-from apps.api.src.rag.embeddings import get_embeddings
-from apps.api.src.rag.ingestion import ingest_document
-from apps.api.src.rag.reranker import (
+from apps.api.src.core.rag.embeddings import get_embeddings
+from apps.api.src.core.rag.ingestion import ingest_document
+from apps.api.src.core.rag.reranker import (
     BaseReranker,
     LocalCrossEncoderReranker,
     NoOpReranker,
@@ -46,7 +46,7 @@ from apps.api.src.rag.reranker import (
     RerankerError,
     _to_rerank_results,
 )
-from apps.api.src.rag.retriever import SearchMode, hybrid_search
+from apps.api.src.core.rag.retriever import SearchMode, hybrid_search
 from tests.evaluation.corpus import CORPUS
 from tests.evaluation.ground_truth import (
     GROUND_TRUTH,

@@ -12,7 +12,7 @@ class TestLangfuseHandler:
     """Langfuse callback handler that traces every LLM call."""
 
     def test_handler_creation(self):
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         handler = LangfuseHandler(
             langfuse_client=MagicMock(),
@@ -22,8 +22,8 @@ class TestLangfuseHandler:
 
     def test_handler_records_trace(self):
         """Handler records a trace with prompt, response, model, tokens, latency, cost."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_trace = MagicMock()
@@ -48,8 +48,8 @@ class TestLangfuseHandler:
 
     def test_handler_records_cost_in_tracker(self):
         """Handler updates cost tracker when recording a trace."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         tracker = CostTracker()
         handler = LangfuseHandler(
@@ -72,8 +72,8 @@ class TestLangfuseHandler:
 
     def test_handler_cache_hit_records_zero_cost(self):
         """Cache hits are traced but with EUR 0.00 cost."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         tracker = CostTracker()
         handler = LangfuseHandler(
@@ -93,8 +93,8 @@ class TestLangfuseHandler:
 
     def test_handler_includes_metadata_in_trace(self):
         """Trace includes routing reason and other metadata."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_trace = MagicMock()
@@ -126,8 +126,8 @@ class TestLangfuseFallback:
 
     def test_fallback_on_langfuse_error(self):
         """When Langfuse raises, write full trace to fallback store."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_langfuse.trace.side_effect = Exception("Langfuse unreachable")
@@ -155,8 +155,8 @@ class TestLangfuseFallback:
 
     def test_fallback_preserves_full_trace_data(self):
         """Fallback must store ALL trace data, not just trace_id."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_langfuse.trace.side_effect = Exception("Langfuse down")
@@ -187,8 +187,8 @@ class TestLangfuseFallback:
 
     def test_langfuse_failure_does_not_block_llm_call(self):
         """Critical: Langfuse failure must NOT block the LLM call result."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_langfuse.trace.side_effect = Exception("Langfuse down")
@@ -214,8 +214,8 @@ class TestLangfuseFallback:
 
     def test_fallback_store_also_fails_gracefully(self):
         """If both Langfuse AND fallback fail, still don't crash."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import LangfuseHandler
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import LangfuseHandler
 
         mock_langfuse = MagicMock()
         mock_langfuse.trace.side_effect = Exception("Langfuse down")
@@ -246,14 +246,14 @@ class TestFallbackStore:
     """In-memory fallback store for traces when Langfuse is down."""
 
     def test_fallback_store_creation(self):
-        from apps.api.src.telemetry.langfuse_handler import InMemoryFallbackStore
+        from apps.api.src.core.telemetry.langfuse_handler import InMemoryFallbackStore
 
         store = InMemoryFallbackStore()
         assert store.count() == 0
 
     def test_fallback_store_and_retrieve(self):
-        from apps.api.src.domain.telemetry import TraceRecord
-        from apps.api.src.telemetry.langfuse_handler import InMemoryFallbackStore
+        from apps.api.src.core.domain.telemetry import TraceRecord
+        from apps.api.src.core.telemetry.langfuse_handler import InMemoryFallbackStore
 
         store = InMemoryFallbackStore()
         trace = TraceRecord(
@@ -275,8 +275,8 @@ class TestFallbackStore:
 
     def test_fallback_store_drain(self):
         """After reconciliation, drain clears the store."""
-        from apps.api.src.domain.telemetry import TraceRecord
-        from apps.api.src.telemetry.langfuse_handler import InMemoryFallbackStore
+        from apps.api.src.core.domain.telemetry import TraceRecord
+        from apps.api.src.core.telemetry.langfuse_handler import InMemoryFallbackStore
 
         store = InMemoryFallbackStore()
         for i in range(5):
@@ -296,8 +296,8 @@ class TestFallbackStore:
 
     def test_reconciliation_backfills_langfuse(self):
         """After Langfuse recovery, backfill from fallback store."""
-        from apps.api.src.domain.telemetry import TraceRecord
-        from apps.api.src.telemetry.langfuse_handler import (
+        from apps.api.src.core.domain.telemetry import TraceRecord
+        from apps.api.src.core.telemetry.langfuse_handler import (
             InMemoryFallbackStore,
             reconcile_fallback,
         )

@@ -32,7 +32,7 @@ class TestCacheCreation:
     """SemanticCache creation and basic operations."""
 
     def test_cache_creation(self):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(
             similarity_threshold=0.95,
@@ -43,7 +43,7 @@ class TestCacheCreation:
         assert cache.similarity_threshold == 0.95
 
     def test_cache_configurable_threshold(self):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.97)
         assert cache.similarity_threshold == 0.97
@@ -54,7 +54,7 @@ class TestCacheHitMiss:
 
     @pytest.mark.asyncio
     async def test_cache_miss_on_empty(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
         result = await cache.get(
@@ -67,7 +67,7 @@ class TestCacheHitMiss:
 
     @pytest.mark.asyncio
     async def test_cache_hit_on_exact_match(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
         await cache.put(
@@ -91,7 +91,7 @@ class TestCacheHitMiss:
 
     @pytest.mark.asyncio
     async def test_cache_miss_on_different_query(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
         await cache.put(
@@ -114,7 +114,7 @@ class TestCacheHitMiss:
 
     @pytest.mark.asyncio
     async def test_cache_stores_multiple_entries(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
         for i in range(5):
@@ -136,7 +136,7 @@ class TestRBACPartitioning:
     @pytest.mark.asyncio
     async def test_different_clearance_different_partition(self, mock_embedder):
         """Clearance-3 cached response must NOT be served to clearance-1 user."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -163,7 +163,7 @@ class TestRBACPartitioning:
     @pytest.mark.asyncio
     async def test_different_departments_different_partition(self, mock_embedder):
         """HR cache must not leak to warehouse users."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -189,7 +189,7 @@ class TestRBACPartitioning:
     @pytest.mark.asyncio
     async def test_same_clearance_same_department_hits(self, mock_embedder):
         """Same RBAC context should hit the cache."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -214,7 +214,7 @@ class TestRBACPartitioning:
     @pytest.mark.asyncio
     async def test_department_order_does_not_affect_partition(self, mock_embedder):
         """Same departments in different order must hit same partition."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -244,7 +244,7 @@ class TestEntityAwareness:
     @pytest.mark.asyncio
     async def test_different_entity_different_partition(self, mock_embedder):
         """PharmaCorp cache must NOT serve FreshFoods responses."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -270,7 +270,7 @@ class TestEntityAwareness:
 
     @pytest.mark.asyncio
     async def test_same_entity_hits(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -296,7 +296,7 @@ class TestEntityAwareness:
     @pytest.mark.asyncio
     async def test_no_entity_does_not_match_entity_entry(self, mock_embedder):
         """Query without entity must not match entity-scoped cache entry."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -326,7 +326,7 @@ class TestStalenessDetection:
 
     @pytest.mark.asyncio
     async def test_stale_entry_returns_miss(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -353,7 +353,7 @@ class TestStalenessDetection:
 
     @pytest.mark.asyncio
     async def test_fresh_entry_returns_hit(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -382,7 +382,7 @@ class TestStalenessDetection:
     @pytest.mark.asyncio
     async def test_multi_source_doc_one_stale_returns_miss(self, mock_embedder):
         """Entry with 3 source docs — if ANY one is updated, entry is stale."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -410,7 +410,7 @@ class TestStalenessDetection:
     @pytest.mark.asyncio
     async def test_no_doc_update_times_treats_as_fresh(self, mock_embedder):
         """When doc_update_times is None, skip staleness check (treat as fresh)."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -437,7 +437,7 @@ class TestStalenessDetection:
     @pytest.mark.asyncio
     async def test_unrelated_doc_update_does_not_stale(self, mock_embedder):
         """Doc update for unrelated doc_id should NOT stale the entry."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -468,7 +468,7 @@ class TestCacheInvalidation:
 
     @pytest.mark.asyncio
     async def test_invalidate_by_document_id(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -500,7 +500,7 @@ class TestCacheInvalidation:
     @pytest.mark.asyncio
     async def test_invalidate_nonexistent_doc_returns_zero(self, mock_embedder):
         """Invalidating a doc_id not in any cache entry returns 0, no error."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -520,7 +520,7 @@ class TestCacheInvalidation:
 
     @pytest.mark.asyncio
     async def test_flush_all(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -544,7 +544,7 @@ class TestCacheableFlag:
 
     @pytest.mark.asyncio
     async def test_non_cacheable_query_not_stored(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -566,7 +566,7 @@ class TestLRUEviction:
 
     @pytest.mark.asyncio
     async def test_lru_evicts_oldest(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(
             similarity_threshold=0.95,
@@ -589,7 +589,7 @@ class TestLRUEviction:
 
     @pytest.mark.asyncio
     async def test_lru_keeps_most_recent(self, mock_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(
             similarity_threshold=0.95,

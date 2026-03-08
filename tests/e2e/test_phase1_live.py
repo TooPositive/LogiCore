@@ -16,14 +16,14 @@ NOT run as part of the normal test suite (expensive, needs credentials).
 import pytest
 from qdrant_client import AsyncQdrantClient
 
-from apps.api.src.domain.document import UserContext
-from apps.api.src.infrastructure.qdrant.collections import (
+from apps.api.src.core.domain.document import UserContext
+from apps.api.src.core.infrastructure.qdrant.collections import (
     COLLECTION_NAME,
     ensure_collection,
 )
-from apps.api.src.rag.embeddings import get_embeddings
-from apps.api.src.rag.ingestion import ingest_document
-from apps.api.src.rag.retriever import hybrid_search
+from apps.api.src.core.rag.embeddings import get_embeddings
+from apps.api.src.core.rag.ingestion import ingest_document
+from apps.api.src.core.rag.retriever import hybrid_search
 
 pytestmark = pytest.mark.live
 

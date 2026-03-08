@@ -113,7 +113,7 @@ class TestMockInvoices:
 
     def _count_band(self, invoices: list[dict], contracts: list[dict], band: str) -> int:
         """Count invoices with at least one line item in the given band."""
-        from apps.api.src.domain.audit import classify_discrepancy_band
+        from apps.api.src.domains.logicore.models.audit import classify_discrepancy_band
 
         rate_map = self._build_rate_map(contracts)
         count = 0

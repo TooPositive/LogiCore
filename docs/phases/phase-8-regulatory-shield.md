@@ -73,15 +73,15 @@ Every AI Decision → Compliance Logger
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/compliance/__init__.py` | Package init |
-| `apps/api/src/compliance/audit_logger.py` | Immutable audit log writer |
-| `apps/api/src/compliance/data_lineage.py` | Document → chunk → embedding version tracking |
-| `apps/api/src/compliance/report_generator.py` | EU AI Act compliance report builder |
-| `apps/api/src/compliance/bias_detector.py` | Statistical fairness checks |
-| `apps/api/src/infrastructure/postgres/migrations/001_audit_log.sql` | Audit log table (append-only) |
-| `apps/api/src/infrastructure/postgres/migrations/002_data_lineage.sql` | Lineage tracking tables |
-| `apps/api/src/api/v1/compliance.py` | GET /api/v1/compliance/audit-log, /report endpoints |
-| `apps/api/src/domain/compliance.py` | AuditEntry, ComplianceReport, LineageRecord models |
+| `apps/api/src/domains/logicore/compliance/__init__.py` | Package init |
+| `apps/api/src/domains/logicore/compliance/audit_logger.py` | Immutable audit log writer |
+| `apps/api/src/domains/logicore/compliance/data_lineage.py` | Document → chunk → embedding version tracking |
+| `apps/api/src/domains/logicore/compliance/report_generator.py` | EU AI Act compliance report builder |
+| `apps/api/src/domains/logicore/compliance/bias_detector.py` | Statistical fairness checks |
+| `apps/api/src/core/infrastructure/postgres/migrations/001_audit_log.sql` | Audit log table (append-only) |
+| `apps/api/src/core/infrastructure/postgres/migrations/002_data_lineage.sql` | Lineage tracking tables |
+| `apps/api/src/domains/logicore/api/compliance.py` | GET /api/v1/compliance/audit-log, /report endpoints |
+| `apps/api/src/domains/logicore/models/compliance.py` | AuditEntry, ComplianceReport, LineageRecord models |
 | `tests/unit/test_audit_logger.py` | Immutability tests (verify no UPDATE/DELETE) |
 | `tests/integration/test_compliance_report.py` | Full report generation test |
 

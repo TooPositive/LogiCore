@@ -15,7 +15,7 @@ class TestAuditStartEndpoint:
     async def test_start_returns_run_id(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -36,7 +36,7 @@ class TestAuditStartEndpoint:
     async def test_start_requires_invoice_id(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -51,7 +51,7 @@ class TestAuditStartEndpoint:
     async def test_start_rejects_empty_invoice_id(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -69,7 +69,7 @@ class TestAuditStartEndpoint:
     async def test_start_returns_unique_run_ids(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -94,7 +94,7 @@ class TestAuditStatusEndpoint:
     async def test_status_returns_current_state(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import _audit_store, router
+        from apps.api.src.domains.logicore.api.audit import _audit_store, router
 
         app = FastAPI()
         app.include_router(router)
@@ -121,7 +121,7 @@ class TestAuditStatusEndpoint:
     async def test_status_not_found(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -140,7 +140,7 @@ class TestAuditApproveEndpoint:
     async def test_approve_returns_success(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import _audit_store, router
+        from apps.api.src.domains.logicore.api.audit import _audit_store, router
 
         app = FastAPI()
         app.include_router(router)
@@ -172,7 +172,7 @@ class TestAuditApproveEndpoint:
     async def test_approve_not_found(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import router
+        from apps.api.src.domains.logicore.api.audit import router
 
         app = FastAPI()
         app.include_router(router)
@@ -193,7 +193,7 @@ class TestAuditApproveEndpoint:
     async def test_approve_requires_reviewer_id(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import _audit_store, router
+        from apps.api.src.domains.logicore.api.audit import _audit_store, router
 
         app = FastAPI()
         app.include_router(router)
@@ -218,7 +218,7 @@ class TestAuditApproveEndpoint:
     async def test_approve_rejects_non_awaiting_status(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.audit import _audit_store, router
+        from apps.api.src.domains.logicore.api.audit import _audit_store, router
 
         app = FastAPI()
         app.include_router(router)
@@ -248,13 +248,13 @@ class TestAuditApiModels:
     """Validate request/response models."""
 
     def test_start_request_model(self):
-        from apps.api.src.api.v1.audit import AuditStartRequest
+        from apps.api.src.domains.logicore.api.audit import AuditStartRequest
 
         req = AuditStartRequest(invoice_id="INV-2024-0847")
         assert req.invoice_id == "INV-2024-0847"
 
     def test_approve_request_model(self):
-        from apps.api.src.api.v1.audit import ApproveRequest
+        from apps.api.src.domains.logicore.api.audit import ApproveRequest
 
         req = ApproveRequest(
             approved=True,

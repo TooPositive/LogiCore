@@ -400,6 +400,149 @@ class TestQualityGateBypass:
         result = await chain.generate("test")
         assert result.provider_name == "fallback"
 
+    @pytest.mark.asyncio
+    async def test_unicode_zero_width_space_doesnt_bypass_gate(self):
+        """U+200B (zero-width space) — str.strip() does NOT strip this.
+        Quality gate must explicitly handle it."""
+        # 100 zero-width spaces = 100 chars to len(), but zero visible content
+        zwsp = "\u200b" * 100
+        provider = _make_provider("attacker", zwsp)
+        fallback = _make_provider("honest", "This is a real response.")
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="attacker", failure_threshold=5),
+                ),
+                ProviderEntry(
+                    provider=fallback,
+                    breaker=CircuitBreaker(name="honest"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "honest"
+
+    @pytest.mark.asyncio
+    async def test_unicode_bom_doesnt_bypass_gate(self):
+        """U+FEFF (byte order mark) — invisible character bypass attempt."""
+        bom = "\ufeff" * 50
+        provider = _make_provider("attacker", bom)
+        fallback = _make_provider("honest", "This is a real response.")
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="attacker", failure_threshold=5),
+                ),
+                ProviderEntry(
+                    provider=fallback,
+                    breaker=CircuitBreaker(name="honest"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "honest"
+
+    @pytest.mark.asyncio
+    async def test_unicode_zwnj_doesnt_bypass_gate(self):
+        """U+200C (zero-width non-joiner) — another invisible char."""
+        zwnj = "\u200c" * 50
+        provider = _make_provider("attacker", zwnj)
+        fallback = _make_provider("honest", "This is a real response.")
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="attacker", failure_threshold=5),
+                ),
+                ProviderEntry(
+                    provider=fallback,
+                    breaker=CircuitBreaker(name="honest"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "honest"
+
+    @pytest.mark.asyncio
+    async def test_unicode_soft_hyphen_doesnt_bypass_gate(self):
+        """U+00AD (soft hyphen) — invisible in rendering."""
+        shy = "\u00ad" * 50
+        provider = _make_provider("attacker", shy)
+        fallback = _make_provider("honest", "This is a real response.")
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="attacker", failure_threshold=5),
+                ),
+                ProviderEntry(
+                    provider=fallback,
+                    breaker=CircuitBreaker(name="honest"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "honest"
+
+    @pytest.mark.asyncio
+    async def test_mixed_invisible_unicode_doesnt_bypass_gate(self):
+        """Mix of invisible Unicode chars + whitespace — comprehensive bypass."""
+        mixed = " \u200b\t\ufeff\n\u200c \u00ad\u200d\u2060 "
+        provider = _make_provider("attacker", mixed * 5)
+        fallback = _make_provider("honest", "This is a real response.")
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="attacker", failure_threshold=5),
+                ),
+                ProviderEntry(
+                    provider=fallback,
+                    breaker=CircuitBreaker(name="honest"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "honest"
+
+    @pytest.mark.asyncio
+    async def test_real_content_with_embedded_zwsp_passes_gate(self):
+        """Real content containing zero-width spaces should PASS.
+        The gate strips invisible chars then checks length — if there's
+        real content underneath, it passes."""
+        content = "This is\u200b a real\u200b response with content."
+        provider = _make_provider("azure", content)
+
+        chain = ProviderChain(
+            providers=[
+                ProviderEntry(
+                    provider=provider,
+                    breaker=CircuitBreaker(name="azure"),
+                ),
+            ],
+            quality_gate=ResponseQualityGate(min_length=10),
+        )
+
+        result = await chain.generate("test")
+        assert result.provider_name == "azure"
+
 
 # ===========================================================================
 # 6. Retry abuse

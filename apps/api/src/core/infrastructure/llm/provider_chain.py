@@ -46,19 +46,34 @@ class ResponseQualityGate:
     The analysis identified this as the most expensive silent failure
     mode (EUR 500-5,000/incident).
 
+    Strips both standard whitespace AND Unicode zero-width characters
+    (U+200B, U+FEFF, U+200C, U+200D, U+00AD, U+2060) before checking
+    length. Without this, an attacker or malfunctioning provider could
+    return invisible characters that pass len() but contain no content.
+
     Args:
-        min_length: Minimum response length (after stripping whitespace).
+        min_length: Minimum response length (after stripping whitespace
+                    and zero-width characters).
     """
+
+    # Unicode zero-width and invisible characters that str.strip() misses
+    _INVISIBLE_CHARS = "\u200b\ufeff\u200c\u200d\u00ad\u2060"
 
     def __init__(self, min_length: int = 10) -> None:
         self.min_length = min_length
 
     def is_acceptable(self, response: LLMResponse) -> bool:
-        """Check if response meets minimum quality standards."""
+        """Check if response meets minimum quality standards.
+
+        Strips whitespace AND invisible Unicode characters before
+        checking length. This prevents bypass via zero-width spaces.
+        """
         content = response.content.strip()
-        if len(content) < self.min_length:
-            return False
-        return True
+        # Remove invisible Unicode characters that str.strip() misses
+        for char in self._INVISIBLE_CHARS:
+            content = content.replace(char, "")
+        content = content.strip()  # Re-strip in case invisible chars were at edges
+        return len(content) >= self.min_length
 
 
 @dataclass(frozen=True)

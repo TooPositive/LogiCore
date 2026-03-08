@@ -16,7 +16,6 @@ rerank_score (from cross-encoder) for A/B comparison.
 
 from __future__ import annotations
 
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
@@ -240,20 +239,17 @@ class LocalCrossEncoderReranker(BaseReranker):
 
 
 # ---------------------------------------------------------------------------
-# CircuitBreakerReranker
+# CircuitBreakerReranker (uses generic CircuitBreaker from Phase 7)
 # ---------------------------------------------------------------------------
-
-
-class _CircuitState(StrEnum):
-    CLOSED = "closed"
-    OPEN = "open"
-    HALF_OPEN = "half_open"
 
 
 class CircuitBreakerReranker(BaseReranker):
     """Wraps a primary reranker with circuit breaker + fallback.
 
-    States:
+    Uses the generic CircuitBreaker from core/infrastructure/llm/circuit_breaker.py.
+    On primary failure or circuit open, falls back to the fallback reranker.
+
+    States (managed by CircuitBreaker):
     - CLOSED:    Normal operation, using primary. Tracks consecutive failures.
     - OPEN:      Primary is down. All calls go to fallback. After
                  recovery_timeout, transitions to HALF_OPEN.
@@ -267,49 +263,36 @@ class CircuitBreakerReranker(BaseReranker):
         failure_threshold: int = 3,
         recovery_timeout: float = 60.0,
     ) -> None:
+        from apps.api.src.core.infrastructure.llm.circuit_breaker import (
+            CircuitBreaker,
+        )
+
         self.primary = primary
         self.fallback = fallback
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
 
-        self._state = _CircuitState.CLOSED
-        self._failure_count = 0
-        self._last_failure_time: float = 0.0
+        self._breaker = CircuitBreaker(
+            name="reranker",
+            failure_threshold=failure_threshold,
+            reset_timeout=recovery_timeout,
+            success_threshold=1,  # Original behavior: one success closes
+        )
 
     async def rerank(
         self, query: str, results: list[Any], top_k: int = 5
     ) -> list[RerankResult]:
-        if self._state == _CircuitState.OPEN:
-            # Check if recovery timeout has elapsed
-            if time.monotonic() - self._last_failure_time >= self.recovery_timeout:
-                self._state = _CircuitState.HALF_OPEN
-            else:
-                return await self.fallback.rerank(query, results, top_k)
+        from apps.api.src.core.infrastructure.llm.circuit_breaker import (
+            CircuitOpenError,
+        )
 
-        if self._state == _CircuitState.HALF_OPEN:
-            # Try primary once
-            try:
-                result = await self.primary.rerank(query, results, top_k)
-                # Success — close circuit
-                self._state = _CircuitState.CLOSED
-                self._failure_count = 0
-                return result
-            except Exception:
-                # Failed again — reopen circuit
-                self._state = _CircuitState.OPEN
-                self._last_failure_time = time.monotonic()
-                return await self.fallback.rerank(query, results, top_k)
-
-        # CLOSED state — normal operation
         try:
-            result = await self.primary.rerank(query, results, top_k)
-            self._failure_count = 0
-            return result
+            return await self._breaker.call(
+                self.primary.rerank, query, results, top_k
+            )
+        except CircuitOpenError:
+            return await self.fallback.rerank(query, results, top_k)
         except Exception:
-            self._failure_count += 1
-            if self._failure_count >= self.failure_threshold:
-                self._state = _CircuitState.OPEN
-                self._last_failure_time = time.monotonic()
             return await self.fallback.rerank(query, results, top_k)
 
 

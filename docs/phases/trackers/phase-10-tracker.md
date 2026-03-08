@@ -6,14 +6,14 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/security/__init__.py`
-- [ ] `apps/api/src/security/input_sanitizer.py` — pattern-based input cleaning
-- [ ] `apps/api/src/security/guardrail.py` — Llama Guard / NeMo integration
-- [ ] `apps/api/src/security/output_filter.py` — response PII/harmful check
-- [ ] `apps/api/src/security/sql_sandbox.py` — query parameterization + whitelist
-- [ ] `apps/api/src/security/middleware.py` — FastAPI middleware wiring all layers
-- [ ] `apps/api/src/api/v1/security.py` — GET /report, /blocked-attempts
-- [ ] `apps/api/src/domain/security.py` — SecurityEvent, ThreatReport models
+- [ ] `apps/api/src/core/security/__init__.py`
+- [ ] `apps/api/src/core/security/input_sanitizer.py` — pattern-based input cleaning
+- [ ] `apps/api/src/core/security/guardrail.py` — Llama Guard / NeMo integration
+- [ ] `apps/api/src/core/security/output_filter.py` — response PII/harmful check
+- [ ] `apps/api/src/core/security/sql_sandbox.py` — query parameterization + whitelist
+- [ ] `apps/api/src/core/security/middleware.py` — FastAPI middleware wiring all layers
+- [ ] `apps/api/src/core/api/v1/security.py` — GET /report, /blocked-attempts
+- [ ] `apps/api/src/core/domain/security.py` — SecurityEvent, ThreatReport models
 - [ ] `tests/red-team/promptfoo.yaml` — OWASP LLM Top 10 config
 - [ ] `tests/red-team/attacks/` — attack payloads per category
 - [ ] `tests/red-team/run_red_team.py` — red team execution

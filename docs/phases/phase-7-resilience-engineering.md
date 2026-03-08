@@ -71,13 +71,13 @@ Incoming Request
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/infrastructure/llm/circuit_breaker.py` | Circuit breaker with CLOSED/OPEN/HALF-OPEN states |
-| `apps/api/src/infrastructure/llm/provider_chain.py` | Ordered fallback chain with per-provider breakers |
-| `apps/api/src/infrastructure/llm/model_router.py` | Query complexity classifier → model selection |
-| `apps/api/src/infrastructure/llm/retry.py` | Exponential backoff with jitter, timeout handling |
-| `apps/api/src/infrastructure/llm/provider.py` | **Modify** — integrate circuit breaker + retry |
-| `apps/api/src/config/settings.py` | **Modify** — add model routing config, breaker thresholds |
-| `apps/api/src/api/v1/analytics.py` | **Modify** — add routing stats endpoint |
+| `apps/api/src/core/infrastructure/llm/circuit_breaker.py` | Circuit breaker with CLOSED/OPEN/HALF-OPEN states |
+| `apps/api/src/core/infrastructure/llm/provider_chain.py` | Ordered fallback chain with per-provider breakers |
+| `apps/api/src/core/infrastructure/llm/model_router.py` | Query complexity classifier → model selection |
+| `apps/api/src/core/infrastructure/llm/retry.py` | Exponential backoff with jitter, timeout handling |
+| `apps/api/src/core/infrastructure/llm/provider.py` | **Modify** — integrate circuit breaker + retry |
+| `apps/api/src/core/config/settings.py` | **Modify** — add model routing config, breaker thresholds |
+| `apps/api/src/core/api/v1/analytics.py` | **Modify** — add routing stats endpoint |
 | `scripts/simulate_outage.py` | Simulate Azure outage, verify failover |
 | `scripts/benchmark_routing.py` | Cost comparison: routed vs unrouted |
 | `tests/unit/test_circuit_breaker.py` | State transition tests |

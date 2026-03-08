@@ -148,6 +148,47 @@ apps/api/src/
 └── main.py                  # Wires core + domain routers
 ```
 
+## Code Placement Guide (MANDATORY for all phases)
+
+Every new file must go in either `core/` or `domains/logicore/`. Never create files directly under `apps/api/src/` (except `main.py`).
+
+### Goes in `core/` (domain-agnostic)
+
+| Category | Examples | Rule |
+|----------|----------|------|
+| Infrastructure clients | Qdrant, Postgres, Redis, Kafka, LLM providers | Generic service wrappers, no business logic |
+| RAG pipeline | Retrieval, embeddings, chunking, reranking, sparse | Configurable, works for any corpus |
+| Security framework | RBAC filter builder, input sanitizer, guardrails, SQL sandbox | Generic security patterns |
+| Telemetry/LLMOps | Langfuse, cost tracker, drift detector, quality pipeline | Generic observability |
+| Config | Pydantic settings | Environment-driven |
+| Core models | Document, Chunk, UserContext, SearchResult, TraceRecord, EvalScore | Shared across all domains |
+| Core API | Health, search, ingest, analytics, security endpoints | Domain-agnostic endpoints |
+| Core patterns | ClearanceFilter, circuit breaker, MCP auth | Reusable architectural patterns |
+
+### Goes in `domains/logicore/` (LogiCore-specific)
+
+| Category | Examples | Rule |
+|----------|----------|------|
+| Agents | Reader (contract rates), Auditor (invoice comparison), Guardian (fleet) | Business logic with domain prompts |
+| Domain models | Invoice, ContractRate, Discrepancy, FleetAlert, ComplianceReport | LogiCore-specific Pydantic models |
+| Graphs | Audit workflow, fleet response, compliance subgraph | Domain-specific LangGraph state machines |
+| Tools | SQL query (invoice tables), report generator | Domain-specific tool implementations |
+| Domain API | Audit, fleet, compliance endpoints | Business-specific routes |
+| MCP servers | Invoice SQL, fleet status, compliance tools | Domain-specific MCP wrappers |
+| Test data | Polish corpus, ground truth queries, mock invoices | LogiCore benchmark data |
+
+### The test: "Could someone swap `domains/logicore/` for `domains/healthcare/` and have core work unchanged?"
+
+If yes → `core/`. If no → `domains/logicore/`.
+
+### Dependency direction
+
+```
+domains/logicore/ ──imports──► core/
+core/ ──NEVER imports──► domains/
+main.py ──wires──► both
+```
+
 ## Pipeline Persistence
 
 Artifacts saved by the pipeline — each step saves to a file so downstream agents can read it.

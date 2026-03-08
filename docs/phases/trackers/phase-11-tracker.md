@@ -6,14 +6,14 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/mcp/__init__.py`
-- [ ] `apps/api/src/mcp/search_server.py` — MCP server: Qdrant hybrid search tools
-- [ ] `apps/api/src/mcp/sql_server.py` — MCP server: read-only SQL tools
-- [ ] `apps/api/src/mcp/fleet_server.py` — MCP server: fleet status + alert tools
-- [ ] `apps/api/src/mcp/compliance_server.py` — MCP server: audit log + lineage tools
-- [ ] `apps/api/src/mcp/auth.py` — MCP auth middleware (RBAC)
-- [ ] `apps/api/src/tools/sql_query.py` — MODIFY: extract into reusable shared tool
-- [ ] `apps/api/src/rag/retriever.py` — MODIFY: extract search as reusable tool
+- [ ] `apps/api/src/core/mcp/__init__.py`
+- [ ] `apps/api/src/core/mcp/search_server.py` — MCP server: Qdrant hybrid search tools
+- [ ] `apps/api/src/domains/logicore/mcp/sql_server.py` — MCP server: read-only SQL tools
+- [ ] `apps/api/src/domains/logicore/mcp/fleet_server.py` — MCP server: fleet status + alert tools
+- [ ] `apps/api/src/domains/logicore/mcp/compliance_server.py` — MCP server: audit log + lineage tools
+- [ ] `apps/api/src/core/mcp/auth.py` — MCP auth middleware (RBAC)
+- [ ] `apps/api/src/domains/logicore/tools/sql_query.py` — MODIFY: extract into reusable shared tool
+- [ ] `apps/api/src/core/rag/retriever.py` — MODIFY: extract search as reusable tool
 - [ ] `.mcp/config.json` — MCP server configuration for IDE integration
 - [ ] `docker-compose.yml` — MODIFY: add MCP server services
 - [ ] `tests/integration/test_mcp_search.py` — MCP search integration
@@ -22,9 +22,9 @@
 
 ### Agentic: Tool Selection Reasoning
 
-- [ ] `apps/api/src/tools/tool_selector.py` — ToolSelector class (embedding pre-filter + LLM selection)
-- [ ] `apps/api/src/tools/tool_registry.py` — tool descriptions registry with quality guidelines
-- [ ] `apps/api/src/infrastructure/embeddings/tool_embeddings.py` — SentenceTransformer tool description embeddings
+- [ ] `apps/api/src/core/tools/tool_selector.py` — ToolSelector class (embedding pre-filter + LLM selection)
+- [ ] `apps/api/src/core/tools/tool_registry.py` — tool descriptions registry with quality guidelines
+- [ ] `apps/api/src/core/infrastructure/embeddings/tool_embeddings.py` — SentenceTransformer tool description embeddings
 - [ ] `data/tool-descriptions/` — curated tool descriptions (bad vs good examples)
 - [ ] `tests/unit/test_tool_selector.py` — pre-filter accuracy, LLM selection correctness
 - [ ] `tests/integration/test_tool_selection_e2e.py` — query → embedding filter → LLM pick → execution

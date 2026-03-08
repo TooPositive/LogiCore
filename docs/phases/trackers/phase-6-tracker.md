@@ -1,6 +1,6 @@
 # Phase 6 Tracker: Air-Gapped Vault — Local Inference
 
-**Status**: NOT STARTED
+**Status**: IN PROGRESS
 **Spec**: `docs/phases/phase-6-air-gapped-vault.md`
 **Depends on**: Phases 1-3
 
@@ -10,7 +10,7 @@
 - [ ] `apps/api/src/core/infrastructure/llm/provider.py` — abstract LLM provider interface
 - [ ] `apps/api/src/core/infrastructure/llm/azure_openai.py` — Azure OpenAI implementation
 - [ ] `apps/api/src/core/infrastructure/llm/ollama.py` — Ollama implementation
-- [ ] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle
+- [x] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle (10 tests, 877 total)
 - [ ] `docker-compose.airgap.yml` — full air-gapped compose with Ollama
 - [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests

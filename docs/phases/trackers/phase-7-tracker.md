@@ -207,5 +207,5 @@ A provider returning empty strings during partial degradation bypasses the circu
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | -- | | |
-| Medium article | -- | | |
+| LinkedIn post | draft | 2026-03-08 | `docs/content/linkedin/phase-7-post.md` — Hook: "Friday, 2:47 AM. Azure OpenAI starts returning 503s." Mode: Builder Update, Accuracy: Accurate-but-exciting (95%). Judge: 5.0/5. |
+| Medium article | draft | 2026-03-08 | `docs/content/medium/phase-7-the-outage-nobody-noticed.md` — "Our AI Survived a 4-Hour Outage. Nobody Noticed." ~3200 words. Judge: 5.0/5. |

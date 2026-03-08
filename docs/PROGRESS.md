@@ -14,7 +14,7 @@
 | 4 | Trust Layer (LLMOps) | TESTED | 100% | 100% (166 new, 669 total) | draft | draft | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | CODE COMPLETE | 100% | 100% (198 new, 867 total) | draft | draft | Phase 4 |
 | 6 | Air-Gapped Vault (Local Inference) | TESTED | 100% | 100% (160 new, 1017 total) | draft | draft | Phases 1-3 |
-| 7 | Resilience Engineering | TESTED | 100% | 100% (182 new, 1199 total) | — | — | Phase 6 |
+| 7 | Resilience Engineering | TESTED | 100% | 100% (182 new, 1199 total) | draft | draft | Phase 6 |
 | 8 | Regulatory Shield (EU AI Act) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 9 | Fleet Guardian (Kafka Streaming) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 10 | LLM Firewall (Security) | NOT STARTED | 0% | 0% | — | — | Phases 1-6 |
@@ -99,7 +99,7 @@ Phase R: Core Extraction ◄──── DONE
 | 4 | draft | draft |
 | 5 | draft | draft |
 | 6 | draft | draft |
-| 7 | — | — |
+| 7 | draft | draft |
 | 8 | — | — |
 | 9 | — | — |
 | 10 | — | — |

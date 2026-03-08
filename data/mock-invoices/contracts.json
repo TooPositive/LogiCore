@@ -1,0 +1,90 @@
+[
+  {
+    "contract_id": "CTR-2024-001",
+    "vendor": "PharmaCorp",
+    "rates": [
+      {
+        "cargo_type": "pharmaceutical",
+        "rate": "0.45",
+        "currency": "EUR",
+        "unit": "kg",
+        "min_volume": "5000",
+        "clearance_level": 3
+      }
+    ],
+    "effective_from": "2024-01-01",
+    "effective_to": "2024-12-31"
+  },
+  {
+    "contract_id": "CTR-2024-002",
+    "vendor": "CargoFlex",
+    "rates": [
+      {
+        "cargo_type": "general",
+        "rate": "50.00",
+        "currency": "EUR",
+        "unit": "pallet",
+        "min_volume": "20",
+        "clearance_level": 1
+      },
+      {
+        "cargo_type": "hazardous",
+        "rate": "85.00",
+        "currency": "EUR",
+        "unit": "pallet",
+        "min_volume": "10",
+        "clearance_level": 2
+      }
+    ],
+    "effective_from": "2024-03-01",
+    "effective_to": "2025-02-28"
+  },
+  {
+    "contract_id": "CTR-2024-003",
+    "vendor": "TransEuropa",
+    "rates": [
+      {
+        "cargo_type": "refrigerated",
+        "rate": "1.20",
+        "currency": "EUR",
+        "unit": "kg",
+        "min_volume": "1000",
+        "clearance_level": 2
+      }
+    ],
+    "effective_from": "2024-06-01",
+    "effective_to": "2025-05-31"
+  },
+  {
+    "contract_id": "CTR-2024-004",
+    "vendor": "PolTrans",
+    "rates": [
+      {
+        "cargo_type": "bulk",
+        "rate": "0.30",
+        "currency": "EUR",
+        "unit": "kg",
+        "min_volume": "10000",
+        "clearance_level": 1
+      }
+    ],
+    "effective_from": "2024-01-15",
+    "effective_to": "2024-12-31"
+  },
+  {
+    "contract_id": "CTR-2024-005",
+    "vendor": "SwissLog",
+    "rates": [
+      {
+        "cargo_type": "electronics",
+        "rate": "2.50",
+        "currency": "CHF",
+        "unit": "kg",
+        "min_volume": "500",
+        "clearance_level": 2
+      }
+    ],
+    "effective_from": "2024-04-01",
+    "effective_to": "2025-03-31"
+  }
+]

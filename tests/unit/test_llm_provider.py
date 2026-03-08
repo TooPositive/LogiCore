@@ -388,3 +388,181 @@ class TestAzureOpenAIProvider:
             deployment="gpt-4o",
         )
         assert isinstance(provider, LLMProvider)
+
+
+# -----------------------------------------------------------------------
+# Task 4: Ollama LLM Provider
+# -----------------------------------------------------------------------
+
+
+class TestOllamaProvider:
+    """Ollama provider wraps LangChain ChatOllama for local inference."""
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_returns_llm_response(self, mock_chat_cls):
+        """generate() returns LLMResponse with content and token counts."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+        from apps.api.src.core.infrastructure.llm.provider import LLMResponse
+
+        mock_response = MagicMock()
+        mock_response.content = "Local model response."
+        mock_response.usage_metadata = {
+            "input_tokens": 20,
+            "output_tokens": 10,
+        }
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+
+        result = await provider.generate("What is logistics?")
+
+        assert isinstance(result, LLMResponse)
+        assert result.content == "Local model response."
+        assert result.model == "qwen3:8b"
+        assert result.input_tokens == 20
+        assert result.output_tokens == 10
+        assert result.latency_ms >= 0
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_structured_returns_llm_response(self, mock_chat_cls):
+        """generate_structured() returns LLMResponse with JSON content."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_response = MagicMock()
+        mock_response.content = '{"status": "ok"}'
+        mock_response.usage_metadata = {
+            "input_tokens": 15,
+            "output_tokens": 5,
+        }
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+
+        result = await provider.generate_structured("Return JSON")
+        assert result.content == '{"status": "ok"}'
+
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    def test_model_name_returns_model(self, mock_chat_cls):
+        """model_name property returns the Ollama model name."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_chat_cls.return_value = MagicMock()
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:32b",
+        )
+        assert provider.model_name == "qwen3:32b"
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_handles_connection_refused(self, mock_chat_cls):
+        """Connection refused raises ConnectionError with clear message."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(
+            side_effect=ConnectionError("Connection refused")
+        )
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+
+        with pytest.raises(ConnectionError, match="Ollama.*not reachable"):
+            await provider.generate("test")
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_handles_model_not_found(self, mock_chat_cls):
+        """Model not pulled raises ValueError with clear message."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(
+            side_effect=Exception("model 'nonexistent' not found")
+        )
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="nonexistent",
+        )
+
+        with pytest.raises(ValueError, match="not found.*ollama pull"):
+            await provider.generate("test")
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_handles_timeout(self, mock_chat_cls):
+        """Timeout raises TimeoutError with clear message."""
+        import asyncio
+
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(
+            side_effect=asyncio.TimeoutError("Request timed out")
+        )
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+
+        with pytest.raises(TimeoutError, match="timed out"):
+            await provider.generate("test")
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    async def test_generate_handles_missing_usage_metadata(self, mock_chat_cls):
+        """generate() returns 0 tokens when usage_metadata is missing."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+
+        mock_response = MagicMock()
+        mock_response.content = "response"
+        mock_response.usage_metadata = None
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+
+        result = await provider.generate("test")
+        assert result.input_tokens == 0
+        assert result.output_tokens == 0
+
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    def test_satisfies_llm_provider_protocol(self, mock_chat_cls):
+        """OllamaProvider satisfies LLMProvider Protocol."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+        from apps.api.src.core.infrastructure.llm.provider import LLMProvider
+
+        mock_chat_cls.return_value = MagicMock()
+
+        provider = OllamaProvider(
+            host="http://localhost:11434",
+            model="qwen3:8b",
+        )
+        assert isinstance(provider, LLMProvider)

@@ -1,6 +1,6 @@
 # Phase 4 Tracker: Trust Layer — LLMOps, Observability & Evaluation
 
-**Status**: CODE COMPLETE
+**Status**: TESTED (28/30 PROCEED)
 **Spec**: `docs/phases/phase-4-trust-layer.md`
 **Depends on**: Phases 1-2
 
@@ -138,9 +138,18 @@
 - **[Benchmark expansion -- Phase 5]** Run 50 Q&A pairs through real LLM judge to calibrate mock vs production score gap. Add 20 adversarial entries (negation, temporal, injection).
 - **[Benchmark expansion -- Phase 12]** Measure router misclassification rate on 100+ real queries. Measure actual cache hit rate under entity partitioning with realistic user distribution.
 
+### From Re-Review (2026-03-08, 28/30 PROCEED)
+
+All prior framing/evidence items confirmed FIXED. New items identified:
+
+- **[Benchmark expansion -- Phase 6]** Multilingual keyword override list: add Polish ("faktura", "umowa", "kara", "stawka", "naliczenie") and German ("Rechnung", "Vertrag", "Strafe") equivalents. Current English-only list misses Polish financial queries in a Polish logistics company.
+- **[Benchmark expansion -- Phase 5]** Test CI gate failure path with adversarial eval data that genuinely drops metrics below 0.8 (not just mock-judge "works" confirmation).
+- **[Benchmark expansion -- Phase 7]** Reconciliation idempotency: current reconcile_fallback() is not idempotent under partial failure. If 3 of 5 traces reconciled before crash, re-run sends 3 duplicates.
+- **[Benchmark expansion -- Phase 12]** LRU fairness analysis under skewed partition access (hot warehouse partition starving cold compliance partition). Multi-entity user overlap scenarios. EUR/USD conversion end-to-end validation.
+
 ## Content Status
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | — | | |
-| Medium article | — | | |
+| LinkedIn post | draft | 2026-03-08 | `docs/content/linkedin/phase-4-post.md` — hook: CFO cant explain AI bill |
+| Medium article | draft | 2026-03-08 | `docs/content/medium/phase-4-the-cache-that-leaks-secrets.md` — "We Cut AI Costs 93%" |

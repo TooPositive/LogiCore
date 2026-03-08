@@ -11,7 +11,7 @@
 | 1 | Corporate Brain (RAG + RBAC) | TESTED | 100% | 100% (80/80) | — | — | — |
 | 2 | Retrieval Engineering | CODE COMPLETE | 100% | 100% (329 total, 265 new) | — | — | Phase 1 |
 | 3 | Customs & Finance (Multi-Agent) | TESTED | 100% | 100% (174 new, 503 total) | draft | draft | Phase 1 |
-| 4 | Trust Layer (LLMOps) | CODE COMPLETE | 100% | 100% (162 new, 665 total) | — | — | Phases 1-2 |
+| 4 | Trust Layer (LLMOps) | TESTED | 100% | 100% (166 new, 669 total) | draft | draft | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | NOT STARTED | 0% | 0% | — | — | Phase 4 |
 | 6 | Air-Gapped Vault (Local Inference) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 7 | Resilience Engineering | NOT STARTED | 0% | 0% | — | — | Phase 6 |
@@ -94,7 +94,7 @@ Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
 | 1 | draft | draft |
 | 2 | draft | draft |
 | 3 | draft | draft |
-| 4 | — | — |
+| 4 | draft | draft |
 | 5 | — | — |
 | 6 | — | — |
 | 7 | — | — |
@@ -142,7 +142,7 @@ Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
 
 ## Current Sprint
 
-**Phase 4 — CODE COMPLETE** (Trust Layer: 162 new tests, 665 total, lint clean)
+**Phase 4 — TESTED** (Trust Layer: 166 new tests, 669 total, review 28/30 PROCEED, content drafted)
 
 **Phase 2 — CODE COMPLETE** (329 tests passing, 265 new, lint clean)
 
@@ -193,6 +193,11 @@ Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
 - Adversarial query tests → Phase 10 (LLM Firewall)
 
 **Next up**: Phase 5 (Assessment Rigor — Judge Bias, Drift Detection)
+
+## Phase 4 Content & Recap
+- LinkedIn draft: `docs/content/linkedin/phase-4-post.md` — hook: CFO can't explain AI bill
+- Medium draft: `docs/content/medium/phase-4-the-cache-that-leaks-secrets.md` — "We Cut AI Costs 93%"
+- Technical recap: `docs/phases/recaps/phase-4-recap.md`
 
 ## Phase 4 Sprint Summary (CODE COMPLETE — 162 new tests, 665 total)
 

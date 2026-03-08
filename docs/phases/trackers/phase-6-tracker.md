@@ -8,7 +8,7 @@
 
 - [ ] `apps/api/src/core/infrastructure/llm/__init__.py`
 - [x] `apps/api/src/core/infrastructure/llm/provider.py` — LLMProvider Protocol + LLMResponse (6 tests, 883 total)
-- [ ] `apps/api/src/core/infrastructure/llm/azure_openai.py` — Azure OpenAI implementation
+- [x] `apps/api/src/core/infrastructure/llm/azure_openai.py` — Azure OpenAI LLMProvider (6 tests, 889 total)
 - [ ] `apps/api/src/core/infrastructure/llm/ollama.py` — Ollama implementation
 - [x] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle (10 tests, 877 total)
 - [ ] `docker-compose.airgap.yml` — full air-gapped compose with Ollama

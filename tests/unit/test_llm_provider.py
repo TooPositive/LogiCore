@@ -226,3 +226,165 @@ class TestLLMProviderProtocol:
         provider = IncompleteProvider()
         # Should NOT have generate method
         assert not hasattr(provider, "generate")
+
+
+# -----------------------------------------------------------------------
+# Task 3: Azure OpenAI LLM Provider
+# -----------------------------------------------------------------------
+
+
+class TestAzureOpenAIProvider:
+    """Azure OpenAI provider wraps LangChain AzureChatOpenAI."""
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    async def test_generate_returns_llm_response(self, mock_chat_cls):
+        """generate() returns LLMResponse with content and token counts."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+        from apps.api.src.core.infrastructure.llm.provider import LLMResponse
+
+        # Mock the LangChain response
+        mock_response = MagicMock()
+        mock_response.content = "The answer is 42."
+        mock_response.usage_metadata = {
+            "input_tokens": 25,
+            "output_tokens": 8,
+        }
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+            api_version="2024-12-01-preview",
+        )
+
+        result = await provider.generate("What is the answer?")
+
+        assert isinstance(result, LLMResponse)
+        assert result.content == "The answer is 42."
+        assert result.model == "gpt-4o"
+        assert result.input_tokens == 25
+        assert result.output_tokens == 8
+        assert result.latency_ms >= 0
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    async def test_generate_structured_returns_llm_response(self, mock_chat_cls):
+        """generate_structured() returns LLMResponse with JSON content."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+
+        mock_response = MagicMock()
+        mock_response.content = '{"rate": 0.45, "currency": "EUR"}'
+        mock_response.usage_metadata = {
+            "input_tokens": 50,
+            "output_tokens": 15,
+        }
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+        )
+
+        result = await provider.generate_structured("Extract rates")
+        assert result.content == '{"rate": 0.45, "currency": "EUR"}'
+        assert result.input_tokens == 50
+
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    def test_model_name_returns_deployment(self, mock_chat_cls):
+        """model_name property returns the Azure deployment name."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+
+        mock_chat_cls.return_value = MagicMock()
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-5-mini",
+        )
+        assert provider.model_name == "gpt-5-mini"
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    async def test_generate_tracks_latency(self, mock_chat_cls):
+        """generate() records latency_ms > 0."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+
+        mock_response = MagicMock()
+        mock_response.content = "response"
+        mock_response.usage_metadata = {
+            "input_tokens": 10,
+            "output_tokens": 5,
+        }
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+        )
+
+        result = await provider.generate("test")
+        assert result.latency_ms >= 0
+
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    async def test_generate_handles_missing_usage_metadata(self, mock_chat_cls):
+        """generate() returns 0 tokens when usage_metadata is missing."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+
+        mock_response = MagicMock()
+        mock_response.content = "response"
+        mock_response.usage_metadata = None
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+        )
+
+        result = await provider.generate("test")
+        assert result.input_tokens == 0
+        assert result.output_tokens == 0
+
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    def test_satisfies_llm_provider_protocol(self, mock_chat_cls):
+        """AzureOpenAIProvider satisfies LLMProvider Protocol."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+        from apps.api.src.core.infrastructure.llm.provider import LLMProvider
+
+        mock_chat_cls.return_value = MagicMock()
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+        )
+        assert isinstance(provider, LLMProvider)

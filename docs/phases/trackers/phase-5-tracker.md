@@ -113,13 +113,13 @@
 
 | Test File | Tests | What's Proven |
 |---|---|---|
-| `test_judge_bias.py` | 43 | Domain models validate correctly; model family identification covers 5 providers + unknown; cross-family independence rejects same-family judging; JudgeConfig enforces all thresholds |
-| `test_quality_pipeline.py` | 43 | Pairwise scorer detects position bias 100%; BiasDetector catches position (5 scenarios), verbosity (5 scenarios), self-preference (5 scenarios); HumanCalibration computes Spearman correctly, halts quality gate when uncalibrated; Bootstrap CI is narrow for consistent scores, wide for variable |
+| `test_judge_bias.py` | 54 | Domain models validate correctly; model family identification covers 5 providers + unknown; cross-family independence rejects same-family judging; JudgeConfig enforces all thresholds; fine-tuned model support via register_model_family() (11 tests); golden set artifact validation (6 tests) |
+| `test_quality_pipeline.py` | 78 | Pairwise scorer detects position bias 100%; BiasDetector catches position (7 scenarios), verbosity (10 scenarios incl. threshold config), self-preference (6 scenarios); HumanCalibration computes Spearman correctly incl. heavily-tied scores (13 tests), halts quality gate when uncalibrated; Bootstrap CI (7 tests); mixed-signal judge (5 scenarios); verbosity threshold configurability (5 tests) |
 | `test_model_registry.py` | 15 | Version tracking, baseline CRUD, version change detection, history preservation, multi-model independence |
-| `test_drift_detection.py` | 28 | Severity classification (10 boundary cases), regression detection (7 scenarios), version change alerting, custom handlers, edge cases (missing metrics, extra metrics, exact thresholds) |
+| `test_drift_detection.py` | 33 | Severity classification (10 boundary cases), regression detection (7 scenarios), version change alerting, custom handlers, edge cases (4), large-scale 100+ metric regression suite (5 scenarios) |
 | `test_prompt_optimizer.py` | 33 | Section classification, restructuring preserves relative order, cache-friendliness scoring, RBAC partition tracking (fragmentation metrics), cost savings calculation |
-| **Total Phase 5** | **162** | |
-| **Total Project** | **831** (14 deselected live) | |
+| **Total Phase 5** | **198** | (36 new since first review) |
+| **Total Project** | **867** (14 deselected live) | |
 
 ## Problems Encountered
 
@@ -132,9 +132,24 @@
 - Drift check frequency: weekly (EUR 125/year) vs daily (EUR 876/year)? Weekly = 7-day blast radius. Daily = 1-day. The analysis recommends daily for production, weekly for development.
 - Golden set lifecycle: the 50 human-scored entries need quarterly review. How to detect when source documents change and invalidate golden set entries? Phase 8 (Regulatory Shield) should address this.
 
+### From Phase 5 Re-Review (29/30, PROCEED)
+
+All 5 gaps from the first review (27/30) are CLOSED with implementation + tests:
+1. ~~Verbosity bias threshold hardcoded~~ -> `verbosity_length_ratio` param + 5 tests
+2. ~~Fine-tuned model names default UNKNOWN~~ -> `register_model_family()` + 11 tests
+3. ~~Golden set artifact missing~~ -> `data/golden_set.json` (50 entries, 10 categories) + 6 tests
+4. ~~Mixed-signal judge tests missing~~ -> `TestMixedSignalJudge` (5 scenarios)
+5. ~~Large-scale regression tests missing~~ -> `TestLargeScaleRegressionSuite` (5 scenarios at 100-metric scale) + `TestSpearmanHeavilyTied` (4 scenarios)
+
+**Remaining Phase 12 items** (not Phase 5 scope):
+- **Real LLM judge calibration**: Run PairwiseScorer + calibrate_judge.py with actual LLM judges (Claude, GPT) against the 50-entry golden set. Measure actual position bias rate and Spearman correlation.
+- **Golden set judge_score population**: Populate judge_score fields in data/golden_set.json with real LLM outputs. Currently human-only (by design for Phase 5).
+- **Production drift simulation**: Deploy run_drift_check.py on cron, simulate Azure model version change end-to-end.
+- **Prompt cache hit rate measurement**: Track CacheMetrics in production with real RBAC partitions to validate 15-25% multi-tenant hypothesis.
+
 ## Content Status
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | — | | |
-| Medium article | — | | |
+| LinkedIn post | DRAFT | 2026-03-08 | `docs/content/linkedin/phase-5-post.md` — Hook: "Martin presents the quarterly AI metrics. Slide 12: Context Precision 0.92." Mode: Builder Update, Accuracy: 95%. 10 reply ammos. |
+| Medium article | DRAFT | 2026-03-08 | `docs/content/medium/phase-5-the-judge-grading-its-own-homework.md` — Title: "Your LLM-as-Judge Is Grading Its Own Homework." ~3,200 words. 6 book references. 4 code blocks. |

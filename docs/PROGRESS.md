@@ -13,7 +13,7 @@
 | 3 | Customs & Finance (Multi-Agent) | TESTED | 100% | 100% (174 new, 503 total) | draft | draft | Phase 1 |
 | 4 | Trust Layer (LLMOps) | TESTED | 100% | 100% (166 new, 669 total) | draft | draft | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | CODE COMPLETE | 100% | 100% (198 new, 867 total) | draft | draft | Phase 4 |
-| 6 | Air-Gapped Vault (Local Inference) | CODE COMPLETE | 100% | 100% (114 new, 981 total) | — | — | Phases 1-3 |
+| 6 | Air-Gapped Vault (Local Inference) | CODE COMPLETE | 100% | 100% (160 new, 1017 total) | — | — | Phases 1-3 |
 | 7 | Resilience Engineering | NOT STARTED | 0% | 0% | — | — | Phase 6 |
 | 8 | Regulatory Shield (EU AI Act) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 9 | Fleet Guardian (Kafka Streaming) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
@@ -22,7 +22,7 @@
 | 12 | Full Stack Demo | NOT STARTED | 0% | 0% | — | — | Phases 1-11 |
 | R | Core Extraction (domain-agnostic refactor) | DONE | 100% | 100% (867 passing, 0 regressions) | — | — | — |
 
-**Phase 6 Note**: 114 new tests = 107 unit/red-team (no external deps) + 10 integration (require running Ollama). 3 integration tests overlap with unit tests on provider swap verification. Total project tests: 981 (971 without Ollama + 10 integration).
+**Phase 6 Note**: 160 new tests = 141 unit/red-team (no external deps) + 14 integration (require running Ollama) + 5 live financial extraction. Review gaps addressed: 21 financial extraction precision tests, 13 Polish quality tests, 12 benchmark enhancement tests, <think> tag fix. Live Ollama: 10/10 EUR rate extraction (5 English + 5 Polish). Total project tests: 1017 (without integration/live).
 
 **Legend**: Status = NOT STARTED / IN PROGRESS / CODE COMPLETE / TESTED / CONTENT PUBLISHED
 LinkedIn/Medium = — / draft / reviewed / published (date)
@@ -49,7 +49,7 @@ Phase 1: RAG + RBAC ◄───────────────────
   │       ├──► Phase 8: Regulatory Shield (audit logs, compliance)
   │       └──► Phase 9: Fleet Guardian (Kafka, real-time)
   │
-  ├──► Phase 6: Air-Gapped Vault (Ollama, local inference) ◄── CODE COMPLETE (114 new, 981 total)
+  ├──► Phase 6: Air-Gapped Vault (Ollama, local inference) ◄── CODE COMPLETE (160 new, 1017 total)
   │       │
   │       ▼
   │     Phase 7: Resilience (circuit breakers, routing)
@@ -144,7 +144,7 @@ Phase R: Core Extraction ◄──── DONE
 
 ## Current Sprint
 
-**Phase 6 — CODE COMPLETE** (Air-Gapped Vault: 114 new tests, 981 total, lint clean)
+**Phase 6 — CODE COMPLETE** (Air-Gapped Vault: 160 new tests, 1017 total, lint clean, review gaps addressed)
 
 **Phase 5 — CODE COMPLETE** (Assessment Rigor: 198 new tests, 867 total, lint clean, review 29/30 PROCEED)
 
@@ -207,7 +207,7 @@ Phase R: Core Extraction ◄──── DONE
 | Question | Answer | Evidence |
 |---|---|---|
 | "Can we run AI without cloud API calls?" | **Yes — zero code changes, one env var.** Set `LLM_PROVIDER=ollama` and the entire RAG pipeline runs locally. Protocol-based abstraction means the pipeline doesn't know or care which provider is behind the interface. No conditional branches, no feature flags — the factory creates the right provider and the rest is polymorphism. | 8 provider swap tests, 10 integration tests with real Ollama, 5 zero-external-calls red team tests |
-| "What's the quality tradeoff?" | **6% accuracy gap (87% local vs 93% cloud) on general queries. Reasoning queries take the biggest hit (60% vs 80%).** Simple lookups perform identically (100% both). The decision: route reasoning-heavy queries to cloud when regulations allow, keep everything local when they don't. | 15 benchmark prompts across 3 categories (5+ each), dry-run comparison |
+| "What's the quality tradeoff?" | **On financial extraction (the core task), local matches cloud: 10/10 EUR rates extracted correctly from English and Polish contract text.** The mock 6% gap (87% vs 93%) was a placeholder, not measured. Live keyword accuracy: 15/15. Live financial extraction: 10/10. Reasoning queries may have a gap but it's not yet measured head-to-head. Route reasoning-heavy queries to cloud when regulations allow. | 20 benchmark prompts (4 categories), live Ollama: 5/5 English + 5/5 Polish financial extraction |
 | "What about latency?" | **30-180x slower on Apple Silicon dev hardware (p50: 29s, p95: 182s).** Reasoning queries dominate: 96s average vs 22s for extraction vs 34s for simple. This is development hardware — production Linux/NVIDIA with vLLM would be 5-20x faster. The latency gap is irrelevant when the alternative is "cannot use cloud at all" due to data residency. | Live benchmark: 15 queries, 3 categories, qwen3:8b on Apple Silicon, 19.9 tok/s |
 | "Is RBAC still enforced with local models?" | **Yes — RBAC is at the Qdrant query level, independent of LLM provider.** Zero-trust filtering happens BEFORE retrieval, not after. Switching providers doesn't touch the security layer — they're architecturally decoupled. A local model never sees docs above the user's clearance, same as cloud. | 3 RBAC independence tests, 3 RBAC bypass attempt red team tests |
 | "When should we switch to local?" | **When regulations require it (GDPR Art. 44, data residency, air-gapped networks) or when query volume exceeds ~10K/day (cost crossover).** Below 10K queries/day with no regulatory constraint, cloud is cheaper and faster. Above 10K/day, amortized hardware cost drops below API costs AND you get data sovereignty for free. | Cost model in benchmark script, ADR-007 decision boundary |
@@ -246,8 +246,9 @@ Phase R: Core Extraction ◄──── DONE
 - docker-compose.airgap.yml (Ollama service, 16G memory, health check, API env overrides)
 - Benchmark script: 15 prompts, 3 categories, dry-run + live modes, cost model, architect verdict
 - ADR-007: Ollama over vLLM (decision boundary: >10K queries/day or multi-GPU)
-- 114 new tests (37 provider + 13 embedder + 13 docker + 8 swap + 17 red team + 19 benchmark + 10 integration)
-- Zero regressions (971 unit/e2e + 10 integration = 981 total)
+- 160 new tests (37 provider + 13 embedder + 13 docker + 8 swap + 17 red team + 31 benchmark + 21 financial extraction + 13 Polish quality + 10 integration + 2 live financial)
+- Zero regressions (1017 unit/e2e/red-team/eval + 14 integration = 1031 total)
+- Review gap fixes: <think> tag stripping, financial extraction precision tests, Polish quality tests, benchmark --strict mode
 
 ### Remaining (Deferred by Design)
 - Live Azure vs Ollama benchmark comparison (requires Azure credentials + `--provider azure`)

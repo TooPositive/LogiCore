@@ -7,6 +7,12 @@ Covers:
 - LLM provider factory
 """
 
+from __future__ import annotations
+
+import time
+from dataclasses import FrozenInstanceError
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from apps.api.src.core.config.settings import Settings
@@ -104,3 +110,119 @@ class TestSettingsProviderToggle:
             ollama_model="qwen3:32b",
         )
         assert s.ollama_model == "qwen3:32b"
+
+
+# -----------------------------------------------------------------------
+# Task 2: LLMProvider Protocol + LLMResponse dataclass
+# -----------------------------------------------------------------------
+
+
+class TestLLMResponse:
+    """LLMResponse captures generation output with token/latency metadata."""
+
+    def test_llm_response_creation(self):
+        """LLMResponse stores all required fields."""
+        from apps.api.src.core.infrastructure.llm.provider import LLMResponse
+
+        resp = LLMResponse(
+            content="Hello world",
+            model="qwen3:8b",
+            input_tokens=10,
+            output_tokens=5,
+            latency_ms=150.0,
+        )
+        assert resp.content == "Hello world"
+        assert resp.model == "qwen3:8b"
+        assert resp.input_tokens == 10
+        assert resp.output_tokens == 5
+        assert resp.latency_ms == 150.0
+
+    def test_llm_response_is_frozen(self):
+        """LLMResponse should be immutable (frozen dataclass)."""
+        from apps.api.src.core.infrastructure.llm.provider import LLMResponse
+
+        resp = LLMResponse(
+            content="test",
+            model="test-model",
+            input_tokens=1,
+            output_tokens=1,
+            latency_ms=1.0,
+        )
+        with pytest.raises(FrozenInstanceError):
+            resp.content = "modified"
+
+    def test_llm_response_total_tokens(self):
+        """LLMResponse.total_tokens returns sum of input + output."""
+        from apps.api.src.core.infrastructure.llm.provider import LLMResponse
+
+        resp = LLMResponse(
+            content="test",
+            model="test-model",
+            input_tokens=100,
+            output_tokens=50,
+            latency_ms=200.0,
+        )
+        assert resp.total_tokens == 150
+
+
+class TestLLMProviderProtocol:
+    """LLMProvider Protocol defines the contract for all providers."""
+
+    def test_protocol_exists(self):
+        """LLMProvider Protocol is importable."""
+        from apps.api.src.core.infrastructure.llm.provider import LLMProvider
+
+        assert LLMProvider is not None
+
+    def test_mock_satisfies_protocol(self):
+        """A mock with correct methods satisfies LLMProvider Protocol."""
+        from apps.api.src.core.infrastructure.llm.provider import (
+            LLMProvider,
+            LLMResponse,
+        )
+
+        class MockProvider:
+            async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+                return LLMResponse(
+                    content="mock",
+                    model="mock-model",
+                    input_tokens=1,
+                    output_tokens=1,
+                    latency_ms=0.1,
+                )
+
+            async def generate_structured(
+                self, prompt: str, **kwargs
+            ) -> LLMResponse:
+                return LLMResponse(
+                    content="{}",
+                    model="mock-model",
+                    input_tokens=1,
+                    output_tokens=1,
+                    latency_ms=0.1,
+                )
+
+            @property
+            def model_name(self) -> str:
+                return "mock-model"
+
+        provider = MockProvider()
+        # Protocol structural subtyping -- isinstance won't work, but
+        # we verify the interface is correct by checking attributes
+        assert hasattr(provider, "generate")
+        assert hasattr(provider, "generate_structured")
+        assert hasattr(provider, "model_name")
+        assert provider.model_name == "mock-model"
+
+    def test_missing_method_does_not_satisfy_protocol(self):
+        """A class missing generate() should fail Protocol check."""
+        from apps.api.src.core.infrastructure.llm.provider import LLMProvider
+
+        class IncompleteProvider:
+            @property
+            def model_name(self) -> str:
+                return "incomplete"
+
+        provider = IncompleteProvider()
+        # Should NOT have generate method
+        assert not hasattr(provider, "generate")

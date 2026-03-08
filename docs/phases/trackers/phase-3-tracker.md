@@ -1,6 +1,6 @@
 # Phase 3 Tracker: Customs & Finance — Multi-Agent Orchestration
 
-**Status**: IN PROGRESS (Layers 1-8 complete, 161 new tests, remaining: router registration, seeding script, integration/E2E tests)
+**Status**: IN PROGRESS (Layers 1-8 + E2E complete, 168 new tests / 497 total, remaining: integration tests needing Docker)
 **Spec**: `docs/phases/phase-3-customs-finance.md`
 **Depends on**: Phase 1
 
@@ -54,15 +54,17 @@
 - [x] Prompt injection: 5 injection patterns sanitized before LLM prompt
 - [x] Input validation: extremely long invoice_id handled, null rejected (422), empty rejected
 
-### Remaining
-- [ ] Register audit router in `apps/api/src/main.py` (or equivalent)
-- [ ] `scripts/seed_invoices.py` — invoice seeding script for PostgreSQL
-- [ ] PostgreSQL read-only role setup (`logicore_reader`) — SQL migration script
+### Layer 9: E2E Tests + Infrastructure
+- [x] Register audit router in `apps/api/src/main.py`
+- [x] `scripts/seed_invoices.py` — invoice seeding script for PostgreSQL (parameterized queries, logicore_reader role creation)
+- [x] `tests/e2e/test_audit_workflow.py` — 7 E2E tests through main app (start->status->approve, reject, multiple audits, 404, validation, conflict states)
+
+### Remaining (Docker-dependent)
+- [ ] PostgreSQL read-only role setup (`logicore_reader`) — needs running PostgreSQL (script in seed_invoices.py)
 - [ ] `tests/integration/test_hitl_flow.py` — full HITL approval flow with Docker services
 - [ ] `tests/integration/test_delegation_e2e.py` — full flow: auditor -> compliance sub-agent -> re-evaluation
 - [ ] `tests/integration/test_crash_recovery.py` — kill at each node with PostgreSQL checkpointer
-- [ ] E2E tests through API endpoints
-- [ ] Langfuse tracing integration
+- [ ] Langfuse tracing integration — needs running Langfuse instance
 
 ## Success Criteria
 
@@ -127,6 +129,9 @@
 | `tests/unit/test_crash_recovery.py` | fc62d7e | 9 tests |
 | `tests/unit/test_api_audit.py` | 11da996 | 12 tests |
 | `tests/red-team/test_audit_security.py` | 3ab56e0 | 18 tests across 6 attack categories |
+| `tests/e2e/test_audit_workflow.py` | 5c5484b | 7 E2E tests through main app |
+| `apps/api/src/main.py` | bde06c7 | Audit router registered |
+| `scripts/seed_invoices.py` | bde06c7 | PostgreSQL seeding + logicore_reader role |
 
 ## Test Results
 
@@ -144,7 +149,8 @@
 | test_crash_recovery.py | 9 | PASS | Idempotency for all 4 agents, checkpoint at every node, HITL wait recovery |
 | test_api_audit.py | 12 | PASS | Start/status/approve endpoints, validation, 409 conflict |
 | test_audit_security.py | 18 | PASS | SQL injection (5), clearance leaks (5), HITL bypass (3), race (1), prompt injection (1), input validation (3) |
-| **TOTAL NEW** | **161** | **ALL PASS** | Existing 329 tests also pass (490 total, 14 deselected for live markers) |
+| test_audit_workflow.py (E2E) | 7 | PASS | Full workflow through main app, conflict states, validation |
+| **TOTAL NEW** | **168** | **ALL PASS** | Existing 329 tests also pass (497 total, 14 deselected for live markers) |
 
 ## Benchmarks & Metrics (Content Grounding Data)
 

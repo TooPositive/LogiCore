@@ -62,7 +62,7 @@ class TestNodeIdempotency:
 
     async def test_reader_agent_idempotent(self):
         """ReaderAgent produces same output for same input."""
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         retriever = AsyncMock()
         retriever.search = AsyncMock(return_value=[
@@ -88,7 +88,7 @@ class TestNodeIdempotency:
 
     async def test_sql_tool_idempotent(self):
         """SqlQueryTool produces same output for same input."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool = MagicMock()
         conn = AsyncMock()
@@ -122,8 +122,8 @@ class TestNodeIdempotency:
 
     async def test_auditor_agent_idempotent(self):
         """AuditorAgent produces same output for same input."""
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
-        from apps.api.src.domain.audit import ContractRate, Invoice, LineItem
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.models.audit import ContractRate, Invoice, LineItem
 
         invoice = Invoice(
             invoice_id="INV-001",
@@ -163,8 +163,8 @@ class TestNodeIdempotency:
 
     async def test_report_generator_idempotent(self):
         """ReportGenerator produces same output for same input."""
-        from apps.api.src.domain.audit import Invoice, LineItem
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         kwargs = dict(
@@ -246,7 +246,7 @@ class TestCheckpointRecovery:
 
     async def test_checkpoint_persists_after_reader(self, mock_deps):
         """State saved after reader node completes."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -287,7 +287,7 @@ class TestCheckpointRecovery:
 
     async def test_checkpoint_persists_after_sql(self, mock_deps):
         """State saved after SQL node completes."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -328,7 +328,7 @@ class TestCheckpointRecovery:
 
     async def test_checkpoint_at_hitl_survives_long_wait(self, mock_deps):
         """State at HITL gate persists indefinitely in checkpointer."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -373,7 +373,7 @@ class TestCheckpointRecovery:
 
     async def test_full_graph_completes_after_all_interrupts(self, mock_deps):
         """Resume through every node step by step."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -413,7 +413,7 @@ class TestCheckpointRecovery:
 
     async def test_checkpoint_state_accessible_by_thread_id(self, mock_deps):
         """Different thread_ids maintain independent checkpoints."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],

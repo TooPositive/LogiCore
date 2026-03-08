@@ -62,7 +62,7 @@ class TestHitlGateway:
 
     async def test_hitl_blocks_at_gate(self, mock_deps):
         """Workflow stops at hitl_gate, exposing awaiting_approval status."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -98,7 +98,7 @@ class TestHitlGateway:
 
     async def test_hitl_resume_with_approval(self, mock_deps):
         """After approval, workflow continues to report generation."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -134,7 +134,7 @@ class TestHitlGateway:
 
     async def test_hitl_state_persists_across_invocations(self, mock_deps):
         """State from before the interrupt survives in the checkpointer."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -168,7 +168,7 @@ class TestHitlGateway:
 
     async def test_hitl_blocks_not_at_other_nodes(self, mock_deps):
         """Interrupt only happens before hitl_gate, not at other nodes."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -202,7 +202,7 @@ class TestHitlGateway:
 
     async def test_hitl_multiple_audits_independent(self, mock_deps):
         """Two audit runs don't interfere -- different thread_ids."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],

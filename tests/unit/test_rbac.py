@@ -3,8 +3,8 @@
 import pytest
 from qdrant_client.models import FieldCondition, Filter, MatchAny, Range
 
-from apps.api.src.domain.document import UserContext
-from apps.api.src.security.rbac import build_qdrant_filter, resolve_user_context
+from apps.api.src.core.domain.document import UserContext
+from apps.api.src.core.security.rbac import build_qdrant_filter, resolve_user_context
 
 # --- Mock user database ---
 MOCK_USERS = {

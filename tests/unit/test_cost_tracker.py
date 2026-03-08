@@ -14,7 +14,7 @@ class TestModelPricing:
     """Model pricing table: GPT-5 nano, mini, 5.2 per 1M tokens."""
 
     def test_pricing_table_has_all_models(self):
-        from apps.api.src.telemetry.cost_tracker import MODEL_PRICING
+        from apps.api.src.core.telemetry.cost_tracker import MODEL_PRICING
 
         assert "gpt-5-nano" in MODEL_PRICING
         assert "gpt-5-mini" in MODEL_PRICING
@@ -22,7 +22,7 @@ class TestModelPricing:
 
     def test_nano_pricing(self):
         """GPT-5 nano: $0.05 input, $0.40 output per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import MODEL_PRICING
+        from apps.api.src.core.telemetry.cost_tracker import MODEL_PRICING
 
         pricing = MODEL_PRICING["gpt-5-nano"]
         assert pricing.input_per_1m == Decimal("0.05")
@@ -30,7 +30,7 @@ class TestModelPricing:
 
     def test_mini_pricing(self):
         """GPT-5 mini: $0.25 input, $2.00 output per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import MODEL_PRICING
+        from apps.api.src.core.telemetry.cost_tracker import MODEL_PRICING
 
         pricing = MODEL_PRICING["gpt-5-mini"]
         assert pricing.input_per_1m == Decimal("0.25")
@@ -38,7 +38,7 @@ class TestModelPricing:
 
     def test_gpt52_pricing(self):
         """GPT-5.2: $1.75 input, $14.00 output per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import MODEL_PRICING
+        from apps.api.src.core.telemetry.cost_tracker import MODEL_PRICING
 
         pricing = MODEL_PRICING["gpt-5.2"]
         assert pricing.input_per_1m == Decimal("1.75")
@@ -46,7 +46,7 @@ class TestModelPricing:
 
     def test_pricing_is_configurable(self):
         """Pricing table should accept custom entries (domain-agnostic)."""
-        from apps.api.src.telemetry.cost_tracker import ModelPricing
+        from apps.api.src.core.telemetry.cost_tracker import ModelPricing
 
         custom = ModelPricing(
             model_name="custom-model",
@@ -61,7 +61,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_nano_simple_lookup(self):
         """500 input + 100 output on nano = ~EUR 0.00007."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost(
             model="gpt-5-nano",
@@ -73,7 +73,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_mini_rag_search(self):
         """2800 input + 400 output on mini."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost(
             model="gpt-5-mini",
@@ -85,7 +85,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_gpt52_complex_audit(self):
         """8200 input + 1200 output on GPT-5.2."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost(
             model="gpt-5.2",
@@ -97,7 +97,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_zero_tokens(self):
         """Zero tokens = zero cost (cache hit scenario)."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost(
             model="gpt-5-mini",
@@ -107,7 +107,7 @@ class TestPerQueryCost:
         assert cost == Decimal("0")
 
     def test_calculate_cost_unknown_model_raises(self):
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         with pytest.raises(ValueError, match="Unknown model"):
             calculate_query_cost(
@@ -118,7 +118,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_with_custom_pricing(self):
         """Domain-agnostic: accept custom pricing table."""
-        from apps.api.src.telemetry.cost_tracker import (
+        from apps.api.src.core.telemetry.cost_tracker import (
             ModelPricing,
             calculate_query_cost,
         )
@@ -140,7 +140,7 @@ class TestPerQueryCost:
 
     def test_calculate_cost_cache_hit_is_zero(self):
         """Cache hits recorded as EUR 0.00 cost, regardless of model."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost(
             model="gpt-5.2",
@@ -155,7 +155,7 @@ class TestCostTracker:
     """CostTracker aggregates costs across queries for analytics."""
 
     def test_tracker_record_and_total(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(
@@ -169,7 +169,7 @@ class TestCostTracker:
         assert tracker.total_queries() == 1
 
     def test_tracker_multiple_records(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         for _ in range(5):
@@ -182,7 +182,7 @@ class TestCostTracker:
         assert tracker.total_queries() == 5
 
     def test_tracker_aggregate_by_agent(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(agent_name="search", model="gpt-5-mini",
@@ -199,7 +199,7 @@ class TestCostTracker:
         assert by_agent["audit"] > by_agent["search"]
 
     def test_tracker_aggregate_by_user(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(agent_name="search", model="gpt-5-mini",
@@ -214,7 +214,7 @@ class TestCostTracker:
         assert "max.weber" in by_user
 
     def test_tracker_cache_hit_rate(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         # 7 regular + 3 cache hits = 30% hit rate
@@ -229,7 +229,7 @@ class TestCostTracker:
         assert tracker.cache_hit_rate() == pytest.approx(0.3, abs=0.01)
 
     def test_tracker_cache_hit_zero_cost(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(agent_name="search", model="cache",
@@ -240,7 +240,7 @@ class TestCostTracker:
         assert tracker.total_queries() == 1
 
     def test_tracker_avg_cost_per_query(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(agent_name="search", model="gpt-5-mini",
@@ -251,14 +251,14 @@ class TestCostTracker:
         assert avg == Decimal("0.0015")
 
     def test_tracker_avg_cost_zero_queries(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         assert tracker.avg_cost_per_query() == Decimal("0")
 
     def test_tracker_to_cost_summary(self):
         """Convert tracker data to CostSummary model for API response."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         tracker.record(agent_name="search", model="gpt-5-mini",
@@ -279,7 +279,7 @@ class TestCostTracker:
 
     def test_tracker_cost_by_period(self):
         """Filter costs within a time period."""
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         tracker = CostTracker()
         # Record with specific timestamps
@@ -312,7 +312,7 @@ class TestRoutingCostSavings:
 
     def test_routing_vs_unrouted_cost_difference(self):
         """At 2400 queries/day with the spec distribution, routing saves ~93%."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         # Unrouted: everything on GPT-5.2 (avg 3000 input + 500 output)
         unrouted_cost = calculate_query_cost("gpt-5.2", 3000, 500)
@@ -328,7 +328,7 @@ class TestRoutingCostSavings:
 
     def test_daily_cost_with_routing(self):
         """Validate spec's EUR 2.87/day with routing + caching."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         # From spec: 800 searches, 50 audits, 30 fleet, 900 simple, 620 cached
         search_cost = calculate_query_cost("gpt-5-mini", 2800, 400) * 800
@@ -344,7 +344,7 @@ class TestRoutingCostSavings:
 
     def test_daily_cost_without_routing(self):
         """Without routing: everything on GPT-5.2 = ~EUR 42/day."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         # 2400 queries on GPT-5.2 (avg 3000 input + 500 output)
         per_query = calculate_query_cost("gpt-5.2", 3000, 500)

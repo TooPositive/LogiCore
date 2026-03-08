@@ -6,7 +6,7 @@ approval) and produces a structured AuditReport.
 
 from decimal import Decimal
 
-from apps.api.src.domain.audit import (
+from apps.api.src.domains.logicore.models.audit import (
     ApprovalDecision,
     Discrepancy,
     DiscrepancyBand,
@@ -19,7 +19,7 @@ class TestReportGenerator:
     """Report generator produces AuditReport from audit state."""
 
     async def test_generate_report_with_discrepancies(self):
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         report = await gen.generate(
@@ -72,7 +72,7 @@ class TestReportGenerator:
         assert "INV-2024-0847" in report.summary
 
     async def test_generate_report_no_discrepancies(self):
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         report = await gen.generate(
@@ -103,7 +103,7 @@ class TestReportGenerator:
         assert len(report.discrepancies) == 0
 
     async def test_generate_report_multiple_discrepancies(self):
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         report = await gen.generate(
@@ -167,7 +167,7 @@ class TestReportGenerator:
         assert len(report.discrepancies) == 2
 
     async def test_generate_report_with_rejection(self):
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         report = await gen.generate(
@@ -214,7 +214,7 @@ class TestReportGenerator:
         assert report.approval.approved is False
 
     async def test_report_summary_mentions_vendor(self):
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         report = await gen.generate(
@@ -243,7 +243,7 @@ class TestReportGenerator:
 
     async def test_report_is_idempotent(self):
         """Same inputs produce same output."""
-        from apps.api.src.tools.report_generator import ReportGenerator
+        from apps.api.src.domains.logicore.tools.report_generator import ReportGenerator
 
         gen = ReportGenerator()
         kwargs = dict(

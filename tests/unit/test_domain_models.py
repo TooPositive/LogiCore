@@ -2,7 +2,7 @@
 
 import uuid
 
-from apps.api.src.domain.document import (
+from apps.api.src.core.domain.document import (
     Chunk,
     Document,
     IngestRequest,

@@ -15,7 +15,7 @@ Metrics:
 import uuid
 from datetime import UTC, datetime
 
-from apps.api.src.domain.telemetry import EvalScore
+from apps.api.src.core.domain.telemetry import EvalScore
 
 
 def _word_overlap(text_a: str, text_b: str) -> float:

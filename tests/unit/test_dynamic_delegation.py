@@ -9,14 +9,14 @@ state merge. This is the #1 security risk in the entire project.
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
-from apps.api.src.domain.audit import ContractRate, DiscrepancyBand
+from apps.api.src.domains.logicore.models.audit import ContractRate, DiscrepancyBand
 
 
 class TestClearanceFilter:
     """ClearanceFilter strips data above the parent's clearance level."""
 
     def test_filter_strips_clearance_3_from_clearance_2_state(self):
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         findings = [
             {"content": "Amendment +0.07/kg surcharge Q4", "clearance_level": 2},
@@ -30,7 +30,7 @@ class TestClearanceFilter:
         assert filtered[0]["clearance_level"] == 2
 
     def test_filter_keeps_same_level_data(self):
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         findings = [
             {"content": "Public rate", "clearance_level": 1},
@@ -41,7 +41,7 @@ class TestClearanceFilter:
         assert len(filtered) == 2
 
     def test_filter_returns_empty_when_all_above_clearance(self):
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         findings = [
             {"content": "Top secret", "clearance_level": 4},
@@ -51,13 +51,13 @@ class TestClearanceFilter:
         assert len(filtered) == 0
 
     def test_filter_handles_empty_input(self):
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         filtered = ClearanceFilter.filter([], parent_clearance=3)
         assert filtered == []
 
     def test_filter_preserves_content(self):
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         findings = [
             {"content": "Amendment details", "clearance_level": 1, "extra": "metadata"},
@@ -69,7 +69,7 @@ class TestClearanceFilter:
 
     def test_filter_boundary_exact_clearance_level(self):
         """Data AT the parent's clearance level is kept."""
-        from apps.api.src.graphs.clearance_filter import ClearanceFilter
+        from apps.api.src.core.graphs.clearance_filter import ClearanceFilter
 
         findings = [
             {"content": "Level 3 data", "clearance_level": 3},
@@ -83,7 +83,7 @@ class TestNeedsLegalContext:
     """Determines when to trigger dynamic delegation."""
 
     def test_unknown_clause_triggers_delegation(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -96,7 +96,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_simple_overcharge_does_not_trigger(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -109,12 +109,12 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is False
 
     def test_empty_discrepancies_does_not_trigger(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         assert needs_legal_context([]) is False
 
     def test_amendment_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -127,7 +127,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_surcharge_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -140,7 +140,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_penalty_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -152,7 +152,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_annex_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -164,7 +164,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_rider_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -176,7 +176,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_modification_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -188,7 +188,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_protocol_keyword_triggers(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -200,7 +200,7 @@ class TestNeedsLegalContext:
         assert needs_legal_context(discrepancies) is True
 
     def test_case_insensitive_matching(self):
-        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import needs_legal_context
 
         discrepancies = [
             {
@@ -216,7 +216,7 @@ class TestComplianceSubgraph:
     """Compliance sub-agent graph for legal context retrieval."""
 
     async def test_compliance_subgraph_returns_findings(self):
-        from apps.api.src.graphs.compliance_subgraph import run_compliance_check
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import run_compliance_check
 
         mock_retriever = AsyncMock()
         mock_retriever.search = AsyncMock(return_value=[
@@ -241,7 +241,7 @@ class TestComplianceSubgraph:
 
     async def test_compliance_subgraph_applies_clearance_filter(self):
         """Findings are filtered to parent clearance before return."""
-        from apps.api.src.graphs.compliance_subgraph import run_compliance_check
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import run_compliance_check
 
         mock_retriever = AsyncMock()
         mock_retriever.search = AsyncMock(return_value=[
@@ -274,7 +274,7 @@ class TestComplianceSubgraph:
             assert f["clearance_level"] <= 2
 
     async def test_compliance_subgraph_empty_results(self):
-        from apps.api.src.graphs.compliance_subgraph import run_compliance_check
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import run_compliance_check
 
         mock_retriever = AsyncMock()
         mock_retriever.search = AsyncMock(return_value=[])
@@ -289,7 +289,7 @@ class TestComplianceSubgraph:
         assert findings == []
 
     async def test_compliance_subgraph_is_idempotent(self):
-        from apps.api.src.graphs.compliance_subgraph import run_compliance_check
+        from apps.api.src.domains.logicore.graphs.compliance_subgraph import run_compliance_check
 
         mock_retriever = AsyncMock()
         mock_retriever.search = AsyncMock(return_value=[
@@ -322,8 +322,8 @@ class TestAuditorWithDelegation:
     """Auditor agent with conditional sub-agent spawn."""
 
     async def test_auditor_delegates_on_amendment_keyword(self):
-        from apps.api.src.agents.auditor.comparator import AuditorAgent
-        from apps.api.src.domain.audit import Invoice, LineItem
+        from apps.api.src.domains.logicore.agents.auditor.comparator import AuditorAgent
+        from apps.api.src.domains.logicore.models.audit import Invoice, LineItem
 
         invoice = Invoice(
             invoice_id="INV-001",

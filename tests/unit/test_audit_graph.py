@@ -15,7 +15,7 @@ class TestAuditGraphState:
     """Validate the AuditGraphState TypedDict schema."""
 
     def test_state_has_required_fields(self):
-        from apps.api.src.graphs.state import AuditGraphState
+        from apps.api.src.domains.logicore.graphs.state import AuditGraphState
 
         # TypedDict fields
         annotations = AuditGraphState.__annotations__
@@ -28,7 +28,7 @@ class TestAuditGraphState:
             assert field in annotations, f"Missing field: {field}"
 
     def test_state_accepts_valid_data(self):
-        from apps.api.src.graphs.state import AuditGraphState
+        from apps.api.src.domains.logicore.graphs.state import AuditGraphState
 
         state: AuditGraphState = {
             "invoice_id": "INV-2024-0847",
@@ -49,7 +49,7 @@ class TestAuditGraphStructure:
     """Test graph structure: nodes, edges, entry point."""
 
     def test_graph_has_all_nodes(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -60,7 +60,7 @@ class TestAuditGraphStructure:
             assert node in node_names, f"Missing node: {node}"
 
     def test_graph_entry_point_is_reader(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -74,7 +74,7 @@ class TestAuditGraphStructure:
         assert "reader" in start_edges
 
     def test_graph_edge_reader_to_sql(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -84,7 +84,7 @@ class TestAuditGraphStructure:
         assert ("reader", "sql_agent") in edges
 
     def test_graph_edge_sql_to_auditor(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -94,7 +94,7 @@ class TestAuditGraphStructure:
         assert ("sql_agent", "auditor") in edges
 
     def test_graph_edge_auditor_to_hitl(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -104,7 +104,7 @@ class TestAuditGraphStructure:
         assert ("auditor", "hitl_gate") in edges
 
     def test_graph_edge_hitl_to_report(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -114,7 +114,7 @@ class TestAuditGraphStructure:
         assert ("hitl_gate", "report") in edges
 
     def test_graph_edge_report_to_end(self):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph()
         compiled = graph.compile()
@@ -173,7 +173,7 @@ class TestAuditGraphExecution:
         return {"retriever": retriever, "llm": llm, "pool": pool}
 
     async def test_graph_runs_reader_node(self, mock_deps):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -205,7 +205,7 @@ class TestAuditGraphExecution:
         assert result["status"] == "completed"
 
     async def test_graph_transitions_through_all_nodes(self, mock_deps):
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         graph = build_audit_graph(
             retriever=mock_deps["retriever"],
@@ -231,7 +231,7 @@ class TestAuditGraphExecution:
 
     async def test_graph_handles_no_discrepancies(self, mock_deps):
         """When rates match, no discrepancy should be found."""
-        from apps.api.src.graphs.audit_graph import build_audit_graph
+        from apps.api.src.domains.logicore.graphs.audit_graph import build_audit_graph
 
         # Override invoice to match contract rate
         conn = await mock_deps["pool"].acquire().__aenter__()

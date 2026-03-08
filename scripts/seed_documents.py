@@ -10,10 +10,10 @@ Requires:
 import asyncio
 from pathlib import Path
 
-from apps.api.src.infrastructure.qdrant.client import get_qdrant_client
-from apps.api.src.infrastructure.qdrant.collections import ensure_collection
-from apps.api.src.rag.embeddings import get_embeddings
-from apps.api.src.rag.ingestion import ingest_document
+from apps.api.src.core.infrastructure.qdrant.client import get_qdrant_client
+from apps.api.src.core.infrastructure.qdrant.collections import ensure_collection
+from apps.api.src.core.rag.embeddings import get_embeddings
+from apps.api.src.core.rag.ingestion import ingest_document
 
 # Document manifest: (file_name, document_id, department_id, clearance_level)
 DOCUMENTS = [

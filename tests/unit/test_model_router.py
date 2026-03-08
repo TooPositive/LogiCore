@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from apps.api.src.domain.telemetry import QueryComplexity
+from apps.api.src.core.domain.telemetry import QueryComplexity
 
 
 class TestKeywordOverride:
@@ -21,7 +21,7 @@ class TestKeywordOverride:
 
     @pytest.mark.parametrize("keyword", FINANCIAL_KEYWORDS)
     def test_financial_keyword_forces_complex(self, keyword):
-        from apps.api.src.infrastructure.llm.router import (
+        from apps.api.src.core.infrastructure.llm.router import (
             OVERRIDE_KEYWORDS,
             check_keyword_override,
         )
@@ -32,20 +32,20 @@ class TestKeywordOverride:
         assert keyword.lower() in [k.lower() for k in OVERRIDE_KEYWORDS]
 
     def test_keyword_check_case_insensitive(self):
-        from apps.api.src.infrastructure.llm.router import check_keyword_override
+        from apps.api.src.core.infrastructure.llm.router import check_keyword_override
 
         assert check_keyword_override("What is the CONTRACT rate?") is True
         assert check_keyword_override("INVOICE details") is True
 
     def test_no_keyword_returns_false(self):
-        from apps.api.src.infrastructure.llm.router import check_keyword_override
+        from apps.api.src.core.infrastructure.llm.router import check_keyword_override
 
         assert check_keyword_override("What is the weather today?") is False
         assert check_keyword_override("Hello world") is False
 
     def test_keyword_override_list_is_configurable(self):
         """Domain-agnostic: custom keywords can be passed."""
-        from apps.api.src.infrastructure.llm.router import check_keyword_override
+        from apps.api.src.core.infrastructure.llm.router import check_keyword_override
 
         custom = ["medical", "prescription", "diagnosis"]
         assert check_keyword_override("patient diagnosis", custom_keywords=custom) is True
@@ -57,7 +57,7 @@ class TestModelRouterClassification:
 
     @pytest.mark.asyncio
     async def test_classify_simple_query(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -70,7 +70,7 @@ class TestModelRouterClassification:
 
     @pytest.mark.asyncio
     async def test_classify_medium_query(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -82,7 +82,7 @@ class TestModelRouterClassification:
 
     @pytest.mark.asyncio
     async def test_classify_complex_query(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -97,7 +97,7 @@ class TestModelRouterClassification:
     @pytest.mark.asyncio
     async def test_keyword_override_bypasses_llm(self):
         """When keyword override triggers, LLM is NOT called."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -113,7 +113,7 @@ class TestModelRouterClassification:
     @pytest.mark.asyncio
     async def test_low_confidence_escalates_one_tier(self):
         """Confidence < 0.7 escalates SIMPLE -> MEDIUM."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         # Return SIMPLE with low confidence indicator
@@ -132,7 +132,7 @@ class TestModelRouterClassification:
     @pytest.mark.asyncio
     async def test_medium_low_confidence_escalates_to_complex(self):
         """Confidence < 0.7 escalates MEDIUM -> COMPLEX (with keyword override)."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -150,7 +150,7 @@ class TestModelRouterClassification:
     @pytest.mark.asyncio
     async def test_medium_escalation_without_keyword(self):
         """Non-keyword query: MEDIUM + low confidence -> COMPLEX."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -170,7 +170,7 @@ class TestModelSelection:
 
     @pytest.mark.asyncio
     async def test_simple_routes_to_nano(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -182,7 +182,7 @@ class TestModelSelection:
 
     @pytest.mark.asyncio
     async def test_medium_routes_to_mini(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -194,7 +194,7 @@ class TestModelSelection:
 
     @pytest.mark.asyncio
     async def test_complex_routes_to_gpt52(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -206,7 +206,7 @@ class TestModelSelection:
 
     @pytest.mark.asyncio
     async def test_keyword_override_routes_to_gpt52(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         router = ModelRouter(classifier_llm=mock_llm)
@@ -217,7 +217,7 @@ class TestModelSelection:
     @pytest.mark.asyncio
     async def test_model_map_is_configurable(self):
         """Domain-agnostic: model selection map can be customized."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         custom_models = {
             QueryComplexity.SIMPLE: "local-llama-7b",
@@ -237,7 +237,7 @@ class TestModelSelection:
 
     @pytest.mark.asyncio
     async def test_route_includes_routing_reason(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -251,7 +251,7 @@ class TestModelSelection:
     @pytest.mark.asyncio
     async def test_llm_returns_garbage_defaults_to_complex(self):
         """If LLM returns unparseable response, default to COMPLEX (safe)."""
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(

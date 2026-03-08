@@ -14,7 +14,7 @@ import pytest
 @pytest.fixture
 def test_settings():
     """Test settings with local Docker service defaults."""
-    from apps.api.src.config.settings import Settings
+    from apps.api.src.core.config.settings import Settings
 
     return Settings(
         azure_openai_endpoint="https://test.openai.azure.com",

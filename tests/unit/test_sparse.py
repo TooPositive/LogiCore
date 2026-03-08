@@ -1,6 +1,6 @@
 """Tests for the BM25-style sparse vector encoder."""
 
-from apps.api.src.rag.sparse import text_to_sparse_vector, tokenize
+from apps.api.src.core.rag.sparse import text_to_sparse_vector, tokenize
 
 
 class TestTokenize:

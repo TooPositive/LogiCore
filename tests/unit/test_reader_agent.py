@@ -44,7 +44,7 @@ class TestReaderAgent:
         return llm
 
     async def test_reader_extracts_single_rate(self, mock_retriever, mock_llm):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         agent = ReaderAgent(retriever=mock_retriever, llm=mock_llm)
         rates = await agent.extract_rates("CTR-2024-001", "pharmaceutical")
@@ -56,7 +56,7 @@ class TestReaderAgent:
         assert rates[0].unit == "kg"
 
     async def test_reader_calls_retriever_with_query(self, mock_retriever, mock_llm):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         agent = ReaderAgent(retriever=mock_retriever, llm=mock_llm)
         await agent.extract_rates("CTR-2024-001", "pharmaceutical")
@@ -67,7 +67,7 @@ class TestReaderAgent:
         assert "CTR-2024-001" in query
 
     async def test_reader_passes_rag_results_to_llm(self, mock_retriever, mock_llm):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         agent = ReaderAgent(retriever=mock_retriever, llm=mock_llm)
         await agent.extract_rates("CTR-2024-001", "pharmaceutical")
@@ -79,7 +79,7 @@ class TestReaderAgent:
         assert "CTR-2024-001" in prompt or "0.45" in prompt
 
     async def test_reader_returns_empty_when_no_results(self, mock_llm):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         empty_retriever = AsyncMock()
         empty_retriever.search = AsyncMock(return_value=[])
@@ -90,7 +90,7 @@ class TestReaderAgent:
         assert rates == []
 
     async def test_reader_handles_multiple_rates(self, mock_retriever):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         multi_llm = AsyncMock()
         multi_llm.ainvoke = AsyncMock(return_value=MagicMock(
@@ -110,7 +110,7 @@ class TestReaderAgent:
         assert rates[1].rate == Decimal("85.00")
 
     async def test_reader_handles_malformed_llm_response(self, mock_retriever):
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         bad_llm = AsyncMock()
         bad_llm.ainvoke = AsyncMock(return_value=MagicMock(
@@ -125,7 +125,7 @@ class TestReaderAgent:
 
     async def test_reader_is_idempotent(self, mock_retriever, mock_llm):
         """Same input should produce same output (for crash recovery)."""
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         agent = ReaderAgent(retriever=mock_retriever, llm=mock_llm)
         rates1 = await agent.extract_rates("CTR-2024-001", "pharmaceutical")
@@ -136,7 +136,7 @@ class TestReaderAgent:
 
     async def test_reader_sanitizes_contract_id_in_prompt(self, mock_retriever, mock_llm):
         """External content in prompts must be sanitized."""
-        from apps.api.src.agents.brain.reader import ReaderAgent
+        from apps.api.src.domains.logicore.agents.brain.reader import ReaderAgent
 
         agent = ReaderAgent(retriever=mock_retriever, llm=mock_llm)
         # Pass a potentially dangerous contract ID

@@ -197,6 +197,11 @@ A provider returning empty strings during partial degradation bypasses the circu
 - Integration test with real Azure + Ollama failover deferred to Phase 12 (requires both services running simultaneously)
 - Langfuse tracing for routing decisions deferred to Phase 12 (wiring exists, needs trace propagation)
 - Real query distribution validation deferred to Phase 12 (need production corpus to measure actual simple/medium/complex split)
+- (Review 28/30) PROGRESS.md sprint summary is stale after gap fixes: still says "148 new tests, 1165 total" and describes quality gate as using str.strip() for Unicode. Needs update to reflect 167 tests, 1199 total, explicit Unicode char stripping fix, and "24 tests, 7 categories" for red team section.
+- (Review 28/30) Tracker test count table sums to 168 but actual collected tests are 167. Off-by-1 discrepancy. Cosmetic.
+- (Review 28/30) Failover latency <100ms is architectural reasoning, not measured. Phase 12 should add timing instrumentation to outage simulation for empirical validation.
+- (Review 28/30) Degraded governance functions (should_auto_approve, is_safe_for_financial_decision) live in test file, not production code. Phase 8/12 should wire is_degraded into Phase 3's HITL gateway.
+- (Review 28/30) Unicode invisible char coverage is 6 chars. Phase 10 (LLM Firewall) should expand to full Unicode invisible categories (RTL override, interlinear annotation, Hangul filler, variation selectors).
 
 ## Content Status
 

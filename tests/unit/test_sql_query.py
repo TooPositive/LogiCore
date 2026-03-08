@@ -25,7 +25,7 @@ class TestSqlQueryTool:
         return pool, conn
 
     async def test_fetch_invoice_returns_data(self, mock_pool):
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value={
@@ -56,7 +56,7 @@ class TestSqlQueryTool:
         assert len(result.line_items) == 1
 
     async def test_fetch_invoice_not_found_returns_none(self, mock_pool):
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value=None)
@@ -67,7 +67,7 @@ class TestSqlQueryTool:
 
     async def test_fetch_invoice_uses_parameterized_query(self, mock_pool):
         """SECURITY: must use $1 params, never string interpolation."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value=None)
@@ -87,7 +87,7 @@ class TestSqlQueryTool:
 
     async def test_fetch_invoice_sql_injection_safe(self, mock_pool):
         """SECURITY: SQL injection attempt is harmless — it's just a param value."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value=None)
@@ -103,7 +103,7 @@ class TestSqlQueryTool:
         assert call_args[0][1] == malicious_id
 
     async def test_fetch_invoice_multiple_line_items(self, mock_pool):
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value={
@@ -142,7 +142,7 @@ class TestSqlQueryTool:
 
     async def test_line_items_query_uses_parameterized_query(self, mock_pool):
         """SECURITY: line items query also uses $1 params."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value={
@@ -165,7 +165,7 @@ class TestSqlQueryTool:
 
     async def test_fetch_invoice_validates_invoice_id_format(self, mock_pool):
         """Input validation at tool boundary."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         tool = SqlQueryTool(pool=pool)
@@ -176,7 +176,7 @@ class TestSqlQueryTool:
 
     async def test_fetch_invoice_returns_correct_types(self, mock_pool):
         """Verify returned Invoice has correct Decimal types."""
-        from apps.api.src.tools.sql_query import SqlQueryTool
+        from apps.api.src.domains.logicore.tools.sql_query import SqlQueryTool
 
         pool, conn = mock_pool
         conn.fetchrow = AsyncMock(return_value={

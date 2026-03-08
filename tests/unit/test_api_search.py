@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from apps.api.src.domain.document import UserContext
+from apps.api.src.core.domain.document import UserContext
 from apps.api.src.main import app
 
 MOCK_USERS = {
@@ -24,7 +24,7 @@ async def client():
 
 class TestSearchEndpoint:
     async def test_search_returns_results(self, client):
-        from apps.api.src.domain.document import SearchResult
+        from apps.api.src.core.domain.document import SearchResult
 
         mock_results = [
             SearchResult(
@@ -38,19 +38,19 @@ class TestSearchEndpoint:
 
         with (
             patch(
-                "apps.api.src.api.v1.search.resolve_user_context",
+                "apps.api.src.core.api.v1.search.resolve_user_context",
                 new_callable=AsyncMock,
                 return_value=MOCK_USERS["max.weber"],
             ),
             patch(
-                "apps.api.src.api.v1.search.get_qdrant_client",
+                "apps.api.src.core.api.v1.search.get_qdrant_client",
                 new_callable=AsyncMock,
             ),
             patch(
-                "apps.api.src.api.v1.search.get_embeddings",
+                "apps.api.src.core.api.v1.search.get_embeddings",
             ),
             patch(
-                "apps.api.src.api.v1.search.hybrid_search",
+                "apps.api.src.core.api.v1.search.hybrid_search",
                 new_callable=AsyncMock,
                 return_value=mock_results,
             ),
@@ -68,7 +68,7 @@ class TestSearchEndpoint:
 
     async def test_search_unknown_user_returns_403(self, client):
         with patch(
-            "apps.api.src.api.v1.search.resolve_user_context",
+            "apps.api.src.core.api.v1.search.resolve_user_context",
             new_callable=AsyncMock,
             side_effect=ValueError("Unknown user: nobody"),
         ):
@@ -89,8 +89,8 @@ class TestSearchEndpoint:
 
 class TestIngestEndpoint:
     async def test_ingest_returns_chunk_count(self, client):
-        from apps.api.src.api.v1.ingest import ALLOWED_DATA_DIR
-        from apps.api.src.domain.document import IngestResponse
+        from apps.api.src.core.api.v1.ingest import ALLOWED_DATA_DIR
+        from apps.api.src.core.domain.document import IngestResponse
 
         mock_response = IngestResponse(document_id="DOC-NEW-001", chunks_created=5)
         # Use a path inside the allowed data directory
@@ -100,12 +100,12 @@ class TestIngestEndpoint:
             patch("pathlib.Path.exists", return_value=True),
             patch("pathlib.Path.read_text", return_value="Contract content goes here."),
             patch(
-                "apps.api.src.api.v1.ingest.get_qdrant_client",
+                "apps.api.src.core.api.v1.ingest.get_qdrant_client",
                 new_callable=AsyncMock,
             ),
-            patch("apps.api.src.api.v1.ingest.get_embeddings"),
+            patch("apps.api.src.core.api.v1.ingest.get_embeddings"),
             patch(
-                "apps.api.src.api.v1.ingest.ingest_document",
+                "apps.api.src.core.api.v1.ingest.ingest_document",
                 new_callable=AsyncMock,
                 return_value=mock_response,
             ),

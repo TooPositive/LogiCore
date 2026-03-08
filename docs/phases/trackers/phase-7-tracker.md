@@ -6,13 +6,13 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/infrastructure/llm/circuit_breaker.py` — CLOSED/OPEN/HALF-OPEN states
-- [ ] `apps/api/src/infrastructure/llm/provider_chain.py` — ordered fallback chain
-- [ ] `apps/api/src/infrastructure/llm/model_router.py` — query complexity classifier
-- [ ] `apps/api/src/infrastructure/llm/retry.py` — exponential backoff with jitter
-- [ ] `apps/api/src/infrastructure/llm/provider.py` — MODIFY: integrate breaker + retry
-- [ ] `apps/api/src/config/settings.py` — MODIFY: routing config, breaker thresholds
-- [ ] `apps/api/src/api/v1/analytics.py` — MODIFY: routing stats endpoint
+- [ ] `apps/api/src/core/infrastructure/llm/circuit_breaker.py` — CLOSED/OPEN/HALF-OPEN states
+- [ ] `apps/api/src/core/infrastructure/llm/provider_chain.py` — ordered fallback chain
+- [ ] `apps/api/src/core/infrastructure/llm/model_router.py` — query complexity classifier
+- [ ] `apps/api/src/core/infrastructure/llm/retry.py` — exponential backoff with jitter
+- [ ] `apps/api/src/core/infrastructure/llm/provider.py` — MODIFY: integrate breaker + retry
+- [ ] `apps/api/src/core/config/settings.py` — MODIFY: routing config, breaker thresholds
+- [ ] `apps/api/src/core/api/v1/analytics.py` — MODIFY: routing stats endpoint
 - [ ] `scripts/simulate_outage.py` — simulate Azure outage
 - [ ] `scripts/benchmark_routing.py` — cost comparison: routed vs unrouted
 - [ ] `tests/unit/test_circuit_breaker.py` — state transition tests

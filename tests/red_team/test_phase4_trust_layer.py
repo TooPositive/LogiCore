@@ -48,7 +48,7 @@ class TestRBACCacheBypass:
         self, deterministic_embedder
     ):
         """The RBAC cache bypass scenario from the Phase 4 analysis."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -79,7 +79,7 @@ class TestRBACCacheBypass:
     async def test_clearance2_cached_not_served_to_clearance1(
         self, deterministic_embedder
     ):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -106,7 +106,7 @@ class TestRBACCacheBypass:
     async def test_clearance4_admin_cached_not_served_to_clearance3(
         self, deterministic_embedder
     ):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -134,7 +134,7 @@ class TestRBACCacheBypass:
         self, deterministic_embedder
     ):
         """Same clearance level but different department = different partition."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -162,7 +162,7 @@ class TestRBACCacheBypass:
         self, deterministic_embedder
     ):
         """User with subset of departments must not get superset partition data."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -198,7 +198,7 @@ class TestCrossClientLeakage:
     async def test_pharmacorp_not_served_as_freshfoods(
         self, deterministic_embedder
     ):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -226,7 +226,7 @@ class TestCrossClientLeakage:
     async def test_client_a_not_served_as_client_b(
         self, deterministic_embedder
     ):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -260,7 +260,7 @@ class TestCrossClientLeakage:
         self, deterministic_embedder
     ):
         """Generic query without entity must not get entity-scoped data."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -294,7 +294,7 @@ class TestStaleCacheAfterReIngestion:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_stale_cache_returns_miss(self, deterministic_embedder):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -328,7 +328,7 @@ class TestStaleCacheAfterReIngestion:
     async def test_invalidate_by_doc_id_removes_entries(
         self, deterministic_embedder
     ):
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -356,7 +356,7 @@ class TestModelRouterFinancialOverride:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_invoice_query_never_goes_to_nano(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -374,7 +374,7 @@ class TestModelRouterFinancialOverride:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_contract_rate_query_forces_complex(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         router = ModelRouter(classifier_llm=mock_llm)
@@ -388,7 +388,7 @@ class TestModelRouterFinancialOverride:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_all_financial_keywords_trigger_override(self):
-        from apps.api.src.infrastructure.llm.router import (
+        from apps.api.src.core.infrastructure.llm.router import (
             OVERRIDE_KEYWORDS,
             ModelRouter,
         )
@@ -406,7 +406,7 @@ class TestModelRouterFinancialOverride:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_garbage_llm_response_defaults_to_complex(self):
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -422,8 +422,8 @@ class TestModelRouterFinancialOverride:
     @pytest.mark.redteam
     @pytest.mark.asyncio
     async def test_low_confidence_escalates_safety(self):
-        from apps.api.src.domain.telemetry import QueryComplexity
-        from apps.api.src.infrastructure.llm.router import ModelRouter
+        from apps.api.src.core.domain.telemetry import QueryComplexity
+        from apps.api.src.core.infrastructure.llm.router import ModelRouter
 
         mock_llm = MagicMock()
         mock_llm.ainvoke = AsyncMock(
@@ -445,8 +445,8 @@ class TestLangfuseOutageFallback:
 
     @pytest.mark.redteam
     def test_langfuse_outage_traces_preserved(self):
-        from apps.api.src.telemetry.cost_tracker import CostTracker
-        from apps.api.src.telemetry.langfuse_handler import (
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.telemetry.langfuse_handler import (
             InMemoryFallbackStore,
             LangfuseHandler,
         )
@@ -479,8 +479,8 @@ class TestLangfuseOutageFallback:
 
     @pytest.mark.redteam
     def test_langfuse_recovery_reconciles_all_traces(self):
-        from apps.api.src.domain.telemetry import TraceRecord
-        from apps.api.src.telemetry.langfuse_handler import (
+        from apps.api.src.core.domain.telemetry import TraceRecord
+        from apps.api.src.core.telemetry.langfuse_handler import (
             InMemoryFallbackStore,
             reconcile_fallback,
         )
@@ -514,7 +514,7 @@ class TestCachePoisoningResistance:
         self, deterministic_embedder
     ):
         """Entries from different RBAC contexts cannot cross-contaminate."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -544,7 +544,7 @@ class TestCachePoisoningResistance:
         self, deterministic_embedder
     ):
         """Non-cacheable flag prevents storing potentially poisoned data."""
-        from apps.api.src.infrastructure.llm.cache import SemanticCache
+        from apps.api.src.core.infrastructure.llm.cache import SemanticCache
 
         cache = SemanticCache(similarity_threshold=0.95)
 
@@ -567,7 +567,7 @@ class TestCostTrackingAccuracy:
     @pytest.mark.redteam
     def test_nano_cost_matches_spec(self):
         """Spec: GPT-5 nano $0.05/$0.40 per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         # 500 input + 100 output (simple lookup from spec)
         cost = calculate_query_cost("gpt-5-nano", 500, 100)
@@ -578,7 +578,7 @@ class TestCostTrackingAccuracy:
     @pytest.mark.redteam
     def test_mini_cost_matches_spec(self):
         """Spec: GPT-5 mini $0.25/$2.00 per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost("gpt-5-mini", 2800, 400)
         expected = Decimal("2800") / Decimal("1000000") * Decimal("0.25") + \
@@ -588,7 +588,7 @@ class TestCostTrackingAccuracy:
     @pytest.mark.redteam
     def test_gpt52_cost_matches_spec(self):
         """Spec: GPT-5.2 $1.75/$14.00 per 1M tokens."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost("gpt-5.2", 8200, 1200)
         expected = Decimal("8200") / Decimal("1000000") * Decimal("1.75") + \
@@ -597,7 +597,7 @@ class TestCostTrackingAccuracy:
 
     @pytest.mark.redteam
     def test_cache_hit_always_zero_cost(self):
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         cost = calculate_query_cost("gpt-5.2", 8200, 1200, cache_hit=True)
         assert cost == Decimal("0")
@@ -605,7 +605,7 @@ class TestCostTrackingAccuracy:
     @pytest.mark.redteam
     def test_daily_routing_savings_93_percent(self):
         """Spec: routing + caching saves 93% vs unrouted GPT-5.2."""
-        from apps.api.src.telemetry.cost_tracker import calculate_query_cost
+        from apps.api.src.core.telemetry.cost_tracker import calculate_query_cost
 
         # Unrouted: 2400 queries * GPT-5.2 avg cost
         unrouted = calculate_query_cost("gpt-5.2", 3000, 500) * 2400

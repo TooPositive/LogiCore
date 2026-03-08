@@ -14,16 +14,16 @@ from unittest.mock import AsyncMock, MagicMock
 
 from qdrant_client.models import ScoredPoint
 
-from apps.api.src.domain.document import EnhancedSearchResult, UserContext
-from apps.api.src.rag.query_transform import (
+from apps.api.src.core.domain.document import EnhancedSearchResult, UserContext
+from apps.api.src.core.rag.query_transform import (
     QueryCategory,
     QueryClassification,
     QuerySanitizer,
     TransformError,
     TransformResult,
 )
-from apps.api.src.rag.reranker import BaseReranker, RerankerError, RerankResult
-from apps.api.src.rag.retriever import (
+from apps.api.src.core.rag.reranker import BaseReranker, RerankerError, RerankResult
+from apps.api.src.core.rag.retriever import (
     RetrievalPipelineConfig,
     SearchMode,
     enhanced_search,
@@ -862,7 +862,7 @@ class TestBackwardCompatibility:
 
     async def test_hybrid_search_returns_search_result_not_enhanced(self):
         """hybrid_search() must return SearchResult, not EnhancedSearchResult."""
-        from apps.api.src.domain.document import SearchResult
+        from apps.api.src.core.domain.document import SearchResult
 
         points = [
             _make_scored_point("DOC-A", "Content A", score=0.95),

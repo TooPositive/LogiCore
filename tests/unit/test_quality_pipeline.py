@@ -11,7 +11,7 @@ Tests cover:
 
 import pytest
 
-from apps.api.src.telemetry.quality_pipeline import (
+from apps.api.src.core.telemetry.quality_pipeline import (
     BiasDetector,
     BootstrapCI,
     ComparisonResult,
@@ -625,7 +625,7 @@ class TestBiasDetectorFullReport:
             spearman_correlation=0.90,
         )
 
-        from apps.api.src.domain.telemetry import JudgeBiasResult
+        from apps.api.src.core.domain.telemetry import JudgeBiasResult
 
         assert isinstance(result, JudgeBiasResult)
         assert result.position_bias_rate >= 0.0

@@ -129,23 +129,64 @@ Pipeline is resumable — each step checks if its output file exists and skips i
 
 ```
 apps/api/src/
-├── agents/          # LLM-powered agent implementations
-│   ├── brain/       # RAG/query agents
-│   ├── auditor/     # Financial audit agents
-│   └── guardian/    # Fleet monitoring agents
-├── api/v1/          # FastAPI route handlers
-├── config/          # Pydantic settings
-├── domain/          # Domain models (Pydantic)
-├── graphs/          # LangGraph state machines
-├── infrastructure/  # External service clients
-│   ├── kafka/
-│   ├── llm/
-│   ├── postgres/
-│   └── qdrant/
-├── rag/             # RAG pipeline (ingestion, retrieval)
-├── security/        # RBAC, auth
-├── telemetry/       # Langfuse tracing
-└── tools/           # Agent tool definitions
+├── core/                    # Domain-agnostic infrastructure
+│   ├── api/v1/              # Core endpoints (health, search, ingest, analytics)
+│   ├── config/              # Pydantic settings
+│   ├── domain/              # Core models (document, telemetry)
+│   ├── graphs/              # Core graph patterns (clearance_filter)
+│   ├── infrastructure/      # External service clients (llm, postgres, qdrant)
+│   ├── rag/                 # RAG pipeline (retrieval, embeddings, chunking, reranking)
+│   ├── security/            # RBAC framework
+│   └── telemetry/           # LLMOps (Langfuse, cost, drift, quality, judge config)
+├── domains/
+│   └── logicore/            # LogiCore-specific code
+│       ├── agents/          # Brain reader, auditor comparator
+│       ├── api/             # Audit endpoints
+│       ├── graphs/          # Audit workflow (state, graph, compliance subgraph)
+│       ├── models/          # Audit domain models (Invoice, ContractRate, etc.)
+│       └── tools/           # SQL query, report generator
+└── main.py                  # Wires core + domain routers
+```
+
+## Code Placement Guide (MANDATORY for all phases)
+
+Every new file must go in either `core/` or `domains/logicore/`. Never create files directly under `apps/api/src/` (except `main.py`).
+
+### Goes in `core/` (domain-agnostic)
+
+| Category | Examples | Rule |
+|----------|----------|------|
+| Infrastructure clients | Qdrant, Postgres, Redis, Kafka, LLM providers | Generic service wrappers, no business logic |
+| RAG pipeline | Retrieval, embeddings, chunking, reranking, sparse | Configurable, works for any corpus |
+| Security framework | RBAC filter builder, input sanitizer, guardrails, SQL sandbox | Generic security patterns |
+| Telemetry/LLMOps | Langfuse, cost tracker, drift detector, quality pipeline | Generic observability |
+| Config | Pydantic settings | Environment-driven |
+| Core models | Document, Chunk, UserContext, SearchResult, TraceRecord, EvalScore | Shared across all domains |
+| Core API | Health, search, ingest, analytics, security endpoints | Domain-agnostic endpoints |
+| Core patterns | ClearanceFilter, circuit breaker, MCP auth | Reusable architectural patterns |
+
+### Goes in `domains/logicore/` (LogiCore-specific)
+
+| Category | Examples | Rule |
+|----------|----------|------|
+| Agents | Reader (contract rates), Auditor (invoice comparison), Guardian (fleet) | Business logic with domain prompts |
+| Domain models | Invoice, ContractRate, Discrepancy, FleetAlert, ComplianceReport | LogiCore-specific Pydantic models |
+| Graphs | Audit workflow, fleet response, compliance subgraph | Domain-specific LangGraph state machines |
+| Tools | SQL query (invoice tables), report generator | Domain-specific tool implementations |
+| Domain API | Audit, fleet, compliance endpoints | Business-specific routes |
+| MCP servers | Invoice SQL, fleet status, compliance tools | Domain-specific MCP wrappers |
+| Test data | Polish corpus, ground truth queries, mock invoices | LogiCore benchmark data |
+
+### The test: "Could someone swap `domains/logicore/` for `domains/healthcare/` and have core work unchanged?"
+
+If yes → `core/`. If no → `domains/logicore/`.
+
+### Dependency direction
+
+```
+domains/logicore/ ──imports──► core/
+core/ ──NEVER imports──► domains/
+main.py ──wires──► both
 ```
 
 ## Pipeline Persistence

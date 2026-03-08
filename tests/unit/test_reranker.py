@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from apps.api.src.rag.reranker import (
+from apps.api.src.core.rag.reranker import (
     BaseReranker,
     CircuitBreakerReranker,
     CohereReranker,
@@ -203,7 +203,7 @@ class TestCohereReranker:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -237,7 +237,7 @@ class TestCohereReranker:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -272,7 +272,7 @@ class TestCohereReranker:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -288,7 +288,7 @@ class TestCohereReranker:
     @pytest.mark.asyncio
     async def test_api_error_raises_reranker_error(self):
         """HTTP errors from Cohere should raise RerankerError."""
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(side_effect=Exception("Connection refused"))
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -309,7 +309,7 @@ class TestCohereReranker:
         mock_response.json.return_value = {"results": [{"index": 0, "relevance_score": 0.9}]}
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -338,7 +338,7 @@ class TestCohereReranker:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.reranker.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.reranker.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -369,7 +369,7 @@ class TestLocalCrossEncoderReranker:
     @pytest.mark.asyncio
     async def test_calls_cross_encoder_predict(self):
         """Should call model.predict with query-document pairs."""
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_model = MagicMock()
             # predict returns scores for each query-doc pair
             mock_model.predict.return_value = [0.9, 0.3, 0.7]
@@ -390,7 +390,7 @@ class TestLocalCrossEncoderReranker:
     @pytest.mark.asyncio
     async def test_reorders_by_cross_encoder_score(self):
         """Results should be sorted by cross-encoder score descending."""
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_model = MagicMock()
             mock_model.predict.return_value = [0.3, 0.9, 0.6]
             mock_ce_cls.return_value = mock_model
@@ -410,7 +410,7 @@ class TestLocalCrossEncoderReranker:
 
     @pytest.mark.asyncio
     async def test_respects_top_k(self):
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_model = MagicMock()
             mock_model.predict.return_value = [0.9, 0.8, 0.7, 0.6, 0.5]
             mock_ce_cls.return_value = mock_model
@@ -424,7 +424,7 @@ class TestLocalCrossEncoderReranker:
     @pytest.mark.asyncio
     async def test_model_loading_failure_raises_reranker_error(self):
         """If the cross-encoder model fails to load, raise RerankerError."""
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_ce_cls.side_effect = OSError("Model not found")
 
             reranker = LocalCrossEncoderReranker(model_name="nonexistent/model")
@@ -436,7 +436,7 @@ class TestLocalCrossEncoderReranker:
     @pytest.mark.asyncio
     async def test_configurable_model_name(self):
         """Model name should be passed to CrossEncoder constructor."""
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_model = MagicMock()
             mock_model.predict.return_value = [0.5]
             mock_ce_cls.return_value = mock_model
@@ -449,7 +449,7 @@ class TestLocalCrossEncoderReranker:
 
     @pytest.mark.asyncio
     async def test_confidence_threshold_filters(self):
-        with patch("apps.api.src.rag.reranker.CrossEncoder") as mock_ce_cls:
+        with patch("apps.api.src.core.rag.reranker.CrossEncoder") as mock_ce_cls:
             mock_model = MagicMock()
             mock_model.predict.return_value = [0.9, 0.2, 0.1]
             mock_ce_cls.return_value = mock_model

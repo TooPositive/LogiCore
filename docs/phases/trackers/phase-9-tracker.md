@@ -6,14 +6,14 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/infrastructure/kafka/__init__.py`
-- [ ] `apps/api/src/infrastructure/kafka/consumer.py` — Kafka consumer base class
-- [ ] `apps/api/src/infrastructure/kafka/producer.py` — Kafka producer helper
-- [ ] `apps/api/src/agents/guardian/anomaly_detector.py` — rule-based + statistical detection
-- [ ] `apps/api/src/agents/guardian/fleet_agent.py` — LangGraph anomaly response agent
-- [ ] `apps/api/src/graphs/fleet_response_graph.py` — RAG → risk calc → action plan
-- [ ] `apps/api/src/domain/telemetry.py` — GPSPing, TemperatureReading, FleetAlert models
-- [ ] `apps/api/src/api/v1/fleet.py` — GET /fleet/status, /alerts
+- [ ] `apps/api/src/core/infrastructure/kafka/__init__.py`
+- [ ] `apps/api/src/core/infrastructure/kafka/consumer.py` — Kafka consumer base class
+- [ ] `apps/api/src/core/infrastructure/kafka/producer.py` — Kafka producer helper
+- [ ] `apps/api/src/domains/logicore/agents/guardian/anomaly_detector.py` — rule-based + statistical detection
+- [ ] `apps/api/src/domains/logicore/agents/guardian/fleet_agent.py` — LangGraph anomaly response agent
+- [ ] `apps/api/src/domains/logicore/graphs/fleet_response_graph.py` — RAG → risk calc → action plan
+- [ ] `apps/api/src/domains/logicore/models/fleet.py` — GPSPing, TemperatureReading, FleetAlert models
+- [ ] `apps/api/src/domains/logicore/api/fleet.py` — GET /fleet/status, /alerts
 - [ ] `scripts/telemetry_simulator.py` — mock GPS + temperature Kafka events
 - [ ] `data/mock-telemetry/routes.json` — routes with anomaly injection points
 - [ ] `tests/integration/test_kafka_flow.py` — Kafka → agent → alert
@@ -22,13 +22,13 @@
 
 ### Agentic: Cross-Session Agent Memory
 
-- [ ] `apps/api/src/agents/guardian/memory_store.py` — 3-tier memory abstraction
-- [ ] `apps/api/src/infrastructure/redis/fleet_memory.py` — Redis per-truck event history (30-day sliding window)
-- [ ] `apps/api/src/infrastructure/postgres/fleet_agent_memory.py` — long-term learned patterns table
+- [ ] `apps/api/src/domains/logicore/agents/guardian/memory_store.py` — 3-tier memory abstraction
+- [ ] `apps/api/src/domains/logicore/infrastructure/fleet_memory.py` — Redis per-truck event history (30-day sliding window)
+- [ ] `apps/api/src/domains/logicore/infrastructure/fleet_agent_memory.py` — long-term learned patterns table
 - [ ] `scripts/create_fleet_agent_memory_table.sql` — DDL for `fleet_agent_memory` table
-- [ ] `apps/api/src/graphs/fleet_response_graph.py` — MODIFY: add `memory_lookup` node + `route_by_memory` conditional
-- [ ] `apps/api/src/graphs/fleet_response_graph.py` — MODIFY: add `write_memory` node (post-resolution write-back)
-- [ ] `apps/api/src/domain/telemetry.py` — MODIFY: add `FleetMemoryEntry` model
+- [ ] `apps/api/src/domains/logicore/graphs/fleet_response_graph.py` — MODIFY: add `memory_lookup` node + `route_by_memory` conditional
+- [ ] `apps/api/src/domains/logicore/graphs/fleet_response_graph.py` — MODIFY: add `write_memory` node (post-resolution write-back)
+- [ ] `apps/api/src/domains/logicore/models/fleet.py` — MODIFY: add `FleetMemoryEntry` model
 - [ ] `tests/unit/test_memory_store.py` — 3-tier read/write, TTL, pattern matching
 - [ ] `tests/integration/test_cross_session_memory.py` — stateless vs memory-aware agent behavior difference
 

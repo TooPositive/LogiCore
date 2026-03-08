@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from apps.api.src.rag.embeddings import (
+from apps.api.src.core.rag.embeddings import (
     EMBEDDING_LARGE,
     EMBEDDING_MODELS,
     EMBEDDING_SMALL,
@@ -278,7 +278,7 @@ class TestAzureOpenAIEmbedder:
     @pytest.mark.asyncio
     async def test_embed_query_delegates_to_langchain(self):
         """Should call langchain AzureOpenAIEmbeddings.aembed_query."""
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
             mock_instance = MagicMock()
             mock_instance.aembed_query = AsyncMock(
                 return_value=[0.1] * 1536
@@ -299,7 +299,7 @@ class TestAzureOpenAIEmbedder:
     @pytest.mark.asyncio
     async def test_embed_documents_delegates_to_langchain(self):
         """Should call langchain AzureOpenAIEmbeddings.aembed_documents."""
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
             mock_instance = MagicMock()
             mock_instance.aembed_documents = AsyncMock(
                 return_value=[[0.1] * 1536, [0.2] * 1536]
@@ -320,7 +320,7 @@ class TestAzureOpenAIEmbedder:
     @pytest.mark.asyncio
     async def test_passes_correct_params_to_langchain(self):
         """Constructor should pass model, endpoint, key, version to langchain."""
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings") as mock_cls:
             mock_cls.return_value = MagicMock()
 
             AzureOpenAIEmbedder(
@@ -339,7 +339,7 @@ class TestAzureOpenAIEmbedder:
 
     def test_dimensions_property_small_model(self):
         """Should return dimensions from EMBEDDING_MODELS registry."""
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"):
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"):
             embedder = AzureOpenAIEmbedder(
                 model="text-embedding-3-small",
                 endpoint="https://test.openai.azure.com",
@@ -348,7 +348,7 @@ class TestAzureOpenAIEmbedder:
             assert embedder.dimensions == 1536
 
     def test_dimensions_property_large_model(self):
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"):
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"):
             embedder = AzureOpenAIEmbedder(
                 model="text-embedding-3-large",
                 endpoint="https://test.openai.azure.com",
@@ -358,7 +358,7 @@ class TestAzureOpenAIEmbedder:
 
     def test_dimensions_property_unknown_model_defaults(self):
         """Unknown model name should use a sensible default dimension."""
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"):
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"):
             embedder = AzureOpenAIEmbedder(
                 model="custom-deployment-xyz",
                 endpoint="https://test.openai.azure.com",
@@ -384,7 +384,7 @@ class TestCohereEmbedder:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -410,7 +410,7 @@ class TestCohereEmbedder:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -433,7 +433,7 @@ class TestCohereEmbedder:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -452,7 +452,7 @@ class TestCohereEmbedder:
     @pytest.mark.asyncio
     async def test_api_error_raises_embedding_error(self):
         """HTTP errors from Cohere should raise EmbeddingError."""
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(
                 side_effect=Exception("Connection refused")
@@ -475,7 +475,7 @@ class TestCohereEmbedder:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -501,7 +501,7 @@ class TestCohereEmbedder:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("apps.api.src.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
+        with patch("apps.api.src.core.rag.embeddings.httpx.AsyncClient") as mock_client_cls:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -539,7 +539,7 @@ class TestGetEmbedder:
         assert embedder.dimensions == 512
 
     def test_returns_azure_openai_embedder(self):
-        with patch("apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"):
+        with patch("apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"):
             embedder = get_embedder(
                 "azure_openai",
                 model="text-embedding-3-small",
@@ -582,13 +582,13 @@ class TestGetEmbedder:
 class TestBackwardCompatibility:
     def test_get_embeddings_still_works(self):
         """Phase 1 code depends on get_embeddings() returning langchain object."""
-        with patch("apps.api.src.rag.embeddings.settings") as mock_settings:
+        with patch("apps.api.src.core.rag.embeddings.settings") as mock_settings:
             mock_settings.azure_openai_endpoint = "https://test.openai.azure.com"
             mock_settings.azure_openai_api_key = "test-key"
             mock_settings.azure_openai_api_version = "2024-12-01-preview"
 
             with patch(
-                "apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"
+                "apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"
             ) as mock_cls:
                 mock_cls.return_value = MagicMock()
                 get_embeddings()
@@ -596,13 +596,13 @@ class TestBackwardCompatibility:
 
     def test_get_embeddings_with_model_param(self):
         """get_embeddings(model=...) should still work for Phase 1 benchmarks."""
-        with patch("apps.api.src.rag.embeddings.settings") as mock_settings:
+        with patch("apps.api.src.core.rag.embeddings.settings") as mock_settings:
             mock_settings.azure_openai_endpoint = "https://test.openai.azure.com"
             mock_settings.azure_openai_api_key = "test-key"
             mock_settings.azure_openai_api_version = "2024-12-01-preview"
 
             with patch(
-                "apps.api.src.rag.embeddings.AzureOpenAIEmbeddings"
+                "apps.api.src.core.rag.embeddings.AzureOpenAIEmbeddings"
             ) as mock_cls:
                 mock_cls.return_value = MagicMock()
                 get_embeddings(model="text-embedding-3-large")

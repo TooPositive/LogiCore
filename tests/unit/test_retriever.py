@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 from qdrant_client.models import ScoredPoint
 
-from apps.api.src.domain.document import SearchResult, UserContext
-from apps.api.src.rag.retriever import SearchMode, hybrid_search
+from apps.api.src.core.domain.document import SearchResult, UserContext
+from apps.api.src.core.rag.retriever import SearchMode, hybrid_search
 
 
 def _make_scored_point(

@@ -14,14 +14,14 @@ Tests cover:
 
 import pytest
 
-from apps.api.src.domain.telemetry import (
+from apps.api.src.core.domain.telemetry import (
     DriftAlert,
     DriftSeverity,
     JudgeBiasResult,
     ModelVersion,
     PromptCacheStats,
 )
-from apps.api.src.telemetry.judge_config import (
+from apps.api.src.core.telemetry.judge_config import (
     JudgeConfig,
     ModelFamily,
     clear_family_overrides,

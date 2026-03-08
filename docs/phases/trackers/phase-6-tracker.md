@@ -6,11 +6,11 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/infrastructure/llm/__init__.py`
-- [ ] `apps/api/src/infrastructure/llm/provider.py` — abstract LLM provider interface
-- [ ] `apps/api/src/infrastructure/llm/azure_openai.py` — Azure OpenAI implementation
-- [ ] `apps/api/src/infrastructure/llm/ollama.py` — Ollama implementation
-- [ ] `apps/api/src/config/settings.py` — MODIFY: add LLM_PROVIDER toggle
+- [ ] `apps/api/src/core/infrastructure/llm/__init__.py`
+- [ ] `apps/api/src/core/infrastructure/llm/provider.py` — abstract LLM provider interface
+- [ ] `apps/api/src/core/infrastructure/llm/azure_openai.py` — Azure OpenAI implementation
+- [ ] `apps/api/src/core/infrastructure/llm/ollama.py` — Ollama implementation
+- [ ] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle
 - [ ] `docker-compose.airgap.yml` — full air-gapped compose with Ollama
 - [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests

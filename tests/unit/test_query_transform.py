@@ -5,7 +5,7 @@ RED phase: all tests written before implementation.
 
 import pytest
 
-from apps.api.src.rag.query_transform import (
+from apps.api.src.core.rag.query_transform import (
     BaseQueryTransformer,
     HyDETransformer,
     MultiQueryTransformer,

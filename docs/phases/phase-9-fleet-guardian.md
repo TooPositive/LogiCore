@@ -83,14 +83,14 @@ Redis: cache repeated anomaly patterns
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/infrastructure/kafka/__init__.py` | Package init |
-| `apps/api/src/infrastructure/kafka/consumer.py` | Kafka consumer base class |
-| `apps/api/src/infrastructure/kafka/producer.py` | Kafka producer helper |
-| `apps/api/src/agents/guardian/anomaly_detector.py` | Rule-based + statistical anomaly detection |
-| `apps/api/src/agents/guardian/fleet_agent.py` | LangGraph agent for anomaly response |
-| `apps/api/src/graphs/fleet_response_graph.py` | LangGraph graph: RAG → risk calc → action plan |
-| `apps/api/src/domain/telemetry.py` | GPSPing, TemperatureReading, FleetAlert models |
-| `apps/api/src/api/v1/fleet.py` | GET /api/v1/fleet/status, /alerts endpoints |
+| `apps/api/src/core/infrastructure/kafka/__init__.py` | Package init |
+| `apps/api/src/core/infrastructure/kafka/consumer.py` | Kafka consumer base class |
+| `apps/api/src/core/infrastructure/kafka/producer.py` | Kafka producer helper |
+| `apps/api/src/domains/logicore/agents/guardian/anomaly_detector.py` | Rule-based + statistical anomaly detection |
+| `apps/api/src/domains/logicore/agents/guardian/fleet_agent.py` | LangGraph agent for anomaly response |
+| `apps/api/src/domains/logicore/graphs/fleet_response_graph.py` | LangGraph graph: RAG → risk calc → action plan |
+| `apps/api/src/domains/logicore/models/fleet.py` | GPSPing, TemperatureReading, FleetAlert models |
+| `apps/api/src/domains/logicore/api/fleet.py` | GET /api/v1/fleet/status, /alerts endpoints |
 | `scripts/telemetry_simulator.py` | Generates mock GPS + temperature Kafka events |
 | `data/mock-telemetry/routes.json` | Predefined truck routes with anomaly injection points |
 | `tests/integration/test_kafka_flow.py` | End-to-end Kafka → agent → alert test |

@@ -17,13 +17,13 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from qdrant_client import AsyncQdrantClient
 
-from apps.api.src.infrastructure.qdrant.collections import (
+from apps.api.src.core.infrastructure.qdrant.collections import (
     COLLECTION_NAME,
     DENSE_VECTOR_SIZE,
     ensure_collection,
 )
+from apps.api.src.core.rag.ingestion import ingest_document
 from apps.api.src.main import app
-from apps.api.src.rag.ingestion import ingest_document
 
 pytestmark = pytest.mark.e2e
 
@@ -147,12 +147,12 @@ class TestPhase1Demo:
 
         with (
             patch(
-                "apps.api.src.api.v1.search.get_qdrant_client",
+                "apps.api.src.core.api.v1.search.get_qdrant_client",
                 new_callable=AsyncMock,
                 return_value=seeded_qdrant,
             ),
             patch(
-                "apps.api.src.api.v1.search.get_embeddings",
+                "apps.api.src.core.api.v1.search.get_embeddings",
             ) as mock_embed,
         ):
             mock_embed.return_value.aembed_query = AsyncMock(side_effect=fake_embed_query)
@@ -178,12 +178,12 @@ class TestPhase1Demo:
 
         with (
             patch(
-                "apps.api.src.api.v1.search.get_qdrant_client",
+                "apps.api.src.core.api.v1.search.get_qdrant_client",
                 new_callable=AsyncMock,
                 return_value=seeded_qdrant,
             ),
             patch(
-                "apps.api.src.api.v1.search.get_embeddings",
+                "apps.api.src.core.api.v1.search.get_embeddings",
             ) as mock_embed,
         ):
             mock_embed.return_value.aembed_query = AsyncMock(side_effect=fake_embed_query)
@@ -211,12 +211,12 @@ class TestPhase1Demo:
 
         with (
             patch(
-                "apps.api.src.api.v1.search.get_qdrant_client",
+                "apps.api.src.core.api.v1.search.get_qdrant_client",
                 new_callable=AsyncMock,
                 return_value=seeded_qdrant,
             ),
             patch(
-                "apps.api.src.api.v1.search.get_embeddings",
+                "apps.api.src.core.api.v1.search.get_embeddings",
             ) as mock_embed,
         ):
             mock_embed.return_value.aembed_query = AsyncMock(side_effect=fake_embed_query)
@@ -264,12 +264,12 @@ class TestPhase1Demo:
 
             with (
                 patch(
-                    "apps.api.src.api.v1.ingest.get_qdrant_client",
+                    "apps.api.src.core.api.v1.ingest.get_qdrant_client",
                     new_callable=AsyncMock,
                     return_value=seeded_qdrant,
                 ),
                 patch(
-                    "apps.api.src.api.v1.ingest.get_embeddings",
+                    "apps.api.src.core.api.v1.ingest.get_embeddings",
                 ) as mock_embed,
             ):
                 mock_embed.return_value.aembed_documents = AsyncMock(side_effect=fake_embed_docs)

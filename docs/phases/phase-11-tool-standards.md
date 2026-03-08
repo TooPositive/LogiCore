@@ -78,14 +78,14 @@ Consumers:
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/mcp/__init__.py` | Package init |
-| `apps/api/src/mcp/search_server.py` | MCP server: Qdrant hybrid search tools |
-| `apps/api/src/mcp/sql_server.py` | MCP server: read-only SQL tools |
-| `apps/api/src/mcp/fleet_server.py` | MCP server: fleet status + alert tools |
-| `apps/api/src/mcp/compliance_server.py` | MCP server: audit log + lineage tools |
-| `apps/api/src/mcp/auth.py` | MCP auth middleware (token validation, RBAC) |
-| `apps/api/src/tools/sql_query.py` | **Modify** — extract into reusable tool, shared with MCP |
-| `apps/api/src/rag/retriever.py` | **Modify** — extract search as reusable tool |
+| `apps/api/src/core/mcp/__init__.py` | Package init |
+| `apps/api/src/core/mcp/search_server.py` | MCP server: Qdrant hybrid search tools |
+| `apps/api/src/domains/logicore/mcp/sql_server.py` | MCP server: read-only SQL tools |
+| `apps/api/src/domains/logicore/mcp/fleet_server.py` | MCP server: fleet status + alert tools |
+| `apps/api/src/domains/logicore/mcp/compliance_server.py` | MCP server: audit log + lineage tools |
+| `apps/api/src/core/mcp/auth.py` | MCP auth middleware (token validation, RBAC) |
+| `apps/api/src/domains/logicore/tools/sql_query.py` | **Modify** — extract into reusable tool, shared with MCP |
+| `apps/api/src/core/rag/retriever.py` | **Modify** — extract search as reusable tool |
 | `.mcp/config.json` | MCP server configuration for IDE integration |
 | `docker-compose.yml` | **Modify** — add MCP server services |
 | `tests/integration/test_mcp_search.py` | MCP search server integration test |

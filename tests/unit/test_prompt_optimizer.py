@@ -13,8 +13,8 @@ Tests cover:
 
 import pytest
 
-from apps.api.src.domain.telemetry import PromptCacheStats
-from apps.api.src.telemetry.prompt_optimizer import (
+from apps.api.src.core.domain.telemetry import PromptCacheStats
+from apps.api.src.core.telemetry.prompt_optimizer import (
     CacheMetrics,
     PromptAnalysis,
     PromptOptimizer,

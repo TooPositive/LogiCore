@@ -12,7 +12,7 @@ uses scripts/run_evaluation.py.
 import json
 from pathlib import Path
 
-from apps.api.src.domain.telemetry import EvalScore
+from apps.api.src.core.domain.telemetry import EvalScore
 
 
 class TestEvalDataset:

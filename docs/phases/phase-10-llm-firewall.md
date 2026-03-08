@@ -76,14 +76,14 @@ Red Team Pipeline (Automated):
 
 | File | Purpose |
 |------|---------|
-| `apps/api/src/security/__init__.py` | Package init |
-| `apps/api/src/security/input_sanitizer.py` | Pattern-based input cleaning (SQL, prompt injection) |
-| `apps/api/src/security/guardrail.py` | Llama 4 Scout guardrail integration (local via Ollama) |
-| `apps/api/src/security/output_filter.py` | Response PII/harmful content check |
-| `apps/api/src/security/sql_sandbox.py` | Query parameterization + whitelist enforcement |
-| `apps/api/src/security/middleware.py` | FastAPI middleware wiring all security layers |
-| `apps/api/src/api/v1/security.py` | GET /api/v1/security/report, /blocked-attempts |
-| `apps/api/src/domain/security.py` | SecurityEvent, ThreatReport, BlockedAttempt models |
+| `apps/api/src/core/security/__init__.py` | Package init |
+| `apps/api/src/core/security/input_sanitizer.py` | Pattern-based input cleaning (SQL, prompt injection) |
+| `apps/api/src/core/security/guardrail.py` | Llama 4 Scout guardrail integration (local via Ollama) |
+| `apps/api/src/core/security/output_filter.py` | Response PII/harmful content check |
+| `apps/api/src/core/security/sql_sandbox.py` | Query parameterization + whitelist enforcement |
+| `apps/api/src/core/security/middleware.py` | FastAPI middleware wiring all security layers |
+| `apps/api/src/core/api/v1/security.py` | GET /api/v1/security/report, /blocked-attempts |
+| `apps/api/src/core/domain/security.py` | SecurityEvent, ThreatReport, BlockedAttempt models |
 | `tests/red-team/promptfoo.yaml` | Promptfoo configuration for OWASP LLM Top 10 |
 | `tests/red-team/attacks/` | Attack payloads per OWASP category |
 | `tests/red-team/run_red_team.py` | Red team execution script |

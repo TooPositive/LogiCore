@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock
 
-from apps.api.src.rag.ingestion import chunk_text, ingest_document
+from apps.api.src.core.rag.ingestion import chunk_text, ingest_document
 
 
 class TestChunkText:

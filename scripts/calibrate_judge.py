@@ -31,7 +31,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from apps.api.src.telemetry.quality_pipeline import HumanCalibration
+from apps.api.src.core.telemetry.quality_pipeline import HumanCalibration
 
 
 def load_golden_set(path: str) -> tuple[list[float], list[float]]:

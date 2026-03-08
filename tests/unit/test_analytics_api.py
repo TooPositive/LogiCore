@@ -13,7 +13,7 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 def cost_tracker():
     """Pre-populated cost tracker for analytics tests."""
-    from apps.api.src.telemetry.cost_tracker import CostTracker
+    from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
     tracker = CostTracker()
     # 5 search queries
@@ -50,7 +50,7 @@ def cost_tracker():
 @pytest.fixture
 def eval_scores():
     """Latest evaluation scores."""
-    from apps.api.src.domain.telemetry import EvalScore
+    from apps.api.src.core.domain.telemetry import EvalScore
 
     return EvalScore(
         eval_id="eval-latest",
@@ -67,7 +67,7 @@ class TestCostsEndpoint:
 
     @pytest.mark.asyncio
     async def test_costs_endpoint_returns_200(self, cost_tracker):
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         router = create_analytics_router(
             cost_tracker=cost_tracker,
@@ -89,7 +89,7 @@ class TestCostsEndpoint:
     async def test_costs_response_has_required_fields(self, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -112,7 +112,7 @@ class TestCostsEndpoint:
     async def test_costs_values_correct(self, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -134,7 +134,7 @@ class TestCostsEndpoint:
     async def test_costs_period_30d(self, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -151,8 +151,8 @@ class TestCostsEndpoint:
     async def test_costs_invalid_period(self):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
-        from apps.api.src.telemetry.cost_tracker import CostTracker
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.telemetry.cost_tracker import CostTracker
 
         app = FastAPI()
         app.include_router(
@@ -175,7 +175,7 @@ class TestQualityEndpoint:
     async def test_quality_endpoint_returns_200(self, eval_scores, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -194,7 +194,7 @@ class TestQualityEndpoint:
     async def test_quality_response_has_metrics(self, eval_scores, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -218,7 +218,7 @@ class TestQualityEndpoint:
     async def test_quality_values_correct(self, eval_scores, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(
@@ -241,7 +241,7 @@ class TestQualityEndpoint:
     async def test_quality_no_scores_returns_404(self, cost_tracker):
         from fastapi import FastAPI
 
-        from apps.api.src.api.v1.analytics import create_analytics_router
+        from apps.api.src.core.api.v1.analytics import create_analytics_router
 
         app = FastAPI()
         app.include_router(

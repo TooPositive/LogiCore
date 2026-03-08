@@ -13,7 +13,7 @@
 - [x] `apps/api/src/core/infrastructure/llm/ollama.py` — OllamaProvider with error handling (8 tests, 897 total)
 - [x] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle (10 tests, 877 total)
 - [x] OllamaEmbedder in embeddings.py + OLLAMA enum + nomic-embed-text model + factory (13 tests, 917 total)
-- [ ] `docker-compose.airgap.yml` — full air-gapped compose with Ollama
+- [x] `docker-compose.airgap.yml` — Ollama service, API overrides, health check (13 tests, 930 total)
 - [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests
 - [ ] `docs/adr/004-ollama-over-vllm.md`

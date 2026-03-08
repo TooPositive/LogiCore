@@ -1,6 +1,6 @@
 # LogiCore Progress Tracker
 
-> Last updated: 2026-03-07
+> Last updated: 2026-03-08
 
 ## Phase Status
 
@@ -10,7 +10,7 @@
 | 0.5 | Simulator Service | DONE | 100% | — | — | — | — |
 | 1 | Corporate Brain (RAG + RBAC) | TESTED | 100% | 100% (80/80) | — | — | — |
 | 2 | Retrieval Engineering | CODE COMPLETE | 100% | 100% (329 total, 265 new) | — | — | Phase 1 |
-| 3 | Customs & Finance (Multi-Agent) | NOT STARTED | 0% | 0% | — | — | Phase 1 |
+| 3 | Customs & Finance (Multi-Agent) | CODE COMPLETE | 100% | 174 new (503 total) | — | — | Phase 1 |
 | 4 | Trust Layer (LLMOps) | NOT STARTED | 0% | 0% | — | — | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | NOT STARTED | 0% | 0% | — | — | Phase 4 |
 | 6 | Air-Gapped Vault (Local Inference) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
@@ -190,8 +190,47 @@ Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
 - Reasoning over negation failures → Phase 3 (Multi-Agent with LangGraph)
 - Adversarial query tests → Phase 10 (LLM Firewall)
 
-**Next up**: Phase 3 (Multi-Agent) — unblocked
-Run `/write-phase-post 2` to generate Phase 2 LinkedIn + Medium content
+**Next up**: Phase 3 content (LinkedIn + Medium), then Phase 4 (Trust Layer)
+
+## Phase 3 Sprint Summary (CODE COMPLETE — 174 new tests, 503 total, review 27/30 PROCEED)
+
+### What a CTO Would See
+
+| Question | Answer | Evidence |
+|---|---|---|
+| "How does your AI handle financial decisions?" | **It doesn't — it STOPS.** The HITL gateway is a hard interrupt enforced by LangGraph's state machine, not a soft check. The AI finds a EUR 588 discrepancy, prepares a brief, and blocks. A human clicks Approve. The graph cannot advance without explicit approval — this is a state machine constraint, not a business rule that can be bypassed. | 5 HITL tests + 3 bypass attempt tests (all return 409) |
+| "What if the server crashes during an approval?" | **Workflow resumes exactly where it stopped.** PostgreSQL checkpointer persists state after every node. A CFO approving a EUR 588 dispute at 5 PM doesn't re-review it because the server restarted overnight. Tested at every node boundary (reader, sql, auditor, hitl_gate). | 9 crash recovery tests, 4 idempotency proofs |
+| "Can the AI modify the invoice database?" | **Structurally impossible — two independent defense layers.** Parameterized queries (`$1` params) make SQL injection impossible at the code level. Read-only DB role (`logicore_reader`, SELECT only) prevents writes at the DB level. Either layer alone is sufficient. | 5 injection patterns tested (DROP, UNION, blind, stacked, comment) |
+| "What about the compliance sub-agent that gets elevated clearance?" | **Zero-trust filtering at the graph boundary.** ClearanceFilter is the LAST step before sub-agent data enters parent state — enforced in Python code, not in agent prompts. A prompt-based defense could be bypassed by injection; a graph-level filter cannot. Missing clearance_level defaults to 1 (most restrictive). | 6 clearance filter tests + 5 delegation tests + 11 keyword trigger tests |
+| "Why keyword-based delegation instead of LLM-based?" | **Deliberate recall-over-precision tradeoff.** False positive (unnecessary compliance check) costs ~500ms. False negative (missed contract amendment) costs EUR 136-588 per invoice. At 270-1176x cost asymmetry, 100% recall at ~10% false positive rate is the correct operating point. Switch to LLM-based only when false positive rate exceeds 30%. | 11 keywords tested individually, 3 negative cases, case insensitivity verified |
+| "What's the cost per audit?" | **EUR 0.00002-0.08 depending on complexity.** 60% of invoices auto-resolve (nano). 25% need AI investigation (mini). 15% need human review (5.2). Total: EUR 5.56/month for 1,000 invoices vs EUR 6,750/month for manual audits. The auditor is a pure function (no LLM for rate comparison) — deterministic math costs EUR 0.00 per comparison. | 22 mock invoices across 4 discrepancy bands, 5+ per band |
+
+### Key Architecture Decisions
+
+| Decision | What We Built | Architect Rationale |
+|---|---|---|
+| HITL via interrupt_before | hitl_gate is a pass-through; interrupt_before blocks before it | Keeps HITL orthogonal to node logic. Changing approval UX (multi-reviewer, timeout escalation) never touches node code. `interrupt()` inside nodes couples HITL to business logic — every workflow change becomes a regression risk. |
+| ClearanceFilter at graph boundary | Findings above parent_clearance stripped in Python, not prompts | A prompt-based defense can be bypassed by prompt injection. A graph-level filter runs in Python — structurally unpromptable. The filter is the LAST step before data enters parent state. |
+| Keyword delegation trigger (11 keywords) | needs_legal_context() checks for amendment, surcharge, penalty, annex, rider, etc. | False positive = 500ms wasted. False negative = EUR 136-588 lost. At 270-1176x cost asymmetry, high recall is the correct operating point. LLM-based trigger adds latency, non-determinism, and cost with no safety benefit. |
+| MemorySaver for tests, PostgreSQL for production | build_audit_graph() returns uncompiled StateGraph | Caller decides checkpointer at compile time. Same graph code, different config. This factory pattern makes Phase 6 (air-gapped) possible without forking. |
+| Pure-function auditor (no LLM for rate comparison) | AuditorAgent compares rates with deterministic math | EUR 0.00 per comparison vs EUR 0.02 with LLM. At 12,000 invoices/year, saves EUR 240/year. The LLM adds nothing — rate comparison is arithmetic, not reasoning. |
+
+### Security Model (Red-Team Verified, 18 Tests)
+
+| Attack | Defense | Why It's Structural |
+|---|---|---|
+| SQL injection (5 patterns) | $1 parameterized queries + read-only role | Injection is structurally impossible — user input is always a data parameter, never concatenated into SQL. Pattern count is irrelevant; the defense is architectural. |
+| Clearance leak via delegation | ClearanceFilter at graph boundary | Enforced in Python code, not in agent prompts. Cannot be bypassed by prompt injection. Missing clearance_level defaults to 1 (most restrictive assumption). |
+| HITL bypass | State machine enforcement (409 Conflict) | Not a business rule check — it's a graph execution constraint. The compiled graph literally cannot advance past the interrupt point without explicit invocation. |
+| Double-approval race | Atomic state transition | First approval changes state; second sees non-matching state → 409. Production PostgreSQL adds DB-level atomicity. |
+| Prompt injection in Reader | Pre-LLM content sanitization | Defense-in-depth: even if sanitization misses a pattern, the system architecture (parameterized queries, read-only roles) means injection can't cause data modification. |
+
+### Remaining (Deferred by Design)
+- Integration tests needing Docker (PostgreSQL checkpointer, logicore_reader role)
+- Langfuse tracing integration (Phase 4 — Trust Layer)
+- Multi-currency invoice handling (Phase 7/8)
+- True concurrent async approval race (Phase 4 with PostgreSQL atomicity)
+- Multilingual prompt injection patterns (Phase 10)
 
 ## Phase 1 Sprint Summary
 

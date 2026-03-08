@@ -2,12 +2,16 @@
 
 GET /api/v1/analytics/costs?period=7d -- cost breakdown by agent
 GET /api/v1/analytics/quality -- RAG quality scores
+GET /api/v1/analytics/resilience -- circuit breaker states, routing stats
 
-Domain-agnostic: takes CostTracker and EvalScore as dependencies.
+Domain-agnostic: takes CostTracker, EvalScore, and ProviderChain as dependencies.
 """
+
+from __future__ import annotations
 
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -38,6 +42,13 @@ class QualityResponse(BaseModel):
     passes_gate: bool
 
 
+class ResilienceResponse(BaseModel):
+    """Response model for /analytics/resilience."""
+
+    provider_states: list[dict[str, Any]]
+    routing_stats: dict[str, Any]
+
+
 def _parse_period(period: str) -> timedelta:
     """Parse period string like '7d', '30d', '24h' into timedelta.
 
@@ -60,6 +71,7 @@ def _parse_period(period: str) -> timedelta:
 def create_analytics_router(
     cost_tracker: CostTracker,
     eval_scores: EvalScore | None,
+    provider_chain: Any | None = None,
 ) -> APIRouter:
     """Factory function to create analytics router with injected dependencies.
 
@@ -111,6 +123,25 @@ def create_analytics_router(
             last_eval=eval_scores.evaluated_at.isoformat(),
             dataset_size=eval_scores.dataset_size,
             passes_gate=eval_scores.passes_quality_gate(),
+        )
+
+    @router.get("/resilience", response_model=ResilienceResponse)
+    async def get_resilience() -> ResilienceResponse:
+        """Get resilience status: circuit breaker states, routing distribution."""
+        if provider_chain is None:
+            return ResilienceResponse(
+                provider_states=[],
+                routing_stats={
+                    "total_requests": 0,
+                    "by_provider": {},
+                    "fallback_count": 0,
+                    "cache_fallback_count": 0,
+                },
+            )
+
+        return ResilienceResponse(
+            provider_states=provider_chain.provider_states(),
+            routing_stats=provider_chain.stats(),
         )
 
     return router

@@ -18,7 +18,7 @@
 - [x] Provider swap tests + RBAC independence (8 tests, 938 total)
 - [x] Red team tests -- 6 attack categories, 17 tests (955 total)
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests
-- [ ] `docs/adr/004-ollama-over-vllm.md`
+- [x] `docs/adr/007-ollama-over-vllm.md` (007 since 004-006 already used)
 
 ## Success Criteria
 

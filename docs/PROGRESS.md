@@ -20,7 +20,7 @@
 | 10 | LLM Firewall (Security) | NOT STARTED | 0% | 0% | — | — | Phases 1-6 |
 | 11 | Tool Standards (MCP) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 12 | Full Stack Demo | NOT STARTED | 0% | 0% | — | — | Phases 1-11 |
-| R | Core Extraction (domain-agnostic refactor) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
+| R | Core Extraction (domain-agnostic refactor) | DONE | 100% | 100% (867 passing, 0 regressions) | — | — | — |
 
 **Legend**: Status = NOT STARTED / IN PROGRESS / CODE COMPLETE / TESTED / CONTENT PUBLISHED
 LinkedIn/Medium = — / draft / reviewed / published (date)
@@ -57,10 +57,9 @@ Phase 1: RAG + RBAC ◄───────────────────
   │
   └──► Phase 12: Full Stack Demo (requires ALL 1-11)
 
-Phase R: Core Extraction ◄──── after Phase 3, before Phase 4
-  Extract domain-agnostic core (retrieval, agents, LLMOps, security)
-  from LogiCore-specific code. Result: core/ + domains/logicore/ split.
-  Config-driven: corpus, roles, agents, benchmarks per domain.
+Phase R: Core Extraction ◄──── DONE
+  Split: core/ (26 modules) + domains/logicore/ (9 modules)
+  467 imports updated, 867 tests passing, zero regressions.
 ```
 
 **Parallel tracks after Phase 1**:

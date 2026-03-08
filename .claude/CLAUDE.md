@@ -129,23 +129,23 @@ Pipeline is resumable — each step checks if its output file exists and skips i
 
 ```
 apps/api/src/
-├── agents/          # LLM-powered agent implementations
-│   ├── brain/       # RAG/query agents
-│   ├── auditor/     # Financial audit agents
-│   └── guardian/    # Fleet monitoring agents
-├── api/v1/          # FastAPI route handlers
-├── config/          # Pydantic settings
-├── domain/          # Domain models (Pydantic)
-├── graphs/          # LangGraph state machines
-├── infrastructure/  # External service clients
-│   ├── kafka/
-│   ├── llm/
-│   ├── postgres/
-│   └── qdrant/
-├── rag/             # RAG pipeline (ingestion, retrieval)
-├── security/        # RBAC, auth
-├── telemetry/       # Langfuse tracing
-└── tools/           # Agent tool definitions
+├── core/                    # Domain-agnostic infrastructure
+│   ├── api/v1/              # Core endpoints (health, search, ingest, analytics)
+│   ├── config/              # Pydantic settings
+│   ├── domain/              # Core models (document, telemetry)
+│   ├── graphs/              # Core graph patterns (clearance_filter)
+│   ├── infrastructure/      # External service clients (llm, postgres, qdrant)
+│   ├── rag/                 # RAG pipeline (retrieval, embeddings, chunking, reranking)
+│   ├── security/            # RBAC framework
+│   └── telemetry/           # LLMOps (Langfuse, cost, drift, quality, judge config)
+├── domains/
+│   └── logicore/            # LogiCore-specific code
+│       ├── agents/          # Brain reader, auditor comparator
+│       ├── api/             # Audit endpoints
+│       ├── graphs/          # Audit workflow (state, graph, compliance subgraph)
+│       ├── models/          # Audit domain models (Invoice, ContractRate, etc.)
+│       └── tools/           # SQL query, report generator
+└── main.py                  # Wires core + domain routers
 ```
 
 ## Pipeline Persistence

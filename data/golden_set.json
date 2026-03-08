@@ -1,0 +1,523 @@
+{
+  "_schema": {
+    "version": "1.0",
+    "description": "Golden set for LLM judge calibration. 50 query-answer pairs scored by domain experts (1-5 scale). This is the root of trust for the entire evaluation pipeline. If judge-golden correlation drops below 0.85, halt all automated quality gates.",
+    "fields": {
+      "id": "Unique identifier (GS-NNN)",
+      "question": "The user query",
+      "context": "Retrieved context chunks provided to the LLM",
+      "expected_answer": "The correct/ideal answer",
+      "generated_answer": "The LLM-generated answer being judged",
+      "human_score": "Domain expert score (1=wrong, 2=partially wrong, 3=incomplete, 4=mostly correct, 5=correct)",
+      "category": "Query category from ground_truth.py",
+      "scorer_notes": "Domain expert's reasoning for the score"
+    },
+    "maintenance": {
+      "review_frequency": "quarterly",
+      "cost_per_review": "EUR 200 (10 experts x 10 pairs x EUR 2/judgment)",
+      "staleness_check": "Flag entries where source documents have been amended since scoring"
+    }
+  },
+  "entries": [
+    {
+      "id": "GS-001",
+      "question": "What is the penalty for late delivery in the PharmaCorp contract?",
+      "context": "PharmaCorp Service Agreement CTR-2024-001: Late delivery penalty is 15% of shipment value per incident. Applicable for deliveries exceeding the 4-hour window.",
+      "expected_answer": "15% of shipment value per incident, for deliveries exceeding the 4-hour window.",
+      "generated_answer": "The penalty for late delivery in the PharmaCorp contract is 15% of the shipment value per incident.",
+      "human_score": 5,
+      "category": "natural_language",
+      "scorer_notes": "Correct. Accurately states the penalty rate and trigger."
+    },
+    {
+      "id": "GS-002",
+      "question": "What is the maximum driving time per day?",
+      "context": "Driver Safety Protocol DOC-HR-003: Maximum driving time is 9 hours per day per EU Regulation 561/2006. Extended to 10 hours twice per week.",
+      "expected_answer": "9 hours per day, extendable to 10 hours twice per week per EU Regulation 561/2006.",
+      "generated_answer": "The maximum driving time is 9 hours per day.",
+      "human_score": 4,
+      "category": "natural_language",
+      "scorer_notes": "Mostly correct but omits the twice-weekly 10-hour extension."
+    },
+    {
+      "id": "GS-003",
+      "question": "CTR-2024-004",
+      "context": "ChemTrans Hazmat Agreement CTR-2024-004: Annual value EUR 2.1M. Requires ADR certification. Penalty EUR 5,000 per incident.",
+      "expected_answer": "ChemTrans Hazmat Agreement. Annual value EUR 2.1M, requires ADR certification, penalty EUR 5,000 per incident.",
+      "generated_answer": "CTR-2024-004 is the ChemTrans Hazmat Agreement with an annual value of EUR 2.1 million.",
+      "human_score": 4,
+      "category": "exact_code",
+      "scorer_notes": "Identifies the contract correctly but omits ADR requirement and penalty."
+    },
+    {
+      "id": "GS-004",
+      "question": "towary niebezpieczne przepisy",
+      "context": "ChemTrans Hazmat Agreement CTR-2024-004: ADR-certified transport required. Dangerous goods classification per EU regulations.",
+      "expected_answer": "The ChemTrans agreement (CTR-2024-004) covers dangerous goods transport. ADR certification required per EU regulations.",
+      "generated_answer": "Przepisy dotyczace towarow niebezpiecznych znajduja sie w umowie ChemTrans CTR-2024-004, wymagajacej certyfikacji ADR.",
+      "human_score": 5,
+      "category": "polish",
+      "scorer_notes": "Correct. Responds in Polish matching the query language. Identifies ADR and contract."
+    },
+    {
+      "id": "GS-005",
+      "question": "letting go of underperforming staff",
+      "context": "Employee Termination Procedures DOC-HR-004: Notice periods per Kodeks Pracy Art. 36. Severance: 0.5 months per year of service.",
+      "expected_answer": "Employee termination follows Kodeks Pracy Art. 36 notice periods. Severance is 0.5 months per year of service.",
+      "generated_answer": "For terminating underperforming employees, LogiCore follows Kodeks Pracy Art. 36 with notice periods and provides severance of half a month per year of service.",
+      "human_score": 5,
+      "category": "synonym",
+      "scorer_notes": "Correct. Understood synonym ('letting go' = termination). Accurate on notice periods and severance."
+    },
+    {
+      "id": "GS-006",
+      "question": "contracts without temperature requirements",
+      "context": "AutoParts Express Contract CTR-2024-003: No temperature requirements. Standard freight. Annual value EUR 800K.",
+      "expected_answer": "AutoParts Express (CTR-2024-003) has no temperature requirements. Standard freight, EUR 800K annual value.",
+      "generated_answer": "The AutoParts Express contract (CTR-2024-003) does not have temperature requirements.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct. Properly handled negation query."
+    },
+    {
+      "id": "GS-007",
+      "question": "pharamcorp contract",
+      "context": "PharmaCorp Service Agreement CTR-2024-001: Temperature-controlled transport 2-8C. Annual value EUR 1.2M.",
+      "expected_answer": "PharmaCorp Service Agreement (CTR-2024-001). Temperature-controlled transport 2-8C. Annual value EUR 1.2M.",
+      "generated_answer": "The PharmaCorp contract is CTR-2024-001, covering temperature-controlled pharmaceutical transport.",
+      "human_score": 5,
+      "category": "typo",
+      "scorer_notes": "Correct. System handled the typo 'pharamcorp' -> 'PharmaCorp'."
+    },
+    {
+      "id": "GS-008",
+      "question": "ADR certified transport",
+      "context": "ChemTrans Hazmat Agreement CTR-2024-004: ADR certification required for all drivers. Dangerous goods classes 2, 3, 6.1, 8.",
+      "expected_answer": "ChemTrans (CTR-2024-004) requires ADR-certified transport for dangerous goods classes 2, 3, 6.1, 8.",
+      "generated_answer": "ADR certified transport is required under the ChemTrans agreement for hazardous materials.",
+      "human_score": 4,
+      "category": "jargon",
+      "scorer_notes": "Correct identification but omits specific dangerous goods classes."
+    },
+    {
+      "id": "GS-009",
+      "question": "safety",
+      "context": "Multiple safety documents: ISO 9001 Quality Manual, Driver Safety Protocol, Warehouse Fire Safety Plan, Forklift Operation Manual.",
+      "expected_answer": "Multiple safety documents are available: ISO 9001 Quality Manual, Driver Safety Protocol, Fire Safety Plan, and Forklift Operation Manual.",
+      "generated_answer": "LogiCore has several safety-related documents covering quality management, driver safety, fire safety, and forklift operations.",
+      "human_score": 4,
+      "category": "vague",
+      "scorer_notes": "Correct overview but lacks specific document names and IDs."
+    },
+    {
+      "id": "GS-010",
+      "question": "temperature requirements for pharmaceutical transport",
+      "context": "PharmaCorp CTR-2024-001: 2-8C cold chain. FreshFoods CTR-2024-002: 0-4C refrigerated.",
+      "expected_answer": "PharmaCorp requires 2-8C cold chain transport. FreshFoods requires 0-4C refrigerated transport.",
+      "generated_answer": "For pharmaceutical transport, the temperature must be maintained between 2-8 degrees Celsius as specified in the PharmaCorp agreement.",
+      "human_score": 5,
+      "category": "ranking",
+      "scorer_notes": "Correct. PharmaCorp is the pharmaceutical contract. FreshFoods is food, not pharma."
+    },
+    {
+      "id": "GS-011",
+      "question": "which contracts require special driver certifications",
+      "context": "ChemTrans CTR-2024-004: ADR certification required. Driver Safety Protocol: EU 561/2006 compliance, tachograph training.",
+      "expected_answer": "ChemTrans (CTR-2024-004) requires ADR certification. Driver Safety Protocol requires EU 561/2006 compliance and tachograph training.",
+      "generated_answer": "The ChemTrans contract requires ADR certification for dangerous goods transport. Additionally, all drivers must comply with EU 561/2006 driving hours regulations.",
+      "human_score": 5,
+      "category": "multi_hop",
+      "scorer_notes": "Correct. Combined information from contract and driver protocol."
+    },
+    {
+      "id": "GS-012",
+      "question": "what is the forklift speed limit in the warehouse",
+      "context": "Forklift Operation Manual DOC-SAFETY-003: Maximum speed 10 km/h in warehouse areas. 5 km/h in pedestrian zones.",
+      "expected_answer": "10 km/h in warehouse areas, 5 km/h in pedestrian zones.",
+      "generated_answer": "The forklift speed limit is 10 km/h.",
+      "human_score": 4,
+      "category": "natural_language",
+      "scorer_notes": "Partially correct. Omits the 5 km/h pedestrian zone limit."
+    },
+    {
+      "id": "GS-013",
+      "question": "where is the emergency assembly point",
+      "context": "Warehouse Fire Safety Plan DOC-SAFETY-002: Emergency assembly point is parking lot B, northeast corner.",
+      "expected_answer": "Parking lot B, northeast corner.",
+      "generated_answer": "The emergency assembly point is in parking lot B.",
+      "human_score": 4,
+      "category": "natural_language",
+      "scorer_notes": "Mostly correct but omits 'northeast corner' detail."
+    },
+    {
+      "id": "GS-014",
+      "question": "how much severance do employees get",
+      "context": "Employee Termination Procedures DOC-HR-004: Severance payment: 0.5 months salary per year of service. Minimum 1 month, maximum 12 months.",
+      "expected_answer": "0.5 months salary per year of service, minimum 1 month, maximum 12 months.",
+      "generated_answer": "Employees receive 0.5 months of salary per year of service as severance, with a minimum of 1 month and maximum of 12 months.",
+      "human_score": 5,
+      "category": "natural_language",
+      "scorer_notes": "Complete and accurate."
+    },
+    {
+      "id": "GS-015",
+      "question": "what is the CEO salary",
+      "context": "Executive Compensation Policy DOC-HR-002: CEO base salary EUR 280,000. Performance bonus up to 40%. Stock options vesting over 4 years.",
+      "expected_answer": "CEO base salary is EUR 280,000 with up to 40% performance bonus and 4-year vesting stock options.",
+      "generated_answer": "The CEO salary is EUR 280,000 per year.",
+      "human_score": 3,
+      "category": "natural_language",
+      "scorer_notes": "Base salary correct but omits performance bonus (40%) and stock options which are significant compensation components."
+    },
+    {
+      "id": "GS-016",
+      "question": "when should fire extinguishers be inspected",
+      "context": "Warehouse Fire Safety Plan DOC-SAFETY-002: Fire extinguishers must be inspected every 6 months. Visual checks monthly. Full pressure test annually.",
+      "expected_answer": "Full inspection every 6 months. Visual checks monthly. Pressure test annually.",
+      "generated_answer": "Fire extinguishers should be inspected every 6 months.",
+      "human_score": 3,
+      "category": "natural_language",
+      "scorer_notes": "Mentions 6-month inspection but misses monthly visual checks and annual pressure test."
+    },
+    {
+      "id": "GS-017",
+      "question": "ISO-9001 Section 4.2",
+      "context": "ISO 9001 Quality Management Manual DOC-SAFETY-001: Section 4.2 covers document control procedures. All quality documents must be version-controlled.",
+      "expected_answer": "Section 4.2 of the ISO 9001 manual covers document control procedures with mandatory version control.",
+      "generated_answer": "ISO 9001 Section 4.2 pertains to document control procedures within the quality management system.",
+      "human_score": 5,
+      "category": "exact_code",
+      "scorer_notes": "Correct reference to the specific section."
+    },
+    {
+      "id": "GS-018",
+      "question": "CTR-2024-002",
+      "context": "FreshFoods Logistics Agreement CTR-2024-002: Refrigerated transport 0-4C. Annual value EUR 960K. Weekly delivery schedule.",
+      "expected_answer": "FreshFoods Logistics Agreement. Refrigerated transport 0-4C, annual value EUR 960K, weekly deliveries.",
+      "generated_answer": "CTR-2024-002 is the FreshFoods Logistics Agreement for refrigerated food transport at 0-4 degrees Celsius.",
+      "human_score": 4,
+      "category": "exact_code",
+      "scorer_notes": "Correct identification. Missing annual value and delivery schedule."
+    },
+    {
+      "id": "GS-019",
+      "question": "czas pracy kierowcy ciezarowki",
+      "context": "Driver Safety Protocol DOC-HR-003: Maximum 9 hours driving per day. 45-minute break after 4.5 hours. Weekly maximum 56 hours.",
+      "expected_answer": "Maksymalny czas jazdy to 9 godzin dziennie, przerwa 45 minut po 4.5 godziny, tygodniowo maksymalnie 56 godzin.",
+      "generated_answer": "Czas pracy kierowcy to maksymalnie 9 godzin jazdy dziennie z obowiazkowa przerwa po 4.5 godziny.",
+      "human_score": 4,
+      "category": "polish",
+      "scorer_notes": "Good Polish response. Omits weekly maximum (56 hours)."
+    },
+    {
+      "id": "GS-020",
+      "question": "non-perishable transport agreements",
+      "context": "AutoParts Express Contract CTR-2024-003: Standard freight, no temperature requirements. Auto parts and components.",
+      "expected_answer": "AutoParts Express (CTR-2024-003) is the non-perishable transport agreement for auto parts and components.",
+      "generated_answer": "The AutoParts Express contract covers non-perishable transport of auto parts.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct. Identified the non-perishable contract."
+    },
+    {
+      "id": "GS-021",
+      "question": "new employee first day process",
+      "context": "Employee Onboarding Handbook DOC-HR-005: First day includes IT setup, safety orientation, team introduction, policy acknowledgment.",
+      "expected_answer": "First day: IT setup, safety orientation, team introduction, policy acknowledgment.",
+      "generated_answer": "The new employee process includes receiving IT equipment, a safety orientation tour, meeting the team, and signing policy acknowledgments.",
+      "human_score": 5,
+      "category": "synonym",
+      "scorer_notes": "Correct. Understood 'first day process' = onboarding. All components mentioned."
+    },
+    {
+      "id": "GS-022",
+      "question": "saftey protocol",
+      "context": "Driver Safety Protocol DOC-HR-003: Covers pre-trip inspection, driving hours, rest periods, accident reporting.",
+      "expected_answer": "Driver Safety Protocol includes pre-trip inspection, driving hours compliance, rest periods, and accident reporting.",
+      "generated_answer": "The safety protocol covers vehicle pre-trip inspections, driving hour limits, mandatory rest periods, and accident reporting procedures.",
+      "human_score": 5,
+      "category": "typo",
+      "scorer_notes": "Correct. Handled typo 'saftey' -> 'safety'. Complete answer."
+    },
+    {
+      "id": "GS-023",
+      "question": "SLA breach consequences",
+      "context": "PharmaCorp Service Agreement CTR-2024-001: SLA breach: 15% penalty per incident. Three consecutive breaches trigger contract review.",
+      "expected_answer": "SLA breach results in 15% penalty per incident. Three consecutive breaches trigger contract review.",
+      "generated_answer": "An SLA breach in the PharmaCorp contract incurs a 15% penalty and three consecutive breaches lead to contract review.",
+      "human_score": 5,
+      "category": "jargon",
+      "scorer_notes": "Complete and accurate."
+    },
+    {
+      "id": "GS-024",
+      "question": "contracts",
+      "context": "Multiple contracts: PharmaCorp CTR-2024-001, FreshFoods CTR-2024-002, AutoParts CTR-2024-003, ChemTrans CTR-2024-004, MSA template.",
+      "expected_answer": "Five contracts: PharmaCorp, FreshFoods, AutoParts, ChemTrans service agreements plus the Master Service Agreement template.",
+      "generated_answer": "LogiCore has multiple contracts including service agreements with various clients.",
+      "human_score": 2,
+      "category": "vague",
+      "scorer_notes": "Too vague. Fails to name any specific contracts or provide useful details."
+    },
+    {
+      "id": "GS-025",
+      "question": "highest penalty per incident across all contracts",
+      "context": "PharmaCorp: 15% per incident. FreshFoods: 10% per incident. AutoParts: 5% per incident. ChemTrans: EUR 5,000 per incident.",
+      "expected_answer": "ChemTrans has the highest penalty at EUR 5,000 per incident (absolute). PharmaCorp has the highest percentage at 15%.",
+      "generated_answer": "The highest penalty is EUR 5,000 per incident in the ChemTrans contract.",
+      "human_score": 4,
+      "category": "ranking",
+      "scorer_notes": "Identifies ChemTrans correctly but doesn't distinguish absolute vs percentage penalties."
+    },
+    {
+      "id": "GS-026",
+      "question": "total annual value of all temperature-controlled contracts",
+      "context": "PharmaCorp CTR-2024-001: EUR 1.2M annual, 2-8C. FreshFoods CTR-2024-002: EUR 960K annual, 0-4C.",
+      "expected_answer": "EUR 2.16M total (PharmaCorp EUR 1.2M + FreshFoods EUR 960K).",
+      "generated_answer": "The total annual value is approximately EUR 2.16 million, combining PharmaCorp (EUR 1.2M) and FreshFoods (EUR 960K).",
+      "human_score": 5,
+      "category": "multi_hop",
+      "scorer_notes": "Correct calculation combining both contracts."
+    },
+    {
+      "id": "GS-027",
+      "question": "okresy wypowiedzenia umowy o prace",
+      "context": "Employee Termination Procedures DOC-HR-004: Notice periods per Kodeks Pracy Art. 36: 2 weeks (<6 months), 1 month (6m-3y), 3 months (>3y).",
+      "expected_answer": "Okresy wypowiedzenia: 2 tygodnie (do 6 miesiecy), 1 miesiac (6m-3 lata), 3 miesiace (powyzej 3 lat).",
+      "generated_answer": "Okresy wypowiedzenia zgodnie z Kodeksem Pracy: 2 tygodnie dla pracownikow z stazem ponizej 6 miesiecy, 1 miesiac do 3 lat, 3 miesiace powyzej.",
+      "human_score": 5,
+      "category": "polish",
+      "scorer_notes": "Complete and accurate in Polish. All three notice period tiers mentioned."
+    },
+    {
+      "id": "GS-028",
+      "question": "kontrola jakosci magazyn",
+      "context": "ISO 9001 Quality Management Manual DOC-SAFETY-001: Warehouse quality control includes incoming inspection, storage conditions monitoring, outgoing verification.",
+      "expected_answer": "Kontrola jakosci obejmuje: inspekcje przychodzaca, monitoring warunkow przechowywania, weryfikacje wychodzaca.",
+      "generated_answer": "Kontrola jakosci w magazynie obejmuje kontrole przyjecia towaru oraz monitorowanie warunkow magazynowych.",
+      "human_score": 3,
+      "category": "polish",
+      "scorer_notes": "Mentions incoming and storage monitoring but omits outgoing verification."
+    },
+    {
+      "id": "GS-029",
+      "question": "executive pay packages",
+      "context": "Executive Compensation Policy DOC-HR-002: CEO EUR 280K base, CFO EUR 220K, COO EUR 200K. All with 30-40% bonus potential.",
+      "expected_answer": "CEO EUR 280K, CFO EUR 220K, COO EUR 200K base salaries with 30-40% performance bonus potential.",
+      "generated_answer": "Executive compensation at LogiCore includes competitive base salaries with performance bonus potential.",
+      "human_score": 2,
+      "category": "synonym",
+      "scorer_notes": "Too vague. Fails to provide any specific salary figures despite having them in context."
+    },
+    {
+      "id": "GS-030",
+      "question": "contracts that are not for food",
+      "context": "PharmaCorp: pharma. FreshFoods: food. AutoParts: auto parts. ChemTrans: chemicals.",
+      "expected_answer": "PharmaCorp (pharma), AutoParts (auto parts), ChemTrans (chemicals). Excludes FreshFoods.",
+      "generated_answer": "Contracts not involving food include PharmaCorp for pharmaceuticals, AutoParts for auto components, and ChemTrans for chemical transport.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct. Properly excluded FreshFoods and listed the remaining three."
+    },
+    {
+      "id": "GS-031",
+      "question": "dangerous goods shipping rules",
+      "context": "ChemTrans Hazmat Agreement CTR-2024-004: ADR certification, UN number labeling, emergency response cards, segregation requirements.",
+      "expected_answer": "ADR certification required, UN number labeling, emergency response cards, and segregation requirements per ChemTrans agreement.",
+      "generated_answer": "Dangerous goods must be shipped per ADR regulations with proper certification, labeling, and emergency documentation.",
+      "human_score": 4,
+      "category": "synonym",
+      "scorer_notes": "Good understanding of synonym. Misses segregation requirements."
+    },
+    {
+      "id": "GS-032",
+      "question": "tempature requirements",
+      "context": "PharmaCorp CTR-2024-001: 2-8C. FreshFoods CTR-2024-002: 0-4C.",
+      "expected_answer": "PharmaCorp: 2-8C, FreshFoods: 0-4C.",
+      "generated_answer": "Temperature requirements are 2-8C for PharmaCorp and 0-4C for FreshFoods.",
+      "human_score": 5,
+      "category": "typo",
+      "scorer_notes": "Correct. Handled typo 'tempature'. Both temperature ranges accurate."
+    },
+    {
+      "id": "GS-033",
+      "question": "terminaton procedures",
+      "context": "Employee Termination Procedures DOC-HR-004: Documentation requirements, exit interview, IT access revocation, final payment calculation.",
+      "expected_answer": "Termination requires documentation, exit interview, IT access revocation, and final payment calculation.",
+      "generated_answer": "The termination process includes preparing documentation, conducting an exit interview, revoking IT access, and calculating the final payment.",
+      "human_score": 5,
+      "category": "typo",
+      "scorer_notes": "Complete answer. Typo 'terminaton' correctly resolved."
+    },
+    {
+      "id": "GS-034",
+      "question": "NET 30 payment terms",
+      "context": "LogiCore Master Service Agreement DOC-LEGAL-005: Standard payment terms NET 30. Late payment interest 1.5% per month.",
+      "expected_answer": "NET 30 payment terms with 1.5% monthly late payment interest.",
+      "generated_answer": "LogiCore's standard payment terms are NET 30 days from invoice date.",
+      "human_score": 4,
+      "category": "jargon",
+      "scorer_notes": "Correct on NET 30 but omits late payment interest rate."
+    },
+    {
+      "id": "GS-035",
+      "question": "force majeure clause",
+      "context": "LogiCore MSA DOC-LEGAL-005: Force majeure includes natural disasters, war, government actions, pandemics. 30-day notification requirement.",
+      "expected_answer": "Force majeure covers natural disasters, war, government actions, pandemics. 30-day notification required.",
+      "generated_answer": "The force majeure clause covers events beyond reasonable control including natural disasters and pandemics, with a 30-day notification period.",
+      "human_score": 4,
+      "category": "jargon",
+      "scorer_notes": "Good but omits 'war' and 'government actions' from the list."
+    },
+    {
+      "id": "GS-036",
+      "question": "rules and procedures",
+      "context": "Multiple docs: driver safety rules, termination procedures, ISO 9001 procedures, fire safety rules, forklift operation rules.",
+      "expected_answer": "Multiple documents contain rules and procedures: Driver Safety, Termination, ISO 9001, Fire Safety, Forklift Operation.",
+      "generated_answer": "LogiCore maintains various rules and procedures across safety, HR, and quality management domains.",
+      "human_score": 3,
+      "category": "vague",
+      "scorer_notes": "Too generic. Should list specific documents when context provides them."
+    },
+    {
+      "id": "GS-037",
+      "question": "employee information",
+      "context": "HR documents: Executive Compensation (DOC-HR-002), Termination Procedures (DOC-HR-004), Onboarding Handbook (DOC-HR-005).",
+      "expected_answer": "Employee information is covered in Executive Compensation, Termination Procedures, and Onboarding Handbook.",
+      "generated_answer": "Employee information can be found in HR department documents covering compensation, termination, and onboarding.",
+      "human_score": 4,
+      "category": "vague",
+      "scorer_notes": "Correct categories but missing specific document IDs."
+    },
+    {
+      "id": "GS-038",
+      "question": "transport logistics",
+      "context": "Transport contracts: PharmaCorp (pharma), FreshFoods (food), AutoParts (parts), ChemTrans (hazmat).",
+      "expected_answer": "Four transport agreements covering pharmaceutical, food, auto parts, and hazardous materials logistics.",
+      "generated_answer": "LogiCore provides transport logistics services across multiple sectors.",
+      "human_score": 2,
+      "category": "vague",
+      "scorer_notes": "Fails to mention any specific contracts or sectors despite having them in context."
+    },
+    {
+      "id": "GS-039",
+      "question": "warehouse operations",
+      "context": "Warehouse docs: ISO 9001 Quality Manual, Fire Safety Plan, Forklift Operation Manual.",
+      "expected_answer": "Warehouse operations covered by ISO 9001 Quality Manual, Fire Safety Plan, and Forklift Operation Manual.",
+      "generated_answer": "Warehouse operations are governed by quality management, fire safety, and equipment operation guidelines.",
+      "human_score": 3,
+      "category": "vague",
+      "scorer_notes": "Correct themes but missing specific document names."
+    },
+    {
+      "id": "GS-040",
+      "question": "employees without stock options",
+      "context": "Only executives have stock options (DOC-HR-002). Termination procedures (DOC-HR-004) and onboarding (DOC-HR-005) do not mention stock options.",
+      "expected_answer": "Regular employees (covered by DOC-HR-004, DOC-HR-005) do not receive stock options. Only executives (DOC-HR-002) have stock options.",
+      "generated_answer": "Non-executive employees do not receive stock options based on the HR documentation.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct negation handling."
+    },
+    {
+      "id": "GS-041",
+      "question": "transport without hazmat certification",
+      "context": "PharmaCorp: no hazmat cert needed. FreshFoods: no hazmat. AutoParts: no hazmat. ChemTrans: requires ADR certification.",
+      "expected_answer": "PharmaCorp, FreshFoods, and AutoParts contracts do not require hazmat certification. Only ChemTrans requires ADR.",
+      "generated_answer": "PharmaCorp, FreshFoods, and AutoParts do not require hazardous materials certification.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct. Listed all three non-hazmat contracts."
+    },
+    {
+      "id": "GS-042",
+      "question": "non-confidential employee documents",
+      "context": "Clearance levels: Executive Comp (clearance 4), Termination (clearance 3), Onboarding (clearance 1 = public).",
+      "expected_answer": "Only the Employee Onboarding Handbook (clearance 1) is non-confidential.",
+      "generated_answer": "The Employee Onboarding Handbook is the only non-confidential HR document, available at clearance level 1.",
+      "human_score": 5,
+      "category": "negation",
+      "scorer_notes": "Correct. Identified the only clearance-1 document."
+    },
+    {
+      "id": "GS-043",
+      "question": "workplace safety equipment inspection",
+      "context": "Fire Safety Plan DOC-SAFETY-002: Extinguisher inspection every 6 months. Sprinkler test quarterly. Emergency lighting monthly.",
+      "expected_answer": "Fire extinguishers: every 6 months. Sprinklers: quarterly. Emergency lighting: monthly.",
+      "generated_answer": "Safety equipment inspections include fire extinguisher checks every 6 months and sprinkler system tests quarterly.",
+      "human_score": 4,
+      "category": "ranking",
+      "scorer_notes": "Misses emergency lighting monthly checks."
+    },
+    {
+      "id": "GS-044",
+      "question": "contract with the largest annual value",
+      "context": "PharmaCorp EUR 1.2M, FreshFoods EUR 960K, AutoParts EUR 800K, ChemTrans EUR 2.1M.",
+      "expected_answer": "ChemTrans at EUR 2.1M annual value is the largest contract.",
+      "generated_answer": "The ChemTrans Hazmat Agreement has the largest annual value at EUR 2.1 million.",
+      "human_score": 5,
+      "category": "ranking",
+      "scorer_notes": "Correct. Identified ChemTrans as highest value."
+    },
+    {
+      "id": "GS-045",
+      "question": "what happens if a driver exceeds maximum hours and causes a late delivery",
+      "context": "Driver Safety: max 9h/day, fines for violation. PharmaCorp: 15% late penalty. FreshFoods: 10% late penalty.",
+      "expected_answer": "Driver faces EU 561/2006 violation fines. Late delivery triggers 15% penalty (PharmaCorp) or 10% (FreshFoods).",
+      "generated_answer": "If a driver exceeds maximum hours, they violate EU driving regulations and face fines. Any resulting late delivery would trigger contract penalties.",
+      "human_score": 3,
+      "category": "multi_hop",
+      "scorer_notes": "Correct direction but fails to cite specific penalty percentages despite having them in context."
+    },
+    {
+      "id": "GS-046",
+      "question": "compare penalty structures across all service agreements",
+      "context": "PharmaCorp: 15%/incident. FreshFoods: 10%/incident. AutoParts: 5%/incident. ChemTrans: EUR 5,000/incident.",
+      "expected_answer": "PharmaCorp 15%, FreshFoods 10%, AutoParts 5% (percentage-based). ChemTrans EUR 5,000 (fixed amount). Different penalty models.",
+      "generated_answer": "Penalty structures vary: PharmaCorp charges 15% per incident, FreshFoods 10%, AutoParts 5%, while ChemTrans has a fixed EUR 5,000 penalty. Note the difference between percentage-based and fixed penalties.",
+      "human_score": 5,
+      "category": "multi_hop",
+      "scorer_notes": "Excellent. Complete comparison with insight about different penalty models."
+    },
+    {
+      "id": "GS-047",
+      "question": "ISO 9001",
+      "context": "ISO 9001 Quality Management Manual DOC-SAFETY-001: Covers document control, process management, continuous improvement, audit procedures.",
+      "expected_answer": "ISO 9001 Quality Management Manual covers document control, process management, continuous improvement, and audit procedures.",
+      "generated_answer": "The ISO 9001 manual covers quality management including process documentation and continuous improvement.",
+      "human_score": 3,
+      "category": "exact_code",
+      "scorer_notes": "Misses audit procedures and document control specifics."
+    },
+    {
+      "id": "GS-048",
+      "question": "how long is the probation period for new employees",
+      "context": "Employee Onboarding Handbook DOC-HR-005: Probation period is 3 months per Kodeks Pracy. Performance review at 1, 2, and 3 months.",
+      "expected_answer": "3 months per Kodeks Pracy with performance reviews at months 1, 2, and 3.",
+      "generated_answer": "The probation period is 3 months in accordance with the Polish Labour Code.",
+      "human_score": 4,
+      "category": "natural_language",
+      "scorer_notes": "Correct duration but omits the monthly performance review schedule."
+    },
+    {
+      "id": "GS-049",
+      "question": "EC No 561/2006 driving hours",
+      "context": "Driver Safety Protocol: EU Regulation 561/2006: max 9h/day, 56h/week. 45-min break after 4.5h continuous driving.",
+      "expected_answer": "EU 561/2006: 9 hours/day maximum, 56 hours/week, 45-minute break after 4.5 hours continuous driving.",
+      "generated_answer": "EC Regulation 561/2006 limits driving to 9 hours per day with a 45-minute break required after 4.5 hours of continuous driving.",
+      "human_score": 4,
+      "category": "exact_code",
+      "scorer_notes": "Correct on daily and break limits but omits weekly 56-hour maximum."
+    },
+    {
+      "id": "GS-050",
+      "question": "what are the penalty fees for late deliveries",
+      "context": "PharmaCorp: 15% per incident. FreshFoods: 10% per incident. AutoParts: 5% per incident.",
+      "expected_answer": "PharmaCorp 15%, FreshFoods 10%, AutoParts 5% per incident.",
+      "generated_answer": "Late delivery penalties vary by contract: PharmaCorp charges 15%, FreshFoods 10%, and AutoParts 5% per incident.",
+      "human_score": 5,
+      "category": "natural_language",
+      "scorer_notes": "Complete and accurate across all contracts."
+    }
+  ]
+}

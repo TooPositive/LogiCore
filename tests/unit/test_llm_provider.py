@@ -389,6 +389,31 @@ class TestAzureOpenAIProvider:
         )
         assert isinstance(provider, LLMProvider)
 
+    @pytest.mark.asyncio
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    async def test_generate_passes_kwargs_to_langchain(self, mock_chat_cls):
+        """Extra kwargs are passed through to LangChain ainvoke."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+
+        mock_response = MagicMock()
+        mock_response.content = "response"
+        mock_response.usage_metadata = {"input_tokens": 5, "output_tokens": 3}
+
+        mock_instance = MagicMock()
+        mock_instance.ainvoke = AsyncMock(return_value=mock_response)
+        mock_chat_cls.return_value = mock_instance
+
+        provider = AzureOpenAIProvider(
+            endpoint="https://test.openai.azure.com",
+            api_key="test-key",
+            deployment="gpt-4o",
+        )
+
+        await provider.generate("test", temperature=0.5)
+        mock_instance.ainvoke.assert_called_once_with("test", temperature=0.5)
+
 
 # -----------------------------------------------------------------------
 # Task 4: Ollama LLM Provider
@@ -566,3 +591,132 @@ class TestOllamaProvider:
             model="qwen3:8b",
         )
         assert isinstance(provider, LLMProvider)
+
+
+# -----------------------------------------------------------------------
+# Task 5: LLM Provider Factory
+# -----------------------------------------------------------------------
+
+
+class TestLLMProviderFactory:
+    """Factory creates correct provider based on settings."""
+
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    def test_factory_returns_azure_provider_by_default(self, mock_chat_cls):
+        """get_llm_provider returns AzureOpenAIProvider for llm_provider='azure'."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        mock_chat_cls.return_value = MagicMock()
+
+        s = Settings(
+            azure_openai_endpoint="https://test.openai.azure.com",
+            azure_openai_api_key="test-key",
+            azure_openai_deployment="gpt-4o",
+            llm_provider="azure",
+        )
+        provider = get_llm_provider(s)
+        assert isinstance(provider, AzureOpenAIProvider)
+
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    def test_factory_returns_ollama_provider(self, mock_chat_cls):
+        """get_llm_provider returns OllamaProvider for llm_provider='ollama'."""
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        mock_chat_cls.return_value = MagicMock()
+
+        s = Settings(
+            azure_openai_endpoint="https://test.openai.azure.com",
+            azure_openai_api_key="test-key",
+            llm_provider="ollama",
+            ollama_host="http://localhost:11434",
+            ollama_model="qwen3:8b",
+        )
+        provider = get_llm_provider(s)
+        assert isinstance(provider, OllamaProvider)
+        assert provider.model_name == "qwen3:8b"
+
+    def test_factory_raises_on_unknown_provider(self):
+        """get_llm_provider raises ValueError for unknown provider."""
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        s = Settings(
+            azure_openai_endpoint="https://test.openai.azure.com",
+            azure_openai_api_key="test-key",
+            llm_provider="anthropic",
+        )
+        with pytest.raises(ValueError, match="Unknown LLM provider.*anthropic"):
+            get_llm_provider(s)
+
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    def test_factory_azure_uses_settings_fields(self, mock_chat_cls):
+        """Factory passes correct settings to AzureOpenAIProvider."""
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        mock_chat_cls.return_value = MagicMock()
+
+        s = Settings(
+            azure_openai_endpoint="https://prod.openai.azure.com",
+            azure_openai_api_key="prod-key",
+            azure_openai_deployment="gpt-5-mini",
+            azure_openai_api_version="2025-01-01",
+            llm_provider="azure",
+        )
+        provider = get_llm_provider(s)
+        assert provider.model_name == "gpt-5-mini"
+
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    def test_factory_ollama_uses_settings_fields(self, mock_chat_cls):
+        """Factory passes correct host and model to OllamaProvider."""
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        mock_chat_cls.return_value = MagicMock()
+
+        s = Settings(
+            azure_openai_endpoint="https://test.openai.azure.com",
+            azure_openai_api_key="test-key",
+            llm_provider="ollama",
+            ollama_host="http://gpu-server:11434",
+            ollama_model="qwen3:32b",
+        )
+        provider = get_llm_provider(s)
+        assert provider.model_name == "qwen3:32b"
+
+    @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
+    @patch("apps.api.src.core.infrastructure.llm.azure_openai.AzureChatOpenAI")
+    def test_switching_provider_changes_type(self, mock_azure, mock_ollama):
+        """Changing llm_provider setting changes the returned provider type."""
+        from apps.api.src.core.infrastructure.llm.azure_openai import (
+            AzureOpenAIProvider,
+        )
+        from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
+        from apps.api.src.core.infrastructure.llm.provider import (
+            get_llm_provider,
+        )
+
+        mock_azure.return_value = MagicMock()
+        mock_ollama.return_value = MagicMock()
+
+        base = dict(
+            azure_openai_endpoint="https://test.openai.azure.com",
+            azure_openai_api_key="test-key",
+        )
+
+        azure_provider = get_llm_provider(Settings(**base, llm_provider="azure"))
+        ollama_provider = get_llm_provider(Settings(**base, llm_provider="ollama"))
+
+        assert isinstance(azure_provider, AzureOpenAIProvider)
+        assert isinstance(ollama_provider, OllamaProvider)

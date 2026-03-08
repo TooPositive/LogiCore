@@ -11,7 +11,10 @@ automatically satisfies it, no explicit inheritance needed.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from apps.api.src.core.config.settings import Settings
 
 
 @dataclass(frozen=True)
@@ -56,3 +59,43 @@ class LLMProvider(Protocol):
     def model_name(self) -> str:
         """The model identifier (e.g., 'gpt-4o', 'qwen3:8b')."""
         ...
+
+
+def get_llm_provider(settings: Settings) -> LLMProvider:
+    """Factory: create the correct LLM provider based on settings.
+
+    Args:
+        settings: Application settings with llm_provider field.
+
+    Returns:
+        LLMProvider instance (AzureOpenAI or Ollama).
+
+    Raises:
+        ValueError: If llm_provider is not 'azure' or 'ollama'.
+    """
+    match settings.llm_provider:
+        case "azure":
+            from apps.api.src.core.infrastructure.llm.azure_openai import (
+                AzureOpenAIProvider,
+            )
+
+            return AzureOpenAIProvider(
+                endpoint=settings.azure_openai_endpoint,
+                api_key=settings.azure_openai_api_key,
+                deployment=settings.azure_openai_deployment,
+                api_version=settings.azure_openai_api_version,
+            )
+        case "ollama":
+            from apps.api.src.core.infrastructure.llm.ollama import (
+                OllamaProvider,
+            )
+
+            return OllamaProvider(
+                host=settings.ollama_host,
+                model=settings.ollama_model,
+            )
+        case _:
+            raise ValueError(
+                f"Unknown LLM provider: {settings.llm_provider!r}. "
+                f"Valid providers: 'azure', 'ollama'"
+            )

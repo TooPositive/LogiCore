@@ -6,7 +6,8 @@
 
 ## Implementation Tasks
 
-- [ ] `apps/api/src/core/infrastructure/llm/__init__.py`
+- [x] `apps/api/src/core/infrastructure/llm/__init__.py` (unchanged, already exists)
+- [x] LLM Provider Factory in provider.py -- get_llm_provider(settings) (7 tests, 904 total)
 - [x] `apps/api/src/core/infrastructure/llm/provider.py` — LLMProvider Protocol + LLMResponse (6 tests, 883 total)
 - [x] `apps/api/src/core/infrastructure/llm/azure_openai.py` — Azure OpenAI LLMProvider (6 tests, 889 total)
 - [x] `apps/api/src/core/infrastructure/llm/ollama.py` — OllamaProvider with error handling (8 tests, 897 total)

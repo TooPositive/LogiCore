@@ -15,6 +15,7 @@
 - [x] OllamaEmbedder in embeddings.py + OLLAMA enum + nomic-embed-text model + factory (13 tests, 917 total)
 - [x] `docker-compose.airgap.yml` — Ollama service, API overrides, health check (13 tests, 930 total)
 - [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
+- [x] Provider swap tests + RBAC independence (8 tests, 938 total)
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests
 - [ ] `docs/adr/004-ollama-over-vllm.md`
 

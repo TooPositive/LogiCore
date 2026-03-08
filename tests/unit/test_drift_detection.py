@@ -359,3 +359,143 @@ class TestDriftDetectorEdgeCases:
         )
         assert len(alerts) == 1
         assert alerts[0].severity == DriftSeverity.RED
+
+
+# =========================================================================
+# Large-scale regression suite (100+ metrics)
+# =========================================================================
+
+
+class TestLargeScaleRegressionSuite:
+    """Tests for drift detection at production scale (100+ metrics).
+
+    The spec mentions "100+ test cases" in the regression suite.
+    This validates per-metric alerting works at that scale without
+    any aggregation masking individual metric regressions.
+    """
+
+    def test_100_metrics_mixed_drift(self):
+        """100 metrics with 5 RED, 10 YELLOW, 85 GREEN.
+
+        Per-metric alerting must generate exactly 15 alerts.
+        No aggregation masking — each metric is evaluated independently.
+        """
+        # Build baseline with 100 metrics
+        baseline = {f"metric_{i:03d}": 0.90 for i in range(100)}
+        registry = ModelVersionRegistry()
+        registry.register("gpt-5.2", "v1", baseline)
+
+        collected = []
+
+        class CollectorHandler(AlertHandler):
+            def handle(self, alert: DriftAlert) -> None:
+                collected.append(alert)
+
+        detector = DriftDetector(
+            registry=registry, alert_handler=CollectorHandler()
+        )
+
+        # Current scores: 5 RED, 10 YELLOW, 85 GREEN
+        current = {}
+        for i in range(100):
+            if i < 5:
+                current[f"metric_{i:03d}"] = 0.83  # -7% RED
+            elif i < 15:
+                current[f"metric_{i:03d}"] = 0.87  # -3% YELLOW
+            else:
+                current[f"metric_{i:03d}"] = 0.89  # -1% GREEN
+        alerts = detector.check_regression("gpt-5.2", current)
+
+        assert len(alerts) == 15
+        red_count = sum(1 for a in alerts if a.severity == DriftSeverity.RED)
+        yellow_count = sum(1 for a in alerts if a.severity == DriftSeverity.YELLOW)
+        assert red_count == 5
+        assert yellow_count == 10
+
+    def test_100_metrics_all_improved(self):
+        """100 metrics all improved -> zero alerts."""
+        baseline = {f"metric_{i:03d}": 0.85 for i in range(100)}
+        registry = ModelVersionRegistry()
+        registry.register("gpt-5.2", "v1", baseline)
+
+        detector = DriftDetector(
+            registry=registry, alert_handler=LogAlertHandler()
+        )
+        current = {f"metric_{i:03d}": 0.92 for i in range(100)}
+        alerts = detector.check_regression("gpt-5.2", current)
+        assert len(alerts) == 0
+
+    def test_100_metrics_all_red(self):
+        """Catastrophic regression: all 100 metrics RED."""
+        baseline = {f"metric_{i:03d}": 0.90 for i in range(100)}
+        registry = ModelVersionRegistry()
+        registry.register("gpt-5.2", "v1", baseline)
+
+        collected = []
+
+        class CollectorHandler(AlertHandler):
+            def handle(self, alert: DriftAlert) -> None:
+                collected.append(alert)
+
+        detector = DriftDetector(
+            registry=registry, alert_handler=CollectorHandler()
+        )
+        current = {f"metric_{i:03d}": 0.50 for i in range(100)}
+        alerts = detector.check_regression("gpt-5.2", current)
+
+        assert len(alerts) == 100
+        assert all(a.severity == DriftSeverity.RED for a in alerts)
+
+    def test_metrics_cancelling_out_still_individual_alerts(self):
+        """5 metrics regress, 5 improve. Aggregate net change = 0.
+
+        But per-metric alerting must still fire 5 alerts for the regressions.
+        Aggregation masking is the enemy of drift detection.
+        """
+        baseline = {f"metric_{i:03d}": 0.90 for i in range(10)}
+        registry = ModelVersionRegistry()
+        registry.register("gpt-5.2", "v1", baseline)
+
+        collected = []
+
+        class CollectorHandler(AlertHandler):
+            def handle(self, alert: DriftAlert) -> None:
+                collected.append(alert)
+
+        detector = DriftDetector(
+            registry=registry, alert_handler=CollectorHandler()
+        )
+        current = {}
+        for i in range(10):
+            if i < 5:
+                current[f"metric_{i:03d}"] = 0.80  # -10% RED
+            else:
+                current[f"metric_{i:03d}"] = 1.00  # +10% improvement (GREEN)
+
+        alerts = detector.check_regression("gpt-5.2", current)
+        assert len(alerts) == 5  # Only regressions, not improvements
+        assert all(a.severity == DriftSeverity.RED for a in alerts)
+
+    def test_per_metric_alert_contains_metric_name(self):
+        """Each alert references the specific metric that drifted."""
+        baseline = {f"metric_{i:03d}": 0.90 for i in range(50)}
+        registry = ModelVersionRegistry()
+        registry.register("gpt-5.2", "v1", baseline)
+
+        collected = []
+
+        class CollectorHandler(AlertHandler):
+            def handle(self, alert: DriftAlert) -> None:
+                collected.append(alert)
+
+        detector = DriftDetector(
+            registry=registry, alert_handler=CollectorHandler()
+        )
+        # Only metric_007 and metric_042 regress
+        current = {f"metric_{i:03d}": 0.90 for i in range(50)}
+        current["metric_007"] = 0.80  # RED
+        current["metric_042"] = 0.87  # YELLOW
+
+        alerts = detector.check_regression("gpt-5.2", current)
+        alert_metrics = {a.metric for a in alerts}
+        assert alert_metrics == {"metric_007", "metric_042"}

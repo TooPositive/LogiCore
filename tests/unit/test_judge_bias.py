@@ -24,7 +24,9 @@ from apps.api.src.domain.telemetry import (
 from apps.api.src.telemetry.judge_config import (
     JudgeConfig,
     ModelFamily,
+    clear_family_overrides,
     get_model_family,
+    register_model_family,
     validate_judge_generator_independence,
 )
 
@@ -421,3 +423,179 @@ class TestJudgeConfig:
             generator_model="gpt-5.2",
         )
         assert config.generator_family == ModelFamily.OPENAI
+
+
+# =========================================================================
+# Fine-tuned / custom model name tests
+# =========================================================================
+
+
+class TestFineTunedModelFamily:
+    """Tests for fine-tuned and deployment-specific model names.
+
+    Fine-tuned models (ft:gpt-5.2:logicore:2026), Azure deployment names
+    (logicore-gpt52-deployment), and local models (qwen3:8b) don't follow
+    standard prefix patterns. They default to UNKNOWN, which is safe (fails
+    closed on independence check). Use register_model_family() for explicit
+    family assignment.
+    """
+
+    def setup_method(self):
+        """Clear overrides before each test."""
+        clear_family_overrides()
+
+    def teardown_method(self):
+        """Clean up after each test."""
+        clear_family_overrides()
+
+    def test_finetuned_gpt_defaults_to_unknown(self):
+        """ft:gpt-5.2:logicore:2026 doesn't match 'gpt-' prefix -> UNKNOWN."""
+        assert get_model_family("ft:gpt-5.2:logicore:2026") == ModelFamily.UNKNOWN
+
+    def test_azure_deployment_name_defaults_to_unknown(self):
+        """Azure deployment names don't follow standard prefixes."""
+        assert get_model_family("logicore-gpt52-deployment") == ModelFamily.UNKNOWN
+
+    def test_local_ollama_model_defaults_to_unknown(self):
+        """Ollama model names (qwen3:8b) don't match known prefixes."""
+        assert get_model_family("qwen3:8b") == ModelFamily.UNKNOWN
+
+    def test_register_finetuned_model_resolves(self):
+        """After registration, fine-tuned model resolves to correct family."""
+        register_model_family("ft:gpt-5.2:logicore:2026", ModelFamily.OPENAI)
+        assert get_model_family("ft:gpt-5.2:logicore:2026") == ModelFamily.OPENAI
+
+    def test_register_azure_deployment_resolves(self):
+        """Azure deployment name resolves after registration."""
+        register_model_family("logicore-gpt52-deployment", ModelFamily.OPENAI)
+        assert get_model_family("logicore-gpt52-deployment") == ModelFamily.OPENAI
+
+    def test_register_local_model_resolves(self):
+        """Local Ollama model resolves after registration."""
+        register_model_family("qwen3:8b", ModelFamily.META)
+        assert get_model_family("qwen3:8b") == ModelFamily.META
+
+    def test_registered_model_passes_independence(self):
+        """Registered fine-tuned models can pass independence validation."""
+        register_model_family("ft:gpt-5.2:logicore:2026", ModelFamily.OPENAI)
+        # Claude judging fine-tuned GPT = cross-family -> valid
+        assert validate_judge_generator_independence(
+            "claude-sonnet-4.6", "ft:gpt-5.2:logicore:2026"
+        ) is True
+
+    def test_unregistered_finetuned_fails_independence(self):
+        """Without registration, fine-tuned model fails independence (safe default)."""
+        assert validate_judge_generator_independence(
+            "claude-sonnet-4.6", "ft:gpt-5.2:logicore:2026"
+        ) is False
+
+    def test_register_case_insensitive(self):
+        """Registration is case-insensitive."""
+        register_model_family("FT:GPT-5.2:LogiCore:2026", ModelFamily.OPENAI)
+        assert get_model_family("ft:gpt-5.2:logicore:2026") == ModelFamily.OPENAI
+
+    def test_exact_override_takes_priority_over_prefix(self):
+        """Exact-match override beats prefix matching."""
+        # 'gpt-custom-v2' would match 'gpt-' prefix -> OPENAI
+        # But we want to override it to META for some reason
+        register_model_family("gpt-custom-v2", ModelFamily.META)
+        assert get_model_family("gpt-custom-v2") == ModelFamily.META
+
+    def test_clear_overrides_restores_default(self):
+        """clear_family_overrides() removes all custom registrations."""
+        register_model_family("my-model", ModelFamily.ANTHROPIC)
+        assert get_model_family("my-model") == ModelFamily.ANTHROPIC
+        clear_family_overrides()
+        assert get_model_family("my-model") == ModelFamily.UNKNOWN
+
+
+# =========================================================================
+# Golden set data artifact validation
+# =========================================================================
+
+
+class TestGoldenSetArtifact:
+    """Validate the golden set data artifact exists and has correct schema.
+
+    The golden set is the root of trust for the entire evaluation pipeline.
+    50 human-scored query-answer pairs. If this file is missing or malformed,
+    all quality claims are ungrounded.
+    """
+
+    def test_golden_set_exists(self):
+        """data/golden_set.json must exist."""
+        import json
+        from pathlib import Path
+
+        golden_path = Path("data/golden_set.json")
+        assert golden_path.exists(), "Golden set artifact missing: data/golden_set.json"
+
+        with open(golden_path) as f:
+            data = json.load(f)
+        assert "entries" in data
+        assert "_schema" in data
+
+    def test_golden_set_has_50_entries(self):
+        """Golden set must have exactly 50 entries."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+        assert len(data["entries"]) == 50, f"Expected 50, got {len(data['entries'])}"
+
+    def test_golden_set_entry_schema(self):
+        """Each entry must have required fields."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+
+        required_fields = {
+            "id", "question", "context", "expected_answer",
+            "generated_answer", "human_score", "category", "scorer_notes",
+        }
+        for entry in data["entries"]:
+            missing = required_fields - set(entry.keys())
+            assert not missing, f"Entry {entry.get('id', '?')} missing fields: {missing}"
+
+    def test_golden_set_scores_in_valid_range(self):
+        """Human scores must be 1-5."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+
+        for entry in data["entries"]:
+            score = entry["human_score"]
+            assert 1 <= score <= 5, f"Entry {entry['id']}: score {score} not in 1-5"
+
+    def test_golden_set_covers_all_categories(self):
+        """Golden set must cover all 10 ground truth categories."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+
+        categories = {e["category"] for e in data["entries"]}
+        expected = {
+            "exact_code", "natural_language", "vague", "negation",
+            "polish", "synonym", "typo", "jargon", "ranking", "multi_hop",
+        }
+        missing = expected - categories
+        assert not missing, f"Golden set missing categories: {missing}"
+
+    def test_golden_set_has_score_variance(self):
+        """Golden set must have varied scores (not all 5s) for meaningful calibration."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+
+        scores = [e["human_score"] for e in data["entries"]]
+        unique_scores = set(scores)
+        assert len(unique_scores) >= 3, f"Need score variance, only got: {unique_scores}"

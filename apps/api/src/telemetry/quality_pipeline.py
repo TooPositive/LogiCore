@@ -153,9 +153,14 @@ class BiasDetector:
     the fraction of comparisons exhibiting that bias type.
     """
 
-    def __init__(self, judge_fn: JudgeFn) -> None:
+    def __init__(
+        self,
+        judge_fn: JudgeFn,
+        verbosity_length_ratio: float = 1.5,
+    ) -> None:
         self._judge_fn = judge_fn
         self._scorer = PairwiseScorer(judge_fn)
+        self._verbosity_length_ratio = verbosity_length_ratio
 
     def detect_position_bias(
         self, pairs: list[tuple[str, str, str]]
@@ -210,7 +215,7 @@ class BiasDetector:
                 continue
 
             ratio = max(short_len, long_len) / min(short_len, long_len)
-            if ratio < 1.5:
+            if ratio < self._verbosity_length_ratio:
                 continue  # Not enough length difference to test verbosity
 
             eligible_count += 1
@@ -373,8 +378,9 @@ class HumanCalibration:
 def _spearman_rank_correlation(x: list[float], y: list[float]) -> float:
     """Compute Spearman rank correlation coefficient.
 
-    Uses the standard formula: rho = 1 - (6 * sum(d^2)) / (n * (n^2 - 1))
-    where d is the difference between ranks.
+    Uses the Pearson correlation of ranks (handles ties correctly).
+    Returns 0.0 when either variable has zero variance (all identical
+    values make correlation undefined — conservatively returns 0.0).
 
     Handles ties using average rank assignment.
     """
@@ -385,13 +391,19 @@ def _spearman_rank_correlation(x: list[float], y: list[float]) -> float:
     ranks_x = _compute_ranks(x)
     ranks_y = _compute_ranks(y)
 
-    d_squared_sum = sum((rx - ry) ** 2 for rx, ry in zip(ranks_x, ranks_y))
+    # Use Pearson correlation of ranks (exact for ties)
+    mean_x = sum(ranks_x) / n
+    mean_y = sum(ranks_y) / n
 
-    denominator = n * (n**2 - 1)
-    if denominator == 0:
+    cov = sum((rx - mean_x) * (ry - mean_y) for rx, ry in zip(ranks_x, ranks_y))
+    var_x = sum((rx - mean_x) ** 2 for rx in ranks_x)
+    var_y = sum((ry - mean_y) ** 2 for ry in ranks_y)
+
+    # Zero variance = all tied = correlation undefined -> return 0.0
+    if var_x == 0 or var_y == 0:
         return 0.0
 
-    return 1 - (6 * d_squared_sum) / denominator
+    return cov / (var_x**0.5 * var_y**0.5)
 
 
 def _compute_ranks(values: list[float]) -> list[float]:

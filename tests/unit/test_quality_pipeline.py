@@ -791,3 +791,359 @@ class TestBootstrapCI:
         assert hasattr(ci, "n_samples")
         assert ci.confidence_level == 0.95
         assert ci.n_samples == 5
+
+
+# =========================================================================
+# Mixed-signal judge tests — position bias varies by query type
+# =========================================================================
+
+
+class TestMixedSignalJudge:
+    """Tests for judges that show bias on some queries but not others.
+
+    Real LLM judges aren't uniformly biased. They may show position bias
+    on subjective questions but not on factual ones. The detection must
+    work with mixed signals, not just uniform bias.
+    """
+
+    def test_mixed_bias_factual_unbiased_subjective_biased(self):
+        """Judge is fair on factual queries, biased on subjective ones."""
+        call_idx = 0
+
+        def mixed_signal_judge(query: str, first: str, second: str) -> str:
+            nonlocal call_idx
+            call_idx += 1
+            if "factual" in query:
+                # Content-aware: picks the answer with "correct"
+                if "correct" in first:
+                    return "A"
+                if "correct" in second:
+                    return "B"
+                return "TIE"
+            else:
+                # Subjective queries: always picks first (position bias)
+                return "A"
+
+        detector = BiasDetector(judge_fn=mixed_signal_judge)
+        pairs = [
+            ("factual q1", "correct a", "wrong b"),      # unbiased
+            ("factual q2", "wrong a", "correct b"),       # unbiased
+            ("subjective q3", "answer a", "answer b"),    # biased
+            ("subjective q4", "answer a", "answer b"),    # biased
+            ("factual q5", "correct a", "wrong b"),       # unbiased
+            ("subjective q6", "answer a", "answer b"),    # biased
+            ("factual q7", "wrong a", "correct b"),       # unbiased
+        ]
+        rate = detector.detect_position_bias(pairs)
+        # 3 out of 7 queries biased -> ~0.43
+        assert 0.3 < rate < 0.6
+
+    def test_mixed_bias_longer_answers_biased_on_complex(self):
+        """Judge shows verbosity bias only on complex questions."""
+
+        def domain_specific_judge(query: str, first: str, second: str) -> str:
+            if "simple" in query:
+                # Simple questions: picks correct answer
+                if "correct" in first:
+                    return "A"
+                if "correct" in second:
+                    return "B"
+                return "TIE"
+            else:
+                # Complex questions: prefers longer answer
+                return "B" if len(second) > len(first) else "A"
+
+        detector = BiasDetector(judge_fn=domain_specific_judge)
+        pairs = [
+            ("simple q1", "correct short", "wrong long verbose answer with padding"),
+            ("simple q2", "correct brief", "wrong extended elaborate response here"),
+            ("complex q3", "correct short", "wrong but much much longer answer"),
+            ("complex q4", "correct brief", "wrong extended elaborate response here"),
+            ("complex q5", "correct short", "wrong long wordy unnecessary detail"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        # 3 of 5 eligible pairs (complex) show verbosity bias -> ~0.6
+        assert 0.4 < rate < 0.8
+
+    def test_mixed_bias_partial_self_preference(self):
+        """Judge prefers same-family 70% of the time (not 100%)."""
+
+        def seventy_percent_bias(query: str, first: str, second: str) -> str:
+            # 70% same-family preference (query index determines outcome)
+            query_num = int(query.replace("q", "")) if query.startswith("q") else 0
+            if query_num % 10 < 7:  # 70%
+                return "A"  # same-family
+            return "B"  # cross-family
+
+        detector = BiasDetector(judge_fn=seventy_percent_bias)
+        pairs = [
+            (f"q{i}", "same_family answer", "cross_family answer")
+            for i in range(10)
+        ]
+        rate = detector.detect_self_preference(pairs)
+        # 7/10 pick same-family -> raw_rate=0.7, scaled (0.7-0.5)/0.5 = 0.4
+        assert 0.3 < rate < 0.5
+
+    def test_mixed_bias_full_report_realistic(self):
+        """Full bias report with mixed-signal judge across all dimensions."""
+        call_idx = 0
+
+        def realistic_judge(query: str, first: str, second: str) -> str:
+            nonlocal call_idx
+            call_idx += 1
+            # Position bias on ~30% of calls
+            if call_idx % 10 < 3:
+                return "A"  # always first
+            # Content-aware rest of the time
+            if "correct" in first:
+                return "A"
+            if "correct" in second:
+                return "B"
+            return "TIE"
+
+        detector = BiasDetector(judge_fn=realistic_judge)
+
+        pos_pairs = [
+            (f"q{i}", f"correct a{i}", f"wrong b{i}")
+            for i in range(8)
+        ]
+        verb_pairs = [
+            (f"v{i}", "correct short", "wrong long verbose extended answer text")
+            for i in range(6)
+        ]
+        self_pairs = [
+            (f"s{i}", "correct same_family", "wrong cross_family")
+            for i in range(6)
+        ]
+
+        result = detector.full_bias_report(
+            position_pairs=pos_pairs,
+            verbosity_pairs=verb_pairs,
+            self_preference_pairs=self_pairs,
+            spearman_correlation=0.88,
+        )
+        assert result.total_comparisons == 20
+        # Mixed-signal means rates are between 0 and 1
+        assert 0.0 <= result.position_bias_rate <= 1.0
+        assert 0.0 <= result.verbosity_bias_rate <= 1.0
+        assert 0.0 <= result.self_preference_rate <= 1.0
+
+    def test_query_type_specific_bias_detection_rate(self):
+        """Position bias detection varies by query type — factual vs subjective.
+
+        This proves the detection framework can identify WHERE bias occurs,
+        not just whether it occurs globally.
+        """
+
+        def type_dependent_judge(query: str, first: str, second: str) -> str:
+            if "factual" in query:
+                if "correct" in first:
+                    return "A"
+                if "correct" in second:
+                    return "B"
+                return "TIE"
+            return "A"  # subjective = biased
+
+        detector = BiasDetector(judge_fn=type_dependent_judge)
+
+        factual_pairs = [
+            ("factual q1", "correct a", "wrong b"),
+            ("factual q2", "wrong a", "correct b"),
+            ("factual q3", "correct a", "wrong b"),
+            ("factual q4", "wrong a", "correct b"),
+            ("factual q5", "correct a", "wrong b"),
+        ]
+        subjective_pairs = [
+            ("subjective q1", "answer a", "answer b"),
+            ("subjective q2", "answer a", "answer b"),
+            ("subjective q3", "answer a", "answer b"),
+            ("subjective q4", "answer a", "answer b"),
+            ("subjective q5", "answer a", "answer b"),
+        ]
+
+        factual_bias = detector.detect_position_bias(factual_pairs)
+        subjective_bias = detector.detect_position_bias(subjective_pairs)
+
+        assert factual_bias == 0.0  # No bias on factual queries
+        assert subjective_bias == 1.0  # Full bias on subjective queries
+
+
+# =========================================================================
+# Verbosity bias threshold configurability
+# =========================================================================
+
+
+class TestVerbosityThresholdConfigurability:
+    """Tests for configurable verbosity length ratio threshold.
+
+    Default is 1.5x. Legal/compliance domains may need 1.2x (compliance
+    answers are legitimately verbose). High-signal domains may need 2.0x
+    to avoid false positives.
+    """
+
+    def test_default_threshold_skips_1_3x_difference(self):
+        """Default 1.5x threshold: 1.3x length difference is not tested."""
+
+        def always_picks_long(query: str, first: str, second: str) -> str:
+            return "B" if len(second) > len(first) else "A"
+
+        detector = BiasDetector(judge_fn=always_picks_long, verbosity_length_ratio=1.5)
+        # short=10 chars, long=13 chars -> ratio=1.3 < 1.5 -> skipped
+        pairs = [
+            ("q1", "short text", "longer text!!"),
+            ("q2", "short text", "longer text!!"),
+            ("q3", "short text", "longer text!!"),
+            ("q4", "short text", "longer text!!"),
+            ("q5", "short text", "longer text!!"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        assert rate == 0.0  # All skipped due to insufficient length difference
+
+    def test_lower_threshold_catches_1_3x_difference(self):
+        """With 1.2x threshold, 1.3x length difference IS tested."""
+
+        def always_picks_long(query: str, first: str, second: str) -> str:
+            return "B" if len(second) > len(first) else "A"
+
+        detector = BiasDetector(judge_fn=always_picks_long, verbosity_length_ratio=1.2)
+        # short=10 chars, long=13 chars -> ratio=1.3 >= 1.2 -> tested
+        pairs = [
+            ("q1", "short text", "longer text!!"),
+            ("q2", "short text", "longer text!!"),
+            ("q3", "short text", "longer text!!"),
+            ("q4", "short text", "longer text!!"),
+            ("q5", "short text", "longer text!!"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        assert rate == 1.0  # All biased
+
+    def test_higher_threshold_for_strict_filtering(self):
+        """With 2.0x threshold, only very large differences are tested."""
+
+        def always_picks_long(query: str, first: str, second: str) -> str:
+            return "B"
+
+        detector = BiasDetector(judge_fn=always_picks_long, verbosity_length_ratio=2.0)
+        # "short answer!!" = 15 chars, "slightly longer text!" = 21 chars
+        # ratio = 21/15 = 1.4 < 2.0 -> skipped
+        pairs = [
+            ("q1", "short answer!!", "slightly longer text!"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        assert rate == 0.0  # Skipped: ratio 1.4 below 2.0 threshold
+
+    def test_legal_domain_1_2x_threshold(self):
+        """Legal domain: compliance answers are legitimately ~1.3x longer.
+
+        With 1.2x threshold, we can detect if the judge prefers the longer
+        compliance answer over a concise correct one — which may or may not
+        be bias depending on domain requirements.
+        """
+
+        def prefers_detail(query: str, first: str, second: str) -> str:
+            return "A" if "complete" in first else "B"
+
+        detector = BiasDetector(judge_fn=prefers_detail, verbosity_length_ratio=1.2)
+        pairs = [
+            ("legal q1", "complete brief", "wrong but longer compliance styled answer"),
+            ("legal q2", "complete brief", "wrong but longer compliance styled answer"),
+            ("legal q3", "complete brief", "wrong but longer compliance styled answer"),
+            ("legal q4", "complete brief", "wrong but longer compliance styled answer"),
+            ("legal q5", "complete brief", "wrong but longer compliance styled answer"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        assert rate == 0.0  # Judge picks correct answer, no bias
+
+    def test_verbose_but_correct_not_flagged(self):
+        """When the correct answer IS longer, picking it is NOT verbosity bias.
+
+        The convention is answer_a=short correct, answer_b=long wrong.
+        If the judge picks A (the short correct one), that's correct behavior.
+        """
+
+        def quality_judge(query: str, first: str, second: str) -> str:
+            if "correct" in first:
+                return "A"
+            return "B"
+
+        detector = BiasDetector(judge_fn=quality_judge, verbosity_length_ratio=1.5)
+        pairs = [
+            ("q1", "correct short", "wrong long verbose answer with many words here"),
+            ("q2", "correct brief", "wrong extended elaborate comprehensive response"),
+            ("q3", "correct", "wrong and unnecessarily wordy explanation here now"),
+            ("q4", "correct concise", "wrong with many extra filler words added now"),
+            ("q5", "correct compact", "wrong with excessive verbosity padding here"),
+        ]
+        rate = detector.detect_verbosity_bias(pairs)
+        assert rate == 0.0  # Judge picks correct (short) answer = no bias
+
+
+# =========================================================================
+# Spearman correlation edge cases — heavily tied scores
+# =========================================================================
+
+
+class TestSpearmanHeavilyTied:
+    """Tests for Spearman correlation with heavily tied score distributions.
+
+    Real human scores cluster heavily (many 4s and 5s). The implementation
+    must handle average rank assignment correctly under heavy ties.
+    """
+
+    def test_heavily_tied_human_scores(self):
+        """Many identical scores (realistic: most answers score 4 or 5)."""
+        # Realistic distribution: mostly 4s and 5s
+        human_scores = [5, 5, 5, 4, 4, 4, 4, 3, 5, 4]
+        judge_scores = [5, 4, 5, 4, 3, 4, 4, 3, 5, 4]
+
+        calibration = HumanCalibration(min_correlation=0.85, min_samples=5)
+        correlation = calibration.compute_correlation(human_scores, judge_scores)
+        # Should compute without error, correlation should be positive
+        assert -1.0 <= correlation <= 1.0
+        assert correlation > 0.5  # Reasonably correlated
+
+    def test_all_tied_human_scores(self):
+        """All same score -> correlation = 0 (no ranking possible)."""
+        human_scores = [4, 4, 4, 4, 4]
+        judge_scores = [3, 4, 5, 4, 3]
+
+        calibration = HumanCalibration(min_correlation=0.85, min_samples=5)
+        correlation = calibration.compute_correlation(human_scores, judge_scores)
+        # When one set has no variance, correlation is 0
+        assert correlation == pytest.approx(0.0)
+
+    def test_two_clusters_tied(self):
+        """Scores cluster in two groups (binary-ish: good/bad)."""
+        human_scores = [5, 5, 5, 5, 2, 2, 2, 2, 5, 2]  # binary
+        judge_scores = [5, 5, 4, 5, 2, 3, 2, 2, 5, 2]  # noisy version
+
+        calibration = HumanCalibration(min_correlation=0.85, min_samples=5)
+        correlation = calibration.compute_correlation(human_scores, judge_scores)
+        assert correlation > 0.7  # High correlation for similar clusters
+
+    def test_golden_set_realistic_distribution(self):
+        """Simulate scores from actual golden set (2-5 range, right-skewed)."""
+        import json
+        from pathlib import Path
+
+        with open(Path("data/golden_set.json")) as f:
+            data = json.load(f)
+
+        human_scores = [e["human_score"] for e in data["entries"]]
+
+        # Simulate a reasonably calibrated judge (add noise to human scores)
+        import random
+        random.seed(42)
+        judge_scores = [
+            max(1, min(5, h + random.choice([-1, 0, 0, 0, 1])))
+            for h in human_scores
+        ]
+
+        calibration = HumanCalibration(min_correlation=0.85, min_samples=5)
+        correlation = calibration.compute_correlation(
+            [float(h) for h in human_scores],
+            [float(j) for j in judge_scores],
+        )
+        assert -1.0 <= correlation <= 1.0
+        # A noisy judge should still correlate reasonably with human scores
+        assert correlation > 0.5

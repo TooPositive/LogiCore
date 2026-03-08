@@ -36,14 +36,46 @@ FAMILY_PATTERNS: dict[str, ModelFamily] = {
 }
 
 
+# Exact-match overrides for models that don't follow prefix patterns.
+# Use register_model_family() to add entries at runtime.
+_EXACT_FAMILY_OVERRIDES: dict[str, ModelFamily] = {}
+
+
+def register_model_family(model_name: str, family: ModelFamily) -> None:
+    """Register an exact model name to a family (for fine-tuned/custom models).
+
+    Use this when model names don't follow standard prefix patterns:
+    - Fine-tuned: "ft:gpt-5.2:logicore:2026" -> OPENAI
+    - Azure deployments: "logicore-gpt52-deployment" -> OPENAI
+    - Local models: "qwen3:8b" -> META (or custom)
+
+    This is the recommended way to handle deployment-specific model names
+    that can't be identified by prefix matching alone.
+
+    Args:
+        model_name: Exact model identifier (case-insensitive matching).
+        family: The model family to assign.
+    """
+    _EXACT_FAMILY_OVERRIDES[model_name.lower()] = family
+
+
+def clear_family_overrides() -> None:
+    """Clear all registered family overrides (for testing)."""
+    _EXACT_FAMILY_OVERRIDES.clear()
+
+
 def get_model_family(
     model_name: str,
     family_patterns: dict[str, ModelFamily] | None = None,
 ) -> ModelFamily:
     """Identify the model family from a model name.
 
-    Uses prefix matching against FAMILY_PATTERNS. Case-insensitive.
-    Returns ModelFamily.UNKNOWN if no pattern matches.
+    Resolution order:
+    1. Exact-match overrides (from register_model_family)
+    2. Prefix matching against FAMILY_PATTERNS
+    3. ModelFamily.UNKNOWN
+
+    Case-insensitive throughout.
 
     Args:
         model_name: The model identifier (e.g., "gpt-5.2", "claude-sonnet-4.6").
@@ -52,8 +84,14 @@ def get_model_family(
     Returns:
         The identified ModelFamily.
     """
-    patterns = family_patterns or FAMILY_PATTERNS
     lower_name = model_name.lower()
+
+    # 1. Check exact-match overrides first
+    if lower_name in _EXACT_FAMILY_OVERRIDES:
+        return _EXACT_FAMILY_OVERRIDES[lower_name]
+
+    # 2. Prefix matching
+    patterns = family_patterns or FAMILY_PATTERNS
     for prefix, family in patterns.items():
         if lower_name.startswith(prefix):
             return family

@@ -18,7 +18,7 @@ both and reports honestly.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from apps.api.src.domain.telemetry import PromptCacheStats
 

@@ -11,7 +11,6 @@ Tests cover:
 
 import pytest
 
-from apps.api.src.telemetry.judge_config import JudgeConfig
 from apps.api.src.telemetry.quality_pipeline import (
     BiasDetector,
     BootstrapCI,
@@ -20,7 +19,6 @@ from apps.api.src.telemetry.quality_pipeline import (
     PairwiseScorer,
     compute_bootstrap_ci,
 )
-
 
 # =========================================================================
 # PairwiseScorer tests

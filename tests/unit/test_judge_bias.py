@@ -28,7 +28,6 @@ from apps.api.src.telemetry.judge_config import (
     validate_judge_generator_independence,
 )
 
-
 # =========================================================================
 # Domain model tests — JudgeBiasResult
 # =========================================================================

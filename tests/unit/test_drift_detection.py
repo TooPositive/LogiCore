@@ -11,8 +11,9 @@ Tests cover:
 - Multi-metric drift
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from apps.api.src.domain.telemetry import DriftAlert, DriftSeverity
 from apps.api.src.telemetry.drift_detector import (
@@ -22,7 +23,6 @@ from apps.api.src.telemetry.drift_detector import (
     classify_drift_severity,
 )
 from apps.api.src.telemetry.model_registry import ModelVersionRegistry
-
 
 # =========================================================================
 # Drift severity classification (n>=5)

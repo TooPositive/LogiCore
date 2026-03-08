@@ -22,7 +22,6 @@ from apps.api.src.telemetry.prompt_optimizer import (
     SectionType,
 )
 
-
 # =========================================================================
 # PromptSection and PromptAnalysis tests
 # =========================================================================
@@ -177,7 +176,11 @@ class TestPromptOptimizerRestructure:
         """Dynamic content before static -> restructured to static first."""
         optimizer = PromptOptimizer()
         sections = [
-            PromptSection(content="retrieved chunks", section_type=SectionType.DYNAMIC, label="context"),
+            PromptSection(
+                content="retrieved chunks",
+                section_type=SectionType.DYNAMIC,
+                label="context",
+            ),
             PromptSection(content="system prompt", section_type=SectionType.STATIC, label="system"),
             PromptSection(content="tool defs", section_type=SectionType.STATIC, label="tools"),
         ]

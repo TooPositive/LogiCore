@@ -9,14 +9,12 @@ Covers:
 
 from __future__ import annotations
 
-import time
 from dataclasses import FrozenInstanceError
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from apps.api.src.core.config.settings import Settings
-
 
 # -----------------------------------------------------------------------
 # Task 1: Settings -- LLM/Embedding provider toggles
@@ -177,7 +175,6 @@ class TestLLMProviderProtocol:
     def test_mock_satisfies_protocol(self):
         """A mock with correct methods satisfies LLMProvider Protocol."""
         from apps.api.src.core.infrastructure.llm.provider import (
-            LLMProvider,
             LLMResponse,
         )
 
@@ -216,7 +213,6 @@ class TestLLMProviderProtocol:
 
     def test_missing_method_does_not_satisfy_protocol(self):
         """A class missing generate() should fail Protocol check."""
-        from apps.api.src.core.infrastructure.llm.provider import LLMProvider
 
         class IncompleteProvider:
             @property
@@ -537,13 +533,12 @@ class TestOllamaProvider:
     @patch("apps.api.src.core.infrastructure.llm.ollama.ChatOllama")
     async def test_generate_handles_timeout(self, mock_chat_cls):
         """Timeout raises TimeoutError with clear message."""
-        import asyncio
 
         from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
 
         mock_instance = MagicMock()
         mock_instance.ainvoke = AsyncMock(
-            side_effect=asyncio.TimeoutError("Request timed out")
+            side_effect=TimeoutError("Request timed out")
         )
         mock_chat_cls.return_value = mock_instance
 

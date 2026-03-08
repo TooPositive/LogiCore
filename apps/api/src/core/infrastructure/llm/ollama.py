@@ -9,7 +9,6 @@ a configured Ollama host within the network.
 
 from __future__ import annotations
 
-import asyncio
 import time
 
 from langchain_ollama import ChatOllama
@@ -54,7 +53,7 @@ class OllamaProvider:
                 f"Ollama at {self._host} is not reachable. "
                 f"Is the Ollama service running? Original error: {e}"
             ) from e
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise TimeoutError(
                 f"Ollama request timed out for model '{self._model}'. "
                 f"The model may be too large for available hardware. "

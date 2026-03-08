@@ -11,7 +11,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 AIRGAP_COMPOSE_PATH = (
     Path(__file__).resolve().parents[2] / "docker-compose.airgap.yml"
 )

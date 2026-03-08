@@ -14,7 +14,7 @@
 - [x] `apps/api/src/core/config/settings.py` — MODIFY: add LLM_PROVIDER toggle (10 tests, 877 total)
 - [x] OllamaEmbedder in embeddings.py + OLLAMA enum + nomic-embed-text model + factory (13 tests, 917 total)
 - [x] `docker-compose.airgap.yml` — Ollama service, API overrides, health check (13 tests, 930 total)
-- [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
+- [x] `scripts/benchmark_local.py` — 15 prompts, 3 categories (5+ each), dry-run + live (19 tests, 974 total)
 - [x] Provider swap tests + RBAC independence (8 tests, 938 total)
 - [x] Red team tests -- 6 attack categories, 17 tests (955 total)
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests

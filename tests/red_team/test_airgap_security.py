@@ -11,14 +11,12 @@ Tests that prove what the system REFUSES to do in air-gapped mode:
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from apps.api.src.core.config.settings import Settings
 from apps.api.src.core.infrastructure.llm.provider import (
-    LLMResponse,
     get_llm_provider,
 )
 

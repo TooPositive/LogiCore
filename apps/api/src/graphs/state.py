@@ -19,6 +19,7 @@ class AuditGraphState(TypedDict):
         discrepancies: Discrepancies found by Auditor (list of dicts).
         approval: HITL approval decision (dict or None).
         report: Final audit report (dict or None).
+        compliance_findings: Findings from compliance sub-agent (list of dicts).
     """
 
     invoice_id: str
@@ -29,3 +30,4 @@ class AuditGraphState(TypedDict):
     discrepancies: list[dict[str, Any]]
     approval: dict[str, Any] | None
     report: dict[str, Any] | None
+    compliance_findings: list[dict[str, Any]]

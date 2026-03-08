@@ -83,6 +83,7 @@ class TestHitlGateway:
                 "discrepancies": [],
                 "approval": None,
                 "report": None,
+                "compliance_findings": [],
             },
             config=config,
         )
@@ -119,6 +120,7 @@ class TestHitlGateway:
                 "discrepancies": [],
                 "approval": None,
                 "report": None,
+                "compliance_findings": [],
             },
             config=config,
         )
@@ -154,6 +156,7 @@ class TestHitlGateway:
                 "discrepancies": [],
                 "approval": None,
                 "report": None,
+                "compliance_findings": [],
             },
             config=config,
         )
@@ -186,6 +189,7 @@ class TestHitlGateway:
                 "discrepancies": [],
                 "approval": None,
                 "report": None,
+                "compliance_findings": [],
             },
             config=config,
         )
@@ -220,6 +224,7 @@ class TestHitlGateway:
             "discrepancies": [],
             "approval": None,
             "report": None,
+            "compliance_findings": [],
         }
 
         # Both block

@@ -39,6 +39,7 @@ class TestAuditGraphState:
             "discrepancies": [],
             "approval": None,
             "report": None,
+            "compliance_findings": [],
         }
         assert state["invoice_id"] == "INV-2024-0847"
         assert state["status"] == "extracting"
@@ -190,6 +191,7 @@ class TestAuditGraphExecution:
             "discrepancies": [],
             "approval": None,
             "report": None,
+            "compliance_findings": [],
         })
 
         # Reader should have populated extracted_rates
@@ -221,6 +223,7 @@ class TestAuditGraphExecution:
             "discrepancies": [],
             "approval": None,
             "report": None,
+            "compliance_findings": [],
         })
 
         # Final status should be completed
@@ -265,6 +268,7 @@ class TestAuditGraphExecution:
             "discrepancies": [],
             "approval": None,
             "report": None,
+            "compliance_findings": [],
         })
 
         assert len(result["discrepancies"]) == 0

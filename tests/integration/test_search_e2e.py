@@ -70,7 +70,8 @@ async def qdrant_with_data(qdrant_client: AsyncQdrantClient):
         },
         # HR docs (clearance 3)
         {
-            "content": "Employee termination procedures and notice periods per Kodeks Pracy Art. 36",
+            "content": "Employee termination procedures and notice periods"
+            " per Kodeks Pracy Art. 36",
             "document_id": "DOC-HR-004",
             "department_id": "hr",
             "clearance_level": 3,

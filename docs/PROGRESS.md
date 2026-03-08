@@ -13,7 +13,7 @@
 | 3 | Customs & Finance (Multi-Agent) | TESTED | 100% | 100% (174 new, 503 total) | draft | draft | Phase 1 |
 | 4 | Trust Layer (LLMOps) | TESTED | 100% | 100% (166 new, 669 total) | draft | draft | Phases 1-2 |
 | 5 | Assessment Rigor (Judge Bias) | CODE COMPLETE | 100% | 100% (198 new, 867 total) | draft | draft | Phase 4 |
-| 6 | Air-Gapped Vault (Local Inference) | CODE COMPLETE | 100% | 100% (160 new, 1017 total) | — | — | Phases 1-3 |
+| 6 | Air-Gapped Vault (Local Inference) | TESTED | 100% | 100% (160 new, 1017 total) | draft | draft | Phases 1-3 |
 | 7 | Resilience Engineering | NOT STARTED | 0% | 0% | — | — | Phase 6 |
 | 8 | Regulatory Shield (EU AI Act) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 9 | Fleet Guardian (Kafka Streaming) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
@@ -49,7 +49,7 @@ Phase 1: RAG + RBAC ◄───────────────────
   │       ├──► Phase 8: Regulatory Shield (audit logs, compliance)
   │       └──► Phase 9: Fleet Guardian (Kafka, real-time)
   │
-  ├──► Phase 6: Air-Gapped Vault (Ollama, local inference) ◄── CODE COMPLETE (160 new, 1017 total)
+  ├──► Phase 6: Air-Gapped Vault (Ollama, local inference) ◄── TESTED (160 new, 1017 total)
   │       │
   │       ▼
   │     Phase 7: Resilience (circuit breakers, routing)
@@ -98,7 +98,7 @@ Phase R: Core Extraction ◄──── DONE
 | 3 | draft | draft |
 | 4 | draft | draft |
 | 5 | draft | draft |
-| 6 | — | — |
+| 6 | draft | draft |
 | 7 | — | — |
 | 8 | — | — |
 | 9 | — | — |
@@ -144,7 +144,9 @@ Phase R: Core Extraction ◄──── DONE
 
 ## Current Sprint
 
-**Phase 6 — CODE COMPLETE** (Air-Gapped Vault: 160 new tests, 1017 total, lint clean, review gaps addressed)
+**Phase 6 — TESTED** (Air-Gapped Vault: 160 new tests, 1017 total, lint clean, review 28/30 PROCEED, content drafted)
+
+**Next up**: Phase 7 — Resilience Engineering (circuit breakers, routing, cache fallback for air-gapped)
 
 **Phase 5 — CODE COMPLETE** (Assessment Rigor: 198 new tests, 867 total, lint clean, review 29/30 PROCEED)
 
@@ -198,7 +200,7 @@ Phase R: Core Extraction ◄──── DONE
 - Reasoning over negation failures → Phase 3 (Multi-Agent with LangGraph)
 - Adversarial query tests → Phase 10 (LLM Firewall)
 
-**Next up**: Phase 6 review + content, then Phase 7 (Resilience Engineering)
+**Next up**: Phase 7 (Resilience Engineering)
 
 ## Phase 6 Sprint Summary (CODE COMPLETE — 114 new tests, 981 total)
 

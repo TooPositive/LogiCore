@@ -1,6 +1,6 @@
 # Phase 6 Tracker: Air-Gapped Vault — Local Inference
 
-**Status**: CODE COMPLETE (review gaps addressed)
+**Status**: COMPLETE (review 28/30 PROCEED, content drafted, recap written)
 **Spec**: `docs/phases/phase-6-air-gapped-vault.md`
 **Depends on**: Phases 1-3
 **Tests**: 160 new (141 unit/red-team + 3 integration + 16 live), 1017 total (without integration)
@@ -143,10 +143,13 @@ The 29-second p50 latency is from development hardware only (Apple Silicon, qwen
 - **[Review Finding — ADDRESSED] Financial extraction precision now partially benchmarked.** Unit tests verify the ReaderAgent's parsing logic handles EUR amounts in different formats (basic, Polish "1.234,56", quantization edge cases, multi-rate contracts, volume thresholds). Integration tests with real Ollama verify end-to-end extraction on Polish contract text. The remaining gap: running the full Phase 2 52-query ground truth through the local model for a statistically significant quality comparison. That belongs in Phase 7 (routing thresholds need the quality data).
 - **[Review Finding — ADDRESSED] Four tracker metrics labeled as "(simulated)".** Azure latency, Azure throughput, mock accuracy, and mock throughput are now clearly labeled "(simulated)" in the benchmarks table.
 - **[Partially Addressed] Quantization Precision on Financial Extraction.** The analysis identified quantization (Q4_K_M) precision as the highest-risk technical decision. We now have MEASURED data: qwen3:8b (Q4_K_M) extracts EUR amounts correctly from 10/10 contract excerpts (5 English, 5 Polish). Unit tests verify the parsing pipeline handles edge cases (0.449999, Polish comma format, negative rates). The remaining gap: stress testing with long contracts containing ambiguous rate clauses, multi-currency scenarios, and adversarial inputs. This remains the Phase 7 content hook.
+- **[Re-Review 28/30 PROCEED] Head-to-head quality comparison needed for Phase 7.** The 52-query ground truth from Phase 2 must be run through both Azure and Ollama for a category-by-category quality gap measurement. This data is mandatory for Phase 7 routing thresholds. Phase 6 evidence (10/10 extraction, 15/15 keyword) is sufficient for "local works" but insufficient for "route X% local, Y% cloud."
+- **[Re-Review] Polish prompts underrepresented in main benchmark.** Only 1/20 benchmark prompts is in Polish (fin_extract_5). Live financial extraction has 5 Polish excerpts, but the main benchmark should include Polish prompts across all categories for consistency. Low priority -- Phase 8 scope.
+- **[Re-Review] Think-tag adversarial testing.** Think-tag stripping is parsing convenience, not a security boundary. Adversarial model output manipulation testing belongs in Phase 10 (LLM Firewall).
 
 ## Content Status
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | — | | |
-| Medium article | — | | |
+| LinkedIn post | draft | 2026-03-08 | Hook: Swiss bank CISO, EUR 180K contract |
+| Medium article | draft | 2026-03-08 | "One Environment Variable Separates Cloud AI from Air-Gapped AI" |

@@ -16,6 +16,12 @@ Usage:
 
     # Dry run (mock providers, validates script logic)
     uv run python scripts/benchmark_local.py --dry-run
+
+    # Strict mode: checks numerical extraction accuracy (not just keywords)
+    uv run python scripts/benchmark_local.py --provider ollama --strict
+
+    # Compare mode: run same prompts through both and compare results
+    uv run python scripts/benchmark_local.py --provider compare --strict
 """
 
 from __future__ import annotations
@@ -23,6 +29,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import re
 import statistics
 import sys
 from dataclasses import asdict, dataclass, field
@@ -164,6 +171,72 @@ BENCHMARK_PROMPTS = [
         "category": "reasoning",
         "expected_contains": ["11250", "11,250"],
     },
+    # Financial extraction (EUR rate precision -- the quantization risk test)
+    {
+        "id": "fin_extract_1",
+        "prompt": (
+            "Extract the transport rate from this contract clause. "
+            "Return ONLY a JSON object with fields: rate, currency, unit.\n"
+            "Text: 'Contract C-2024-001: Standard cargo rate is "
+            "EUR 0.45 per kilogram.'"
+        ),
+        "category": "financial_extraction",
+        "expected_contains": ["0.45"],
+        "expected_value": 0.45,
+    },
+    {
+        "id": "fin_extract_2",
+        "prompt": (
+            "Extract the transport rate from this contract clause. "
+            "Return ONLY a JSON object with fields: rate, currency, unit.\n"
+            "Text: 'Pharmaceutical cold chain transport: EUR 1.25 "
+            "per kilogram including temperature monitoring.'"
+        ),
+        "category": "financial_extraction",
+        "expected_contains": ["1.25"],
+        "expected_value": 1.25,
+    },
+    {
+        "id": "fin_extract_3",
+        "prompt": (
+            "Extract the container shipping rate. "
+            "Return ONLY a JSON object with fields: rate, currency, unit.\n"
+            "Text: 'Container rate for Gdansk-Hamburg route: "
+            "EUR 850.00 per standard 20ft container.'"
+        ),
+        "category": "financial_extraction",
+        "expected_contains": ["850"],
+        "expected_value": 850.0,
+    },
+    {
+        "id": "fin_extract_4",
+        "prompt": (
+            "Extract the surcharge rate from this clause. "
+            "Return ONLY a JSON object with fields: rate, currency, unit.\n"
+            "Text: 'Hazardous materials ADR surcharge: additional "
+            "EUR 0.35 per kilogram on top of base rate.'"
+        ),
+        "category": "financial_extraction",
+        "expected_contains": ["0.35"],
+        "expected_value": 0.35,
+    },
+    {
+        "id": "fin_extract_5",
+        "prompt": (
+            "Extract the express delivery rate. "
+            "Return ONLY a JSON object with fields: rate, currency, unit.\n"
+            "Text: 'Stawka za transport ekspresowy z gwarancja dostawy "
+            "nastepnego dnia roboczego: EUR 3.15 za kilogram.'"
+        ),
+        "category": "financial_extraction",
+        "expected_contains": ["3.15"],
+        "expected_value": 3.15,
+    },
+]
+
+# Separate list for easy access in tests
+FINANCIAL_EXTRACTION_PROMPTS = [
+    p for p in BENCHMARK_PROMPTS if p.get("category") == "financial_extraction"
 ]
 
 
@@ -183,6 +256,7 @@ class QueryResult:
     output_tokens: int
     content: str
     expected_found: bool  # Did response contain expected keywords?
+    numerical_match: bool | None = None  # Did extracted number match? (strict mode)
     error: str | None = None
 
 
@@ -203,6 +277,7 @@ class BenchmarkResult:
     cost_per_query_eur: float
     results_by_category: dict[str, dict] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
+    numerical_accuracy: float | None = None  # Strict mode: extraction accuracy
 
 
 # -----------------------------------------------------------------------
@@ -238,6 +313,47 @@ def compute_cost(model: str, input_tokens: int, output_tokens: int) -> float:
 
 
 # -----------------------------------------------------------------------
+# Numerical extraction accuracy (--strict mode)
+# -----------------------------------------------------------------------
+
+
+def check_numerical_extraction(
+    response_text: str, expected_value: float, tolerance: float = 0.01
+) -> bool:
+    """Check if response contains a number matching the expected value.
+
+    Extracts all numbers from the response text and checks if any
+    is within tolerance of the expected value. This is a stronger
+    accuracy signal than keyword matching -- it verifies the model
+    extracted the correct financial value, not just that the response
+    contains the right characters.
+
+    Args:
+        response_text: The LLM response content.
+        expected_value: The expected numeric value (e.g. 0.45).
+        tolerance: Acceptable difference (default 0.01).
+
+    Returns:
+        True if any extracted number matches within tolerance.
+    """
+    if not response_text:
+        return False
+
+    # Extract all numbers from the response (including decimals)
+    numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", response_text)
+
+    for num_str in numbers:
+        try:
+            val = float(num_str)
+            if abs(val - expected_value) <= tolerance:
+                return True
+        except ValueError:
+            continue
+
+    return False
+
+
+# -----------------------------------------------------------------------
 # Benchmark runner
 # -----------------------------------------------------------------------
 
@@ -247,8 +363,14 @@ async def run_benchmark(
     settings: Settings,
     prompts: list[dict],
     dry_run: bool = False,
+    strict: bool = False,
 ) -> BenchmarkResult:
-    """Run benchmark against a single provider."""
+    """Run benchmark against a single provider.
+
+    Args:
+        strict: If True, also checks numerical extraction accuracy
+                for prompts that have expected_value.
+    """
     if dry_run:
         return _mock_benchmark(provider_name)
 
@@ -266,6 +388,13 @@ async def run_benchmark(
                 for kw in prompt_data["expected_contains"]
             )
 
+            # Strict mode: check numerical extraction accuracy
+            numerical_match = None
+            if strict and "expected_value" in prompt_data:
+                numerical_match = check_numerical_extraction(
+                    response.content, prompt_data["expected_value"]
+                )
+
             results.append(
                 QueryResult(
                     prompt_id=prompt_data["id"],
@@ -275,6 +404,7 @@ async def run_benchmark(
                     output_tokens=response.output_tokens,
                     content=response.content[:200],  # Truncate for display
                     expected_found=expected_found,
+                    numerical_match=numerical_match,
                 )
             )
         except Exception as e:
@@ -287,6 +417,7 @@ async def run_benchmark(
                     output_tokens=0,
                     content="",
                     expected_found=False,
+                    numerical_match=False if strict and "expected_value" in prompt_data else None,
                     error=str(e)[:200],
                 )
             )
@@ -339,6 +470,15 @@ def _aggregate_results(
     )
     avg_cost = total_cost / len(successful) if successful else 0
 
+    # Numerical accuracy (strict mode)
+    numerical_results = [r for r in results if r.numerical_match is not None]
+    numerical_accuracy = None
+    if numerical_results:
+        numerical_accuracy = (
+            sum(1 for r in numerical_results if r.numerical_match)
+            / len(numerical_results)
+        )
+
     return BenchmarkResult(
         provider=provider_name,
         model=model,
@@ -361,17 +501,23 @@ def _aggregate_results(
         cost_per_query_eur=avg_cost,
         results_by_category=categories,
         errors=[r.error for r in failed if r.error],
+        numerical_accuracy=numerical_accuracy,
     )
 
 
 def _mock_benchmark(provider_name: str) -> BenchmarkResult:
-    """Generate mock results for dry-run mode."""
+    """Generate mock results for dry-run mode.
+
+    NOTE: All values are SIMULATED placeholders. They demonstrate
+    the script's output format but are NOT measured benchmarks.
+    See tracker for the "(simulated)" label on these metrics.
+    """
     is_local = provider_name == "ollama"
     return BenchmarkResult(
         provider=provider_name,
         model="qwen3:8b" if is_local else "gpt-4o",
-        total_queries=15,
-        successful_queries=15,
+        total_queries=20,
+        successful_queries=20,
         failed_queries=0,
         accuracy=0.87 if is_local else 0.93,
         latency_p50_ms=800 if is_local else 350,
@@ -395,6 +541,11 @@ def _mock_benchmark(provider_name: str) -> BenchmarkResult:
                 "accuracy": 0.6 if is_local else 0.8,
                 "avg_latency_ms": 1500 if is_local else 650,
             },
+            "financial_extraction": {
+                "total": 5, "correct": 4 if is_local else 5,
+                "accuracy": 0.8 if is_local else 1.0,
+                "avg_latency_ms": 1000 if is_local else 450,
+            },
         },
     )
 
@@ -410,7 +561,9 @@ def print_results(result: BenchmarkResult) -> None:
     print(f"  Provider: {result.provider} ({result.model})")
     print(f"{'='*60}")
     print(f"  Queries: {result.successful_queries}/{result.total_queries} successful")
-    print(f"  Accuracy: {result.accuracy:.1%}")
+    print(f"  Accuracy (keyword): {result.accuracy:.1%}")
+    if result.numerical_accuracy is not None:
+        print(f"  Accuracy (numerical): {result.numerical_accuracy:.1%}")
     print(f"  Latency p50: {result.latency_p50_ms:.0f} ms")
     print(f"  Latency p95: {result.latency_p95_ms:.0f} ms")
     print(f"  Latency mean: {result.latency_mean_ms:.0f} ms")
@@ -440,7 +593,7 @@ def print_comparison(azure: BenchmarkResult, ollama: BenchmarkResult) -> None:
 
     rows = [
         ("Model", azure.model, ollama.model),
-        ("Accuracy", f"{azure.accuracy:.0%}", f"{ollama.accuracy:.0%}"),
+        ("Accuracy (kw)", f"{azure.accuracy:.0%}", f"{ollama.accuracy:.0%}"),
         ("Latency p50", f"{azure.latency_p50_ms:.0f} ms", f"{ollama.latency_p50_ms:.0f} ms"),
         ("Latency p95", f"{azure.latency_p95_ms:.0f} ms", f"{ollama.latency_p95_ms:.0f} ms"),
         ("Throughput", f"{azure.tokens_per_sec:.0f} tok/s", f"{ollama.tokens_per_sec:.0f} tok/s"),
@@ -450,6 +603,23 @@ def print_comparison(azure: BenchmarkResult, ollama: BenchmarkResult) -> None:
             f"EUR {ollama.cost_per_query_eur:.6f}",
         ),
     ]
+
+    # Add numerical accuracy if available
+    if (
+        azure.numerical_accuracy is not None
+        or ollama.numerical_accuracy is not None
+    ):
+        az_num = (
+            f"{azure.numerical_accuracy:.0%}"
+            if azure.numerical_accuracy is not None
+            else "N/A"
+        )
+        ol_num = (
+            f"{ollama.numerical_accuracy:.0%}"
+            if ollama.numerical_accuracy is not None
+            else "N/A"
+        )
+        rows.append(("Accuracy (num)", az_num, ol_num))
 
     print(f"\n  {'Metric':<18} {'Azure':>18} {'Ollama':>18}")
     print(f"  {'-'*18} {'-'*18} {'-'*18}")
@@ -510,6 +680,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Save results to JSON file",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Check numerical extraction accuracy (not just keywords)",
+    )
     return parser.parse_args()
 
 
@@ -528,7 +703,11 @@ async def main() -> None:
             }
         )
         results["azure"] = await run_benchmark(
-            "azure", azure_settings, BENCHMARK_PROMPTS, dry_run=args.dry_run
+            "azure",
+            azure_settings,
+            BENCHMARK_PROMPTS,
+            dry_run=args.dry_run,
+            strict=args.strict,
         )
         print_results(results["azure"])
 
@@ -541,7 +720,11 @@ async def main() -> None:
             }
         )
         results["ollama"] = await run_benchmark(
-            "ollama", ollama_settings, BENCHMARK_PROMPTS, dry_run=args.dry_run
+            "ollama",
+            ollama_settings,
+            BENCHMARK_PROMPTS,
+            dry_run=args.dry_run,
+            strict=args.strict,
         )
         print_results(results["ollama"])
 

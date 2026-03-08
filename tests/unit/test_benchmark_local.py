@@ -14,9 +14,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scripts.benchmark_local import (
     BENCHMARK_PROMPTS,
+    FINANCIAL_EXTRACTION_PROMPTS,
     QueryResult,
     _aggregate_results,
     _mock_benchmark,
+    check_numerical_extraction,
     compute_cost,
 )
 
@@ -223,3 +225,98 @@ class TestMockBenchmark:
         azure = _mock_benchmark("azure")
         ollama = _mock_benchmark("ollama")
         assert ollama.cost_per_query_eur < azure.cost_per_query_eur
+
+
+# -----------------------------------------------------------------------
+# Gap 4: Financial extraction prompts
+# -----------------------------------------------------------------------
+
+
+class TestFinancialExtractionPrompts:
+    """Benchmark includes financial extraction prompts with ground truth."""
+
+    def test_financial_prompts_exist(self):
+        """FINANCIAL_EXTRACTION_PROMPTS list exists and has >= 5 entries."""
+        assert len(FINANCIAL_EXTRACTION_PROMPTS) >= 5
+
+    def test_financial_prompts_have_expected_value(self):
+        """Each financial prompt has expected_value (numeric ground truth)."""
+        for p in FINANCIAL_EXTRACTION_PROMPTS:
+            assert "expected_value" in p, (
+                f"Prompt {p['id']} missing expected_value"
+            )
+            assert isinstance(p["expected_value"], (int, float))
+
+    def test_financial_prompts_have_category(self):
+        """All financial prompts are in 'financial_extraction' category."""
+        for p in FINANCIAL_EXTRACTION_PROMPTS:
+            assert p["category"] == "financial_extraction"
+
+    def test_financial_prompts_included_in_main_list(self):
+        """Financial prompts are part of BENCHMARK_PROMPTS."""
+        financial_ids = {p["id"] for p in FINANCIAL_EXTRACTION_PROMPTS}
+        main_ids = {p["id"] for p in BENCHMARK_PROMPTS}
+        assert financial_ids.issubset(main_ids), (
+            f"Missing from BENCHMARK_PROMPTS: {financial_ids - main_ids}"
+        )
+
+    def test_financial_prompts_have_unique_ids(self):
+        """All financial prompt IDs are unique."""
+        ids = [p["id"] for p in FINANCIAL_EXTRACTION_PROMPTS]
+        assert len(ids) == len(set(ids))
+
+
+# -----------------------------------------------------------------------
+# Gap 4: Numerical extraction accuracy check
+# -----------------------------------------------------------------------
+
+
+class TestNumericalExtractionCheck:
+    """check_numerical_extraction extracts and compares EUR amounts."""
+
+    def test_exact_match(self):
+        """Response containing exact expected value returns True."""
+        result = check_numerical_extraction(
+            "The rate is 0.45 EUR per kg.", 0.45
+        )
+        assert result is True
+
+    def test_close_match_within_tolerance(self):
+        """Response with value within 0.01 tolerance returns True."""
+        result = check_numerical_extraction(
+            "The extracted rate is 0.4501 per kilogram.", 0.45
+        )
+        assert result is True
+
+    def test_no_match(self):
+        """Response without the expected value returns False."""
+        result = check_numerical_extraction(
+            "I cannot extract any rate from this text.", 0.45
+        )
+        assert result is False
+
+    def test_wrong_value(self):
+        """Response with different value returns False."""
+        result = check_numerical_extraction(
+            "The rate is 0.65 EUR per kg.", 0.45
+        )
+        assert result is False
+
+    def test_large_value_extraction(self):
+        """Large EUR amount (850.00) is correctly detected."""
+        result = check_numerical_extraction(
+            '{"rate": 850.00, "currency": "EUR"}', 850.0
+        )
+        assert result is True
+
+    def test_extracts_from_json(self):
+        """Value extracted from JSON response."""
+        result = check_numerical_extraction(
+            '{"rate": 0.45, "currency": "EUR", "unit": "kg"}', 0.45
+        )
+        assert result is True
+
+    def test_empty_response(self):
+        """Empty response returns False."""
+        result = check_numerical_extraction("", 0.45)
+        assert result is False

@@ -75,22 +75,33 @@
 | Ollama latency (mean, live, qwen3:8b) | 50,706 ms | Live benchmark: skewed by reasoning category |
 | Ollama throughput (live) | 19.9 tok/s | Live benchmark on Apple Silicon |
 | Ollama accuracy (live) | 100% | 15/15 queries returned expected keywords |
-| Ollama latency (mock, dry-run) | 800 ms | Simulated baseline for comparison scenarios |
-| Azure latency (mock, dry-run) | 350 ms | Simulated baseline for comparison scenarios |
-| Azure throughput (mock) | 75 tok/s | Simulated |
-| Ollama throughput (mock) | 35 tok/s | Simulated |
-| Azure cost per query (mock) | EUR 0.005 | Based on gpt-4o pricing: $2.50/1M input + $10.00/1M output |
+| Ollama latency (simulated, dry-run) | 800 ms | **(simulated)** Hardcoded in _mock_benchmark(), not measured. Placeholder for comparison framing only. |
+| Azure latency (simulated, dry-run) | 350 ms | **(simulated)** Hardcoded in _mock_benchmark(), not measured. |
+| Azure throughput (simulated) | 75 tok/s | **(simulated)** Hardcoded, not measured. Requires Azure credentials for real data. |
+| Ollama throughput (simulated) | 35 tok/s | **(simulated)** Hardcoded, not measured. Live throughput is 19.9 tok/s (see above). |
+| Azure cost per query (formula) | EUR 0.005 | Formula-based: gpt-4o pricing $2.50/1M input + $10.00/1M output. Correct formula, but average token counts are estimated. |
 | Ollama cost per query | EUR 0.00 | Zero marginal cost — hardware is fixed |
-| Ollama accuracy (mock) | 87% | Simulated — 6% gap vs cloud (93%). Live test showed 100% on keyword match (easier bar). |
+| Ollama accuracy (simulated) | 87% | **(simulated)** Hardcoded ratio from _mock_benchmark(). NOT a measured benchmark. See reconciliation note below. |
 | Model download size (qwen3:8b) | ~4.7 GB | Ollama manages download/storage |
 | Model download size (nomic-embed-text) | ~274 MB | Ollama manages download/storage |
 | Integration tests passing | 10/10 | 6 LLM + 4 embedding (with nomic-embed-text pulled) |
 | Unit + red team tests | 107 new | 37 + 13 + 13 + 8 + 17 + 19 = 107 |
 
+**Accuracy Reconciliation (mock 87% vs live 100%):**
+
+These are different metrics measuring different things. Neither is a rigorous quality comparison:
+- **87% (mock):** Hardcoded ratio in `_mock_benchmark()` dry-run function. Not measured against real data. Exists only to demonstrate the comparison script's output format.
+- **100% (live, keyword match):** 15/15 queries contained expected keywords (e.g., response contains "430"). Keyword presence is a weak accuracy signal -- "contains 430" does not prove the model computed 100 * 4.3 correctly vs producing a paragraph that incidentally mentions "430."
+- **True accuracy gap:** Unknown. Requires running both providers on identical prompts with semantic evaluation (numerical extraction accuracy, not keyword presence). Financial extraction precision tests (below) begin to close this gap.
+
+**Dev-Machine Latency Disclaimer:**
+
+The 29-second p50 latency is from development hardware only (Apple Silicon, qwen3:8b, sequential inference). Production Linux/NVIDIA with vLLM would be 5-20x faster (projected 1.5-6s p50). This number measures Protocol abstraction correctness (zero overhead from the provider swap) and model functional correctness -- not production performance. Do not use this number in production capacity planning or sales conversations.
+
 **Architect Framing:**
 
 - **DECISION**: When should an enterprise deploy local inference instead of cloud?
-- **RECOMMENDATION**: Deploy local when regulatory constraints (GDPR Art. 44, data residency, air-gapped networks) prohibit cloud API calls. The 6% quality gap and 2-10x latency increase are acceptable costs for data sovereignty. Cloud is cheaper at <10K queries/day when regulations allow.
+- **RECOMMENDATION**: Deploy local when regulatory constraints (GDPR Art. 44, data residency, air-gapped networks) prohibit cloud API calls. The accuracy gap is directionally estimated (6%, not yet measured -- see reconciliation above) and the latency increase on dev hardware is irrelevant to production. Cloud is cheaper at <10K queries/day when regulations allow.
 - **WHEN THIS CHANGES**: At >10K queries/day, local amortized hardware cost drops below cloud API costs. At that point, local wins on BOTH cost and compliance. Switch to vLLM on Linux/NVIDIA for production throughput.
 - **COST OF WRONG CHOICE**: Choosing cloud when regulations prohibit it = non-compliance (fines, contract breach). Choosing local when cloud is allowed at <1K queries/day = 10x slower responses for no compliance benefit.
 
@@ -113,6 +124,11 @@
 
 - Live Azure benchmark comparison requires Azure OpenAI credentials and `--provider azure` flag. Mock comparison provides the architect framing; live numbers fill the gaps when Azure is available.
 - Langfuse tracing for local models is architecturally ready (LangfuseHandler from Phase 4 accepts any trace) but wiring is deferred to Phase 12.
+- **[Review Finding] Mock vs live accuracy contradiction.** Tracker shows 87% mock accuracy AND 100% live keyword accuracy -- these measure different things (mock = hardcoded ratio, live = keyword presence). The true accuracy comparison requires running both providers on the same benchmark with semantic evaluation. Content agents must not present 87% as a measured result.
+- **[Review Finding] Dev-machine latency (29s p50) must be dismissed in content.** Apple Silicon + qwen3:8b sequential inference is not representative of production. Production Linux/NVIDIA + vLLM would be 5-20x faster. Content must frame this as "Protocol correctness measurement, not production performance."
+- **[Review Finding — ADDRESSED] Financial extraction precision now partially benchmarked.** Unit tests verify the ReaderAgent's parsing logic handles EUR amounts in different formats (basic, Polish "1.234,56", quantization edge cases, multi-rate contracts, volume thresholds). Integration tests with real Ollama verify end-to-end extraction on Polish contract text. The remaining gap: running the full Phase 2 52-query ground truth through the local model for a statistically significant quality comparison. That belongs in Phase 7 (routing thresholds need the quality data).
+- **[Review Finding — ADDRESSED] Four tracker metrics labeled as "(simulated)".** Azure latency, Azure throughput, mock accuracy, and mock throughput are now clearly labeled "(simulated)" in the benchmarks table.
+- **[Open] Quantization Precision Not Yet Benchmarked.** The analysis identified quantization (Q4_K_M) precision on financial calculations as the highest-risk technical decision in the entire project. Unit tests now verify parsing logic handles EUR amounts correctly, but we have NOT benchmarked whether the quantized model itself produces correct financial values under stress (e.g., long contracts with ambiguous rate clauses, multi-currency scenarios). This is the Phase 7 content hook: "We tested quantized local models on real invoice data."
 
 ## Content Status
 

@@ -16,6 +16,7 @@
 - [x] `docker-compose.airgap.yml` — Ollama service, API overrides, health check (13 tests, 930 total)
 - [ ] `scripts/benchmark_local.py` — latency + throughput: Azure vs local
 - [x] Provider swap tests + RBAC independence (8 tests, 938 total)
+- [x] Red team tests -- 6 attack categories, 17 tests (955 total)
 - [ ] `tests/integration/test_local_inference.py` — Ollama integration tests
 - [ ] `docs/adr/004-ollama-over-vllm.md`
 

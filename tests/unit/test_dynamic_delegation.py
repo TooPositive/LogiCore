@@ -139,6 +139,78 @@ class TestNeedsLegalContext:
 
         assert needs_legal_context(discrepancies) is True
 
+    def test_penalty_keyword_triggers(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "Rate includes late delivery penalty",
+                "band": DiscrepancyBand.ESCALATE.value,
+                "percentage": Decimal("7.0"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
+    def test_annex_keyword_triggers(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "Rate per annex B of contract",
+                "band": DiscrepancyBand.INVESTIGATE.value,
+                "percentage": Decimal("4.0"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
+    def test_rider_keyword_triggers(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "Contract rider specifies different rate",
+                "band": DiscrepancyBand.ESCALATE.value,
+                "percentage": Decimal("9.0"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
+    def test_modification_keyword_triggers(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "Rate modification pending review",
+                "band": DiscrepancyBand.INVESTIGATE.value,
+                "percentage": Decimal("2.5"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
+    def test_protocol_keyword_triggers(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "Pricing protocol updated last quarter",
+                "band": DiscrepancyBand.ESCALATE.value,
+                "percentage": Decimal("6.0"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
+    def test_case_insensitive_matching(self):
+        from apps.api.src.graphs.compliance_subgraph import needs_legal_context
+
+        discrepancies = [
+            {
+                "description": "AMENDMENT to contract terms",
+                "band": DiscrepancyBand.ESCALATE.value,
+                "percentage": Decimal("10.0"),
+            }
+        ]
+        assert needs_legal_context(discrepancies) is True
+
 
 class TestComplianceSubgraph:
     """Compliance sub-agent graph for legal context retrieval."""

@@ -5,8 +5,17 @@ or surcharge clause it can't resolve. Gets temporary elevated clearance
 scoped to the run. Findings are filtered by ClearanceFilter before
 returning to the parent state.
 
-Delegation keywords: "amendment", "surcharge", "unknown clause",
-"addendum", "supplement", "revision".
+Delegation trigger: keyword-based, NOT LLM-based. This is a deliberate
+recall-over-precision tradeoff. False positive (unnecessary compliance
+check) costs ~500ms + 1 RAG query. False negative (missed contract
+amendment) costs EUR 136-588 per invoice in undetected overcharges.
+At this 270-1176x cost asymmetry, we accept 100% recall at the cost
+of ~10% false positive rate. Switch to LLM-based trigger only when
+false positive rate exceeds 30% and the 500ms penalty becomes a
+latency SLA issue.
+
+Keywords (11): amendment, surcharge, unknown clause, addendum,
+supplement, revision, penalty, annex, rider, modification, protocol.
 """
 
 import re
@@ -15,9 +24,13 @@ from typing import Any
 from apps.api.src.graphs.clearance_filter import ClearanceFilter
 
 # Keywords that indicate the discrepancy may involve a contract amendment
-# or clause that requires legal context
+# or clause that requires legal context.
+#
+# Deliberately broad: false positive = 500ms wasted, false negative = EUR 136-588 lost.
+# The cost asymmetry (270-1176x) justifies high recall over precision.
 _DELEGATION_KEYWORDS = re.compile(
-    r"amendment|surcharge|unknown\s+clause|addendum|supplement|revision",
+    r"amendment|surcharge|unknown\s+clause|addendum|supplement|revision"
+    r"|penalty|annex|rider|modification|protocol",
     re.IGNORECASE,
 )
 

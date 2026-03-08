@@ -93,7 +93,12 @@ class TestOllamaLLMIntegration:
 
     @pytest.mark.asyncio
     async def test_latency_is_reasonable(self):
-        """Response completes within 60 seconds for a simple query."""
+        """Response completes within 120 seconds for a simple query.
+
+        Note: 120s threshold accounts for dev hardware (Apple Silicon)
+        and models with thinking mode (qwen3 emits <think> tokens).
+        Production Linux/NVIDIA targets <10s.
+        """
         from apps.api.src.core.infrastructure.llm.ollama import OllamaProvider
 
         provider = OllamaProvider(
@@ -103,7 +108,7 @@ class TestOllamaLLMIntegration:
 
         result = await provider.generate("Say 'hello' in Polish.")
 
-        assert result.latency_ms < 60_000  # 60 seconds max
+        assert result.latency_ms < 120_000  # 120s for dev hardware + think tokens
         assert result.latency_ms > 0
 
     @pytest.mark.asyncio

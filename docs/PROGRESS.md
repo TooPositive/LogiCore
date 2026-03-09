@@ -15,7 +15,7 @@
 | 5 | Assessment Rigor (Judge Bias) | CODE COMPLETE | 100% | 100% (198 new, 867 total) | draft | draft | Phase 4 |
 | 6 | Air-Gapped Vault (Local Inference) | TESTED | 100% | 100% (160 new, 1017 total) | draft | draft | Phases 1-3 |
 | 7 | Resilience Engineering | TESTED | 100% | 100% (182 new, 1199 total) | draft | draft | Phase 6 |
-| 8 | Regulatory Shield (EU AI Act) | CODE COMPLETE | 100% | 100% (185 new, 1250 total) | — | — | Phases 1-3 |
+| 8 | Regulatory Shield (EU AI Act) | TESTED | 100% | 100% (196 new, 1261 total) | draft | draft | Phases 1-3 |
 | 9 | Fleet Guardian (Kafka Streaming) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 10 | LLM Firewall (Security) | NOT STARTED | 0% | 0% | — | — | Phases 1-6 |
 | 11 | Tool Standards (MCP) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
@@ -23,6 +23,8 @@
 | R | Core Extraction (domain-agnostic refactor) | DONE | 100% | 100% (867 passing, 0 regressions) | — | — | — |
 
 **Phase 6 Note**: 160 new tests = 141 unit/red-team (no external deps) + 14 integration (require running Ollama) + 5 live financial extraction. Review gaps addressed: 21 financial extraction precision tests, 13 Polish quality tests, 12 benchmark enhancement tests, <think> tag fix. Live Ollama: 10/10 EUR rate extraction (5 English + 5 Polish). Total project tests: 1017 (without integration/live).
+
+**Phase 8 Note**: 196 new tests across 3 milestones: M1 Core Audit Logging (79), M2 Security Hardening (63), M3 Lineage & Reporting (43), + 11 review fixes. Review: 28/30 PROCEED. Key decisions: three-layer immutability (DB REVOKE + frozen Pydantic + SHA-256 hash chain), PII vault resolving GDPR/AI Act conflict, atomic checkpoint+audit transactions, advisory lock for hash chain concurrency. 648:1 cost ratio (EUR 5,400/yr logging vs EUR 3.5M fine).
 
 **Legend**: Status = NOT STARTED / IN PROGRESS / CODE COMPLETE / TESTED / CONTENT PUBLISHED
 LinkedIn/Medium = — / draft / reviewed / published (date)

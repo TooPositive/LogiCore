@@ -16,7 +16,7 @@
 | 6 | Air-Gapped Vault (Local Inference) | TESTED | 100% | 100% (160 new, 1017 total) | draft | draft | Phases 1-3 |
 | 7 | Resilience Engineering | TESTED | 100% | 100% (182 new, 1199 total) | draft | draft | Phase 6 |
 | 8 | Regulatory Shield (EU AI Act) | TESTED | 100% | 100% (196 new, 1261 total) | draft | draft | Phases 1-3 |
-| 9 | Fleet Guardian (Kafka Streaming) | CODE COMPLETE | 100% | 100% (139 new, 1400 total) | — | — | Phases 1-3 |
+| 9 | Fleet Guardian (Kafka Streaming) | TESTED | 100% | 100% (139 new, 1400 total) | — | — | Phases 1-3 |
 | 10 | LLM Firewall (Security) | NOT STARTED | 0% | 0% | — | — | Phases 1-6 |
 | 11 | Tool Standards (MCP) | NOT STARTED | 0% | 0% | — | — | Phases 1-3 |
 | 12 | Full Stack Demo | NOT STARTED | 0% | 0% | — | — | Phases 1-11 |
@@ -26,7 +26,7 @@
 
 **Phase 8 Note**: 196 new tests across 3 milestones: M1 Core Audit Logging (79), M2 Security Hardening (63), M3 Lineage & Reporting (43), + 11 review fixes. Review: 28/30 PROCEED. Key decisions: three-layer immutability (DB REVOKE + frozen Pydantic + SHA-256 hash chain), PII vault resolving GDPR/AI Act conflict, atomic checkpoint+audit transactions, advisory lock for hash chain concurrency. 648:1 cost ratio (EUR 5,400/yr logging vs EUR 3.5M fine).
 
-**Phase 9 Note**: 139 new tests across 8 test files (28 models + 12 kafka + 25 detector + 16 memory + 17 graph + 12 API + 9 agent + 10 simulator) + 10 E2E pipeline tests. Key: two-tier processing (100% normal event filter rate = EUR 0.075/day vs EUR 662/day), rate-of-change drift detection (catches EUR 207K slow-drift incidents threshold-only misses), 3-tier cross-session memory (stateless vs memory produces different responses), alert deduplication (1 alert from 20 identical readings). Deferred: Next.js dashboard, real Kafka integration tests, Langfuse wiring (Phase 12 scope).
+**Phase 9 Note**: 139 new tests across 8 test files (28 models + 12 kafka + 25 detector + 16 memory + 17 graph + 12 API + 9 agent + 10 simulator) + 10 E2E pipeline tests. Review: 27/30 PROCEED. Key: two-tier processing (100% normal event filter rate = EUR 0.075/day vs EUR 662/day), rate-of-change drift detection (catches EUR 207K slow-drift incidents threshold-only misses), 3-tier cross-session memory (stateless vs memory produces different responses), alert deduplication (1 alert from 20 identical readings). Deferred: Next.js dashboard, real Kafka integration tests, Langfuse wiring (Phase 12 scope).
 
 **Legend**: Status = NOT STARTED / IN PROGRESS / CODE COMPLETE / TESTED / CONTENT PUBLISHED
 LinkedIn/Medium = — / draft / reviewed / published (date)

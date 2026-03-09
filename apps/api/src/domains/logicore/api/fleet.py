@@ -9,7 +9,7 @@ GET  /api/v1/fleet/consumer/health     -- Kafka consumer health status
 WS   /api/v1/fleet/ws                 -- real-time alert stream via WebSocket
 """
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect

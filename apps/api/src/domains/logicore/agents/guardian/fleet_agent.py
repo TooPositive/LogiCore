@@ -11,7 +11,7 @@ viable: 99.95% cost reduction vs LLM-for-everything.
 
 import logging
 from collections.abc import Callable, Coroutine
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (

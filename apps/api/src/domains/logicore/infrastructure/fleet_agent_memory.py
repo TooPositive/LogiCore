@@ -9,7 +9,6 @@ All queries use parameterized SQL -- no string interpolation.
 """
 
 import logging
-from datetime import UTC, datetime
 from typing import Any
 
 from apps.api.src.domains.logicore.models.fleet import FleetMemoryEntry

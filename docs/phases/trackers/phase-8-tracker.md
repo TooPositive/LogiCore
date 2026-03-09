@@ -196,5 +196,5 @@
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | — | | |
-| Medium article | — | | |
+| LinkedIn post | draft | 2026-03-09 | Hook: regulator reconstruction scenario, 648:1 ratio, GDPR paradox |
+| Medium article | draft | 2026-03-09 | "The 648:1 Ratio" — 3400 words, 4 code blocks, 5 book refs |

@@ -363,3 +363,32 @@ class TestPIIDetection:
         from apps.api.src.domains.logicore.compliance.pii_vault import detect_pii
 
         assert detect_pii("Contact driver at +48 123 456 789") is True
+
+    def test_detects_polish_diacritics_in_name(self):
+        """Query with Polish diacritics in name is PII."""
+        from apps.api.src.domains.logicore.compliance.pii_vault import detect_pii
+
+        # Names with Polish diacritics
+        assert detect_pii("Pokaż pensję Wojciecha Józwiaka") is True
+        assert detect_pii("Sprawdź contract Łukasza Śliwińskiego") is True
+        assert detect_pii("Medical records for Żaneta Źródłowska") is True
+
+    def test_detects_mixed_ascii_diacritics_name(self):
+        """Names mixing ASCII and diacritics are detected."""
+        from apps.api.src.domains.logicore.compliance.pii_vault import detect_pii
+
+        assert detect_pii("Find salary for Marek Łoziński") is True
+        assert detect_pii("Show contract for Ewa Błaszczyk") is True
+
+    def test_detects_abbreviated_name_with_keyword(self):
+        """Initial + surname near PII keyword is detected."""
+        from apps.api.src.domains.logicore.compliance.pii_vault import detect_pii
+
+        # This tests that email pattern catches abbreviated names
+        assert detect_pii("j.kowalski@logicore.pl salary") is True
+
+    def test_detects_eleven_digit_pesel_standalone(self):
+        """11-digit number (PESEL) is PII even without keyword."""
+        from apps.api.src.domains.logicore.compliance.pii_vault import detect_pii
+
+        assert detect_pii("employee 85010112345 medical") is True

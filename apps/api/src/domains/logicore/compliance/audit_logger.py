@@ -141,6 +141,37 @@ INSERT INTO audit_log (
     is_degraded, provider_name, quality_drift_alert
 """
 
+# Same as _INSERT_SQL but with explicit created_at ($20) to ensure the
+# timestamp used in the hash chain matches what's stored in the DB.
+# Without this, datetime.now(UTC) used for hash computation would differ
+# from DEFAULT NOW() set by PostgreSQL, breaking chain verification.
+_INSERT_WITH_TIMESTAMP_SQL = """
+INSERT INTO audit_log (
+    user_id, query_text, retrieved_chunk_ids,
+    model_version, model_deployment, response_text,
+    hitl_approver_id, langfuse_trace_id, metadata, log_level,
+    prev_entry_hash, entry_hash,
+    prompt_tokens, completion_tokens, total_cost_eur, response_hash,
+    is_degraded, provider_name, quality_drift_alert,
+    created_at
+) VALUES (
+    $1, $2, $3::jsonb,
+    $4, $5, $6,
+    $7, $8, $9::jsonb, $10,
+    $11, $12,
+    $13, $14, $15, $16,
+    $17, $18, $19,
+    $20
+) RETURNING
+    id, created_at,
+    user_id, query_text, retrieved_chunk_ids,
+    model_version, model_deployment, response_text,
+    hitl_approver_id, langfuse_trace_id, metadata, log_level,
+    prev_entry_hash, entry_hash,
+    prompt_tokens, completion_tokens, total_cost_eur, response_hash,
+    is_degraded, provider_name, quality_drift_alert
+"""
+
 _SELECT_BY_ID_SQL = """
 SELECT
     id, created_at,
@@ -302,8 +333,10 @@ class AuditLogger:
             entry.response_text.encode("utf-8")
         ).hexdigest()
 
-        # We need created_at for the hash, but it's server-generated (DEFAULT NOW()).
-        # Use current time as close approximation; the DB will set the actual value.
+        # CRITICAL: Use the SAME timestamp for hash computation and DB INSERT.
+        # If we relied on DEFAULT NOW(), the DB-stored timestamp would differ
+        # from the one used in the hash, breaking chain verification on real
+        # PostgreSQL. Pass created_at as $20 to guarantee consistency.
         now = datetime.now(UTC)
 
         chain_hash = compute_chain_hash(
@@ -315,13 +348,13 @@ class AuditLogger:
             model_version=entry.model_version,
         )
 
-        # Step 4: Write with chain fields set
+        # Step 4: Write with chain fields + explicit created_at
         entry_hash = chain_hash
         metadata_json = json.dumps(entry.metadata)
         chunk_ids_json = json.dumps(entry.retrieved_chunk_ids)
 
         row = await conn.fetchrow(
-            _INSERT_SQL,
+            _INSERT_WITH_TIMESTAMP_SQL,
             entry.user_id,                    # $1
             entry.query_text,                 # $2
             chunk_ids_json,                   # $3
@@ -341,6 +374,7 @@ class AuditLogger:
             entry.is_degraded,                # $17
             entry.provider_name,              # $18
             entry.quality_drift_alert,        # $19
+            now,                              # $20 -- explicit created_at
         )
 
         return _row_to_audit_entry(row)

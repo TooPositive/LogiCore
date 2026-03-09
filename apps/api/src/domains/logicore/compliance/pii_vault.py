@@ -62,12 +62,18 @@ WHERE audit_entry_id = $1
 _PII_KEYWORDS = re.compile(
     r"\b(salary|contract|employment|health|medical|personal|"
     r"address|phone|pesel|nip|email|sick\s+leave|"
-    r"termination|dismissal|discipline)\b",
+    r"termination|dismissal|discipline|"
+    # Polish equivalents
+    r"pensj[aęy]|umow[aęy]|zatrudnien|zdrow|medyczn|osobow|"
+    r"adres|telefon|zwolnien|dyscyplin|wynagrodzeni)\b",
     re.IGNORECASE,
 )
 
-# Proper name: two+ capitalized words (e.g., "Jan Kowalski")
-_NAME_PATTERN = re.compile(r"[A-Z][a-z]+\s+[A-Z][a-z]+")
+# Proper name: two+ capitalized words including Polish diacritics
+# (ą, ć, ę, ł, ń, ó, ś, ź, ż and their uppercase equivalents)
+_UPPER = r"A-ZĄĆĘŁŃÓŚŹŻ"
+_LOWER = r"a-ząćęłńóśźż"
+_NAME_PATTERN = re.compile(rf"[{_UPPER}][{_LOWER}]+\s+[{_UPPER}][{_LOWER}]+")
 
 # Email pattern
 _EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")

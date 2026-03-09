@@ -60,12 +60,17 @@ WHERE created_at >= $1 AND created_at <= $2 AND is_degraded = TRUE
 # Bias threshold: >2x expected proportion
 _BIAS_THRESHOLD = 2.0
 
+# Minimum sample size below which bias detection returns "insufficient data".
+# With n<30, a 60/40 split is noise, not signal. Standard statistical practice
+# requires n≥30 for proportion-based tests to be meaningful.
+_MIN_SAMPLE_SIZE = 30
+
 
 def _detect_proportion_bias(
     rows: list[dict],
     total: int,
     group_key: str,
-) -> tuple[bool, list[str]]:
+) -> tuple[bool, list[str], bool]:
     """Check if any group has >2x its expected proportion.
 
     Args:
@@ -74,10 +79,13 @@ def _detect_proportion_bias(
         group_key: key name for the group label (e.g., 'department', 'model_version')
 
     Returns:
-        (bias_detected, list of flagged group names)
+        (bias_detected, list of flagged group names, insufficient_data)
     """
     if total == 0 or len(rows) == 0:
-        return False, []
+        return False, [], False
+
+    if total < _MIN_SAMPLE_SIZE:
+        return False, [], True
 
     num_groups = len(rows)
     expected_rate = 1.0 / num_groups
@@ -88,7 +96,7 @@ def _detect_proportion_bias(
         if actual_rate > expected_rate * _BIAS_THRESHOLD:
             flagged.append(row[group_key])
 
-    return len(flagged) > 0, flagged
+    return len(flagged) > 0, flagged, False
 
 
 class BiasDetector:
@@ -123,7 +131,7 @@ class BiasDetector:
             _TOTAL_DECISIONS_SQL, period_start, period_end
         )
 
-        bias_detected, flagged = _detect_proportion_bias(
+        bias_detected, flagged, insufficient = _detect_proportion_bias(
             dept_rows, total, "department"
         )
 
@@ -131,6 +139,7 @@ class BiasDetector:
             "bias_detected": bias_detected,
             "flagged_departments": flagged,
             "total_decisions": total,
+            "insufficient_data": insufficient,
             "department_counts": {
                 row["department"]: row["count"] for row in dept_rows
             },
@@ -161,7 +170,7 @@ class BiasDetector:
             _TOTAL_DECISIONS_SQL, period_start, period_end
         )
 
-        bias_detected, flagged = _detect_proportion_bias(
+        bias_detected, flagged, insufficient = _detect_proportion_bias(
             model_rows, total, "model_version"
         )
 
@@ -169,6 +178,7 @@ class BiasDetector:
             "bias_detected": bias_detected,
             "flagged_models": flagged,
             "total_decisions": total,
+            "insufficient_data": insufficient,
             "model_counts": {
                 row["model_version"]: row["count"] for row in model_rows
             },
@@ -239,7 +249,7 @@ class BiasDetector:
             _TOTAL_DEGRADED_SQL, period_start, period_end
         )
 
-        bias_detected, flagged = _detect_proportion_bias(
+        bias_detected, flagged, insufficient = _detect_proportion_bias(
             dept_rows, total, "department"
         )
 
@@ -247,6 +257,7 @@ class BiasDetector:
             "bias_detected": bias_detected,
             "flagged_departments": flagged,
             "total_degraded": total,
+            "insufficient_data": insufficient,
             "department_counts": {
                 row["department"]: row["count"] for row in dept_rows
             },

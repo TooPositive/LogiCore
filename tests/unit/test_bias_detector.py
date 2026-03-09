@@ -110,6 +110,109 @@ class TestDetectRoutingBias:
         assert result["flagged_departments"] == []
 
 
+class TestMinimumSampleSize:
+    """Bias detection must return insufficient_data when n < 30."""
+
+    @pytest.mark.asyncio
+    async def test_small_sample_returns_insufficient_data(
+        self, mock_conn, period
+    ):
+        """n=10 is too small for meaningful bias detection."""
+        from apps.api.src.domains.logicore.compliance.bias_detector import (
+            BiasDetector,
+        )
+
+        # Even with extreme imbalance, n=10 is insufficient
+        dept_rows = [
+            {"department": "logistics", "count": 9},
+            {"department": "finance", "count": 1},
+        ]
+        mock_conn.fetch = AsyncMock(return_value=dept_rows)
+        mock_conn.fetchval = AsyncMock(return_value=10)
+
+        detector = BiasDetector()
+        result = await detector.detect_routing_bias(
+            mock_conn, period[0], period[1]
+        )
+
+        assert result["bias_detected"] is False
+        assert result["insufficient_data"] is True
+
+    @pytest.mark.asyncio
+    async def test_sufficient_sample_enables_detection(
+        self, mock_conn, period
+    ):
+        """n=100 is sufficient — bias detection works normally."""
+        from apps.api.src.domains.logicore.compliance.bias_detector import (
+            BiasDetector,
+        )
+
+        # 3 depts: expected=33%. logistics=80% -> ratio=2.4x > 2x -> bias
+        dept_rows = [
+            {"department": "logistics", "count": 80},
+            {"department": "finance", "count": 10},
+            {"department": "compliance", "count": 10},
+        ]
+        mock_conn.fetch = AsyncMock(return_value=dept_rows)
+        mock_conn.fetchval = AsyncMock(return_value=100)
+
+        detector = BiasDetector()
+        result = await detector.detect_routing_bias(
+            mock_conn, period[0], period[1]
+        )
+
+        assert result["bias_detected"] is True
+        assert result["insufficient_data"] is False
+
+    @pytest.mark.asyncio
+    async def test_boundary_at_30_enables_detection(
+        self, mock_conn, period
+    ):
+        """n=30 is the minimum — bias detection should work."""
+        from apps.api.src.domains.logicore.compliance.bias_detector import (
+            BiasDetector,
+        )
+
+        dept_rows = [
+            {"department": "logistics", "count": 25},
+            {"department": "finance", "count": 5},
+        ]
+        mock_conn.fetch = AsyncMock(return_value=dept_rows)
+        mock_conn.fetchval = AsyncMock(return_value=30)
+
+        detector = BiasDetector()
+        result = await detector.detect_routing_bias(
+            mock_conn, period[0], period[1]
+        )
+
+        # 25/30 = 83%, expected = 50%, ratio = 1.67x — NOT > 2x, so no bias
+        assert result["insufficient_data"] is False
+
+    @pytest.mark.asyncio
+    async def test_model_preference_also_checks_sample_size(
+        self, mock_conn, period
+    ):
+        """Model preference bias also respects minimum sample size."""
+        from apps.api.src.domains.logicore.compliance.bias_detector import (
+            BiasDetector,
+        )
+
+        model_rows = [
+            {"model_version": "gpt-5.2", "count": 8},
+            {"model_version": "ollama", "count": 2},
+        ]
+        mock_conn.fetch = AsyncMock(return_value=model_rows)
+        mock_conn.fetchval = AsyncMock(return_value=10)
+
+        detector = BiasDetector()
+        result = await detector.detect_model_preference_bias(
+            mock_conn, period[0], period[1]
+        )
+
+        assert result["insufficient_data"] is True
+        assert result["bias_detected"] is False
+
+
 class TestDetectModelPreferenceBias:
     """detect_model_preference_bias(conn, period_start, period_end) -> dict."""
 
@@ -249,17 +352,18 @@ class TestGenerateFairnessReport:
         ]
         # Degraded: concentrated in logistics (3 depts, 75% in logistics)
         # Expected per dept = 33%. Actual logistics = 75%. 75/33 = 2.27x > 2x
+        # Total must be >= 30 (minimum sample size for bias detection)
         degraded_dept_rows = [
-            {"department": "logistics", "count": 15},
-            {"department": "finance", "count": 3},
-            {"department": "compliance", "count": 2},
+            {"department": "logistics", "count": 24},
+            {"department": "finance", "count": 4},
+            {"department": "compliance", "count": 4},
         ]
 
         mock_conn.fetch = AsyncMock(
             side_effect=[dept_rows, model_rows, degraded_dept_rows]
         )
         mock_conn.fetchval = AsyncMock(
-            side_effect=[100, 100, 20]
+            side_effect=[100, 100, 32]
         )
 
         detector = BiasDetector()

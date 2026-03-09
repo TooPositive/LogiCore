@@ -91,6 +91,154 @@ def mock_conn():
     return conn
 
 
+class TestHashChainTimestampConsistency:
+    """Verify hash chain uses the same timestamp for computation and storage.
+
+    CRITICAL: The hash chain's tamper evidence relies on the timestamp used
+    in compute_chain_hash matching the created_at stored in PostgreSQL.
+    If write_with_hash_chain uses datetime.now() but the DB uses DEFAULT NOW(),
+    the timestamps differ and verify_hash_chain will report every entry as
+    tampered. This test catches that bug by verifying the INSERT receives
+    the explicit created_at parameter ($20).
+    """
+
+    @pytest.mark.asyncio
+    async def test_write_passes_created_at_as_sql_parameter(self, mock_conn):
+        """write_with_hash_chain must pass created_at to INSERT, not rely on DEFAULT NOW()."""
+        from apps.api.src.domains.logicore.compliance.audit_logger import AuditLogger
+
+        entry_create = _make_entry_create()
+        row = _make_db_row()
+
+        mock_conn.fetchval = AsyncMock(return_value=None)
+        mock_conn.fetchrow = AsyncMock(return_value=row)
+        mock_conn.execute = AsyncMock()
+
+        logger = AuditLogger()
+        await logger.write_with_hash_chain(mock_conn, entry_create)
+
+        # fetchrow should be called with 20 params ($1-$20), not 19
+        call_args = mock_conn.fetchrow.call_args
+        sql = call_args[0][0]
+        params = call_args[0][1:]
+
+        assert "$20" in sql, "INSERT must include $20 for explicit created_at"
+        assert len(params) == 20, f"Expected 20 params, got {len(params)}"
+        # Last param should be a datetime (the explicit created_at)
+        assert isinstance(params[19], datetime), "Param $20 must be a datetime"
+
+    @pytest.mark.asyncio
+    async def test_hash_uses_same_timestamp_as_stored(self, mock_conn):
+        """The hash computed during write uses the exact timestamp passed to INSERT."""
+        from apps.api.src.domains.logicore.compliance.audit_logger import (
+            AuditLogger,
+            compute_chain_hash,
+        )
+
+        entry_create = _make_entry_create()
+        captured_params = {}
+
+        async def capture_fetchrow(sql, *args, **kwargs):
+            captured_params["sql"] = sql
+            captured_params["args"] = args
+            # Return a row with the SAME created_at that was passed in
+            created_at = args[19] if len(args) >= 20 else datetime.now(UTC)
+            return _make_db_row(created_at=created_at, entry_hash=args[11])
+
+        mock_conn.fetchval = AsyncMock(return_value=None)
+        mock_conn.fetchrow = capture_fetchrow
+        mock_conn.execute = AsyncMock()
+
+        logger = AuditLogger()
+        result = await logger.write_with_hash_chain(mock_conn, entry_create)
+
+        # Recompute hash using the stored created_at — must match entry_hash
+        stored_created_at = captured_params["args"][19]
+        query_hash = hashlib.sha256(
+            entry_create.query_text.encode("utf-8")
+        ).hexdigest()
+        response_hash_val = hashlib.sha256(
+            entry_create.response_text.encode("utf-8")
+        ).hexdigest()
+
+        recomputed = compute_chain_hash(
+            prev_hash=None,
+            created_at=stored_created_at,
+            user_id=entry_create.user_id,
+            query_hash=query_hash,
+            response_hash=response_hash_val,
+            model_version=entry_create.model_version,
+        )
+
+        assert result.entry_hash == recomputed, (
+            "Hash stored in DB must match recomputation using the same timestamp"
+        )
+
+    @pytest.mark.asyncio
+    async def test_chain_verification_passes_after_write(self, mock_conn):
+        """Write + verify round-trip: chain must validate when timestamps match."""
+        from apps.api.src.domains.logicore.compliance.audit_logger import (
+            AuditLogger,
+        )
+
+        written_entries = []
+
+        async def simulate_write(sql, *args, **kwargs):
+            if "$20" in sql and len(args) >= 20:
+                # Simulate DB returning the exact created_at we passed
+                created_at = args[19]
+                entry_hash = args[11]
+                prev_hash = args[10]
+                row = _make_db_row(
+                    created_at=created_at,
+                    entry_hash=entry_hash,
+                    prev_entry_hash=prev_hash,
+                    user_id=args[0],
+                    query_text=args[1],
+                    response_text=args[5],
+                    model_version=args[3],
+                )
+                written_entries.append(row)
+                return row
+            return _make_db_row()
+
+        mock_conn.fetchrow = simulate_write
+        mock_conn.execute = AsyncMock()
+
+        logger = AuditLogger()
+
+        # Write 3 entries
+        for i in range(3):
+            prev = written_entries[-1]["entry_hash"] if written_entries else None
+            mock_conn.fetchval = AsyncMock(return_value=prev)
+
+            entry = _make_entry_create(
+                user_id=f"user-{i}",
+                query_text=f"Query {i}",
+                response_text=f"Response {i}",
+            )
+            await logger.write_with_hash_chain(mock_conn, entry)
+
+        # Now verify the chain using the written entries
+        chain_rows = [
+            {
+                "prev_entry_hash": e["prev_entry_hash"],
+                "entry_hash": e["entry_hash"],
+                "created_at": e["created_at"],
+                "user_id": e["user_id"],
+                "query_text": e["query_text"],
+                "response_text": e["response_text"],
+                "model_version": e["model_version"],
+            }
+            for e in written_entries
+        ]
+        mock_conn.fetch = AsyncMock(return_value=chain_rows)
+
+        valid, broken_index = await logger.verify_hash_chain(mock_conn)
+        assert valid is True, f"Chain should be valid but broke at index {broken_index}"
+        assert broken_index is None
+
+
 class TestHashChainWrite:
     """write_with_hash_chain: appends entry with prev_hash from last entry."""
 

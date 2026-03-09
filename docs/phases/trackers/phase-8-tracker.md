@@ -3,7 +3,7 @@
 **Status**: CODE COMPLETE (M1+M2+M3 ALL COMPLETE)
 **Spec**: `docs/phases/phase-8-regulatory-shield.md`
 **Depends on**: Phases 1-3
-**Tests**: 185 new (79 M1 + 63 M2 + 43 M3)
+**Tests**: 196 new (79 M1 + 63 M2 + 43 M3 + 11 fixes)
 
 ## Milestones
 
@@ -138,8 +138,8 @@
 | M1 test count | 79 new tests | 25 models + 31 schema + 16 logger + 7 atomic |
 | M2 test count | 63 new tests | 15 hash chain + 20 PII vault + 13 langfuse snapshot + 15 RBAC |
 | M3 test count | 43 new tests | 13 lineage + 11 report + 8 bias + 11 API |
-| Total Phase 8 tests | 185 | 79 M1 + 63 M2 + 43 M3, 0 failures |
-| Total project tests | 1250 unit | 0 regressions from Phase 8 |
+| Total Phase 8 tests | 196 | 79 M1 + 63 M2 + 43 M3 + 11 fixes, 0 failures |
+| Total project tests | 1261 unit | 0 regressions from Phase 8 |
 | SQL parameters per INSERT | 19 ($1-$19) audit_log, 4 ($1-$4) doc versions, 5 ($1-$5) chunk versions | Zero string interpolation in any query across all 3 migrations |
 | Fields per audit entry | 21 | Core Article 12 + hash chain + Langfuse snapshot + degraded mode |
 | UPDATE/DELETE rejection test | PASS | REVOKE in migration, validated by schema tests |
@@ -175,6 +175,22 @@
 - ~~M2: Advisory lock strategy for hash chain under concurrent writes~~ RESOLVED: pg_advisory_xact_lock(8_000_000_001) serializes within transaction
 - ~~M2: AES-256-GCM key management for PII vault~~ RESOLVED: Injectable encrypt_fn/decrypt_fn, production uses Azure Key Vault
 - ~~M3: Compliance report format — JSON only or also PDF/HTML?~~ RESOLVED: JSON only. PDF/HTML is a presentation concern for the frontend. Add if regulators require printable reports.
+
+### From Phase 8 Review (2026-03-09, Score 25/30, FIX FIRST)
+
+- ~~**[CRITICAL] Hash chain timestamp mismatch**~~ FIXED: `_INSERT_WITH_TIMESTAMP_SQL` passes `created_at` as `$20`. 3 new tests verify timestamp consistency.
+- ~~**[MODERATE] PII detection misses Polish diacritics**~~ FIXED: `_NAME_PATTERN` now uses `[A-ZACELNOSZZZ]` (with actual diacritical chars). Polish keywords added. 4 new tests.
+- **[MODERATE] Lineage endpoint has no RBAC**: GET `/lineage/{doc_id}` is unrestricted. Deferred to Phase 10 JWT middleware.
+- ~~**[LOW] Bias detection minimum sample size undefined**~~ FIXED: `_MIN_SAMPLE_SIZE = 30`. Returns `insufficient_data=True` when n < 30. 4 new tests.
+- **[LOW] Hash chain verify endpoint has no RBAC**: GET `/hash-chain/verify` is unrestricted. Deferred to Phase 10.
+- **Benchmark expansion (Phase 10/12)**: Hash chain on real PostgreSQL (integration), PII detection obfuscated names + Unicode normalization, report generation at 10K+ entries, bias detection chi-squared at n>10K, JWT-based RBAC replacing query param.
+
+### From Phase 8 Re-Review (2026-03-09, Score 28/30, PROCEED)
+
+- All 3 fixes verified correct and tested (11 new tests total)
+- **Remaining framing gap**: Tracker metrics read as counts, not architect conclusions. "PII detection cases: 12" should frame coverage + remaining gaps + Phase 10 teaser. Non-blocking.
+- **Remaining evidence gap**: PROGRESS.md missing Phase 8 sprint summary. Documentation-only fix needed.
+- **Remaining deferred items**: Lineage + hash-chain endpoints need RBAC (Phase 10 JWT). No integration tests on real PostgreSQL (Phase 12). Performance benchmarks TBD (Phase 12).
 
 ## Content Status
 

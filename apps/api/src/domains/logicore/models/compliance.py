@@ -131,6 +131,7 @@ class ComplianceReport(BaseModel):
     hitl_approval_count: int = Field(ge=0)
     total_cost_eur: Decimal = Field(ge=Decimal("0"))
     generated_by: str
+    metadata: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def period_end_after_start(self) -> "ComplianceReport":

@@ -8,14 +8,11 @@ All external dependencies (LLM, RAG, Redis, PostgreSQL) are mocked.
 """
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock, MagicMock
 
 from apps.api.src.domains.logicore.models.fleet import (
     AlertSeverity,
     AlertType,
-    FleetAlert,
     FleetMemoryEntry,
 )
 

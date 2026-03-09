@@ -11,9 +11,7 @@ Tests use mocks for Redis and PostgreSQL -- no Docker needed.
 import json
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock, MagicMock
 
 from apps.api.src.domains.logicore.models.fleet import FleetMemoryEntry
 

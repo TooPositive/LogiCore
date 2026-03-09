@@ -7,17 +7,13 @@ No real Kafka, Redis, or PostgreSQL needed -- all mocked.
 These tests prove the pipeline components integrate correctly.
 """
 
-import json
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
 from apps.api.src.domains.logicore.models.fleet import (
-    AlertSeverity,
     AlertType,
-    FleetAlert,
-    FleetMemoryEntry,
 )
 
 
@@ -262,11 +258,10 @@ class TestFleetGuardianPipeline:
         Generates realistic telemetry, processes through anomaly detector,
         and verifies the two-tier filter rate.
         """
-        from scripts.telemetry_simulator import TelemetrySimulator
-
         from apps.api.src.domains.logicore.agents.guardian.fleet_agent import (
             FleetGuardianAgent,
         )
+        from scripts.telemetry_simulator import TelemetrySimulator
 
         sim = TelemetrySimulator.from_routes_file(
             "data/mock-telemetry/routes.json"
@@ -346,13 +341,13 @@ class TestFleetAPIIntegration:
         from fastapi import FastAPI
         from httpx import ASGITransport, AsyncClient
 
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
         from apps.api.src.domains.logicore.api import fleet as fleet_module
         from apps.api.src.domains.logicore.api.fleet import (
             _alert_store,
             create_fleet_router,
-        )
-        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
-            AnomalyDetector,
         )
 
         app = FastAPI()
@@ -397,13 +392,13 @@ class TestFleetAPIIntegration:
         from fastapi import FastAPI
         from httpx import ASGITransport, AsyncClient
 
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
         from apps.api.src.domains.logicore.api import fleet as fleet_module
         from apps.api.src.domains.logicore.api.fleet import (
             _alert_store,
             create_fleet_router,
-        )
-        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
-            AnomalyDetector,
         )
 
         app = FastAPI()

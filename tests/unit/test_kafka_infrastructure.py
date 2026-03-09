@@ -4,12 +4,8 @@ Tests consumer base class and producer helper.
 All tests use mocks -- no real Kafka needed.
 """
 
-import asyncio
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
+from unittest.mock import AsyncMock, MagicMock
 
 # ── KafkaProducerHelper ──────────────────────────────────────────────────────
 

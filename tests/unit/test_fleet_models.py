@@ -10,7 +10,6 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-
 # ── GPSPing ──────────────────────────────────────────────────────────────────
 
 

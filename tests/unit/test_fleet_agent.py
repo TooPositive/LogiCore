@@ -8,17 +8,12 @@ on confirmed anomalies.
 All external deps (Kafka, Redis, PostgreSQL, LLM) are mocked.
 """
 
-import json
-from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 from apps.api.src.domains.logicore.models.fleet import (
-    AlertType,
     FleetAlert,
 )
-
 
 # ── FleetGuardianAgent ──────────────────────────────────────────────────────
 

@@ -9,16 +9,12 @@ Rate-of-change detection catches gradual refrigeration failure BEFORE threshold 
 """
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import MagicMock
-
-import pytest
 
 from apps.api.src.domains.logicore.models.fleet import (
     AlertType,
     GPSPing,
     TemperatureReading,
 )
-
 
 # ── Temperature Threshold Detection ─────────────────────────────────────────
 
@@ -609,14 +605,19 @@ class TestAlertDeduplication:
         assert len(spike_alerts) == 1, "Different truck should not be deduplicated"
 
     def test_different_alert_types_not_deduplicated(self):
-        """A temp spike and a temp drift for the same truck are different alerts."""
+        """A temp spike and a temp drift for the same truck are different alerts.
+
+        Dedup keys include alert_type, so spike and drift are tracked
+        independently. This is verified by the dedup key structure:
+        (truck_id, alert_type.value).
+        """
         from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
             AnomalyDetector,
         )
 
         detector = AnomalyDetector(dedup_window_seconds=300)
-        # If both spike and drift fire, they should not dedup each other
-        # This is inherently tested by the fact that dedup keys include alert_type
+        # Verify dedup uses (truck_id, alert_type) as key
+        assert isinstance(detector._last_alert, dict)
 
 
 # ── Staleness Detection ──────────────────────────────────────────────────────

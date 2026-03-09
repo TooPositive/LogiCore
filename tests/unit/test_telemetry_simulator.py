@@ -4,9 +4,7 @@ Tests: event generation, anomaly injection, GPS interpolation,
 temperature drift simulation, and event ordering.
 """
 
-from datetime import UTC, datetime, timedelta
-
-import pytest
+from datetime import UTC, datetime
 
 
 class TestTelemetrySimulator:

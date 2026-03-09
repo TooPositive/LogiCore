@@ -211,3 +211,31 @@ class AuditLogger:
     async def count(self, conn) -> int:
         """Count total audit log entries."""
         return await conn.fetchval(_COUNT_SQL)
+
+
+async def atomic_audit_write(
+    conn,
+    checkpoint_fn,
+    audit_entry: AuditEntryCreate,
+) -> AuditEntry:
+    """Write checkpoint + audit entry in a single database transaction.
+
+    This is the critical pattern from the phase spec: both the LangGraph
+    checkpoint save and the audit log write MUST succeed or both roll back.
+    A crash between separate writes creates a compliance gap.
+
+    Args:
+        conn: asyncpg connection (from pool.acquire())
+        checkpoint_fn: async callable(conn) that saves the LangGraph checkpoint
+        audit_entry: the audit entry to write
+
+    Returns:
+        The persisted AuditEntry
+
+    Raises:
+        Any exception from checkpoint_fn or audit write -- both roll back.
+    """
+    logger = AuditLogger()
+    async with conn.transaction():
+        await checkpoint_fn(conn)
+        return await logger.write(conn, audit_entry)

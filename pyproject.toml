@@ -5,6 +5,7 @@ description = "Enterprise AI Operating System for Logistics & Supply Chain"
 requires-python = ">=3.12"
 dependencies = [
     "langchain-ollama>=1.0.1",
+    "langgraph>=1.0.10",
 ]
 
 [tool.uv.workspace]

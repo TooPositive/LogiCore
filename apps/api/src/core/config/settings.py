@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     langfuse_secret_key: str = ""
     langfuse_host: str = "http://localhost:3001"
 
+    # Kafka (Phase 9)
+    kafka_bootstrap_servers: str = "localhost:9092"
+    kafka_consumer_group: str = "fleet-guardian"
+
     # Resilience (Phase 7)
     circuit_breaker_failure_threshold: int = 5
     circuit_breaker_reset_timeout: float = 60.0

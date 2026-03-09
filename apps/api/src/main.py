@@ -9,6 +9,7 @@ from apps.api.src.domains.logicore.api.audit import router as audit_router
 from apps.api.src.domains.logicore.api.compliance import (
     create_compliance_router,
 )
+from apps.api.src.domains.logicore.api.fleet import create_fleet_router
 
 app = FastAPI(
     title="LogiCore API",
@@ -31,3 +32,6 @@ app.include_router(
 # db_pool=None means endpoints will fail until a real pool is injected.
 # In tests, use create_compliance_router(db_pool=mock_pool) directly.
 app.include_router(create_compliance_router(db_pool=None))
+
+# Fleet router (Phase 9)
+app.include_router(create_fleet_router())

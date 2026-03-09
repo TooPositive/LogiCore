@@ -149,5 +149,5 @@
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | -- | | |
-| Medium article | -- | | |
+| LinkedIn post | draft | 2026-03-09 | `docs/content/linkedin/phase-9-post.md` |
+| Medium article | draft | 2026-03-09 | `docs/content/medium/phase-9-batch-processing-is-dead.md` |

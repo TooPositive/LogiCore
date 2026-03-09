@@ -1,6 +1,6 @@
 # Phase 3 Tracker: Customs & Finance — Multi-Agent Orchestration
 
-**Status**: IN PROGRESS (Layers 1-8 + E2E complete, 174 new tests / 503 total, remaining: integration tests needing Docker)
+**Status**: TESTED (174 new tests / 503 total, review 29/30 PROCEED, content drafts complete)
 **Spec**: `docs/phases/phase-3-customs-finance.md`
 **Depends on**: Phase 1
 
@@ -190,6 +190,11 @@
 - PostgreSQL read-only role (`logicore_reader`) needs migration script
 - Router registration in main.py -- straightforward but needs verification of existing app structure
 
+### From Phase Review Re-run (2026-03-08, 29/30 PROCEED)
+
+All 4 framing gaps from the first review (27/30) have been resolved. Score improved to 29/30.
+1 point deducted from Evidence Depth for: concurrent approval race (n=1) and absence of Polish-language delegation keywords.
+
 ### From Phase Review (2026-03-08, 27/30 PROCEED)
 
 **Framing fixes (DONE):**
@@ -205,10 +210,11 @@
 - [ ] Partial node failure crash recovery: crash mid-node, not just between nodes (Phase 7)
 - [ ] Full delegation recalculation flow: discrepancy -> delegate -> amendment -> recalculate to zero (integration tests)
 - [ ] Multilingual prompt injection patterns for Polish logistics context (Phase 10)
+- [ ] Polish-language delegation keywords: "aneks do umowy", "dopłata", "klauzula" -- English-only regex misses Polish contract amendments (Phase 10 or Phase 6)
 
 ## Content Status
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | -- | | |
-| Medium article | -- | | |
+| LinkedIn post | draft | 2026-03-08 | `docs/content/linkedin/phase-3-post.md` — storytelling: clerk → 3 agents → HITL → cost model |
+| Medium article | draft | 2026-03-08 | `docs/content/medium/phase-3-ai-that-stops-itself.md` — 6 book refs, crash recovery, vendor lock-in |

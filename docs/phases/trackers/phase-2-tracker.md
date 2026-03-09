@@ -211,5 +211,5 @@ All major items already captured above. One additional gap:
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | draft | 2026-03-08 | `docs/content/linkedin/phase-2-post.md` — 6-model re-ranking benchmark, "multilingual" lie hook |
-| Medium article | draft | 2026-03-08 | `docs/content/medium/phase-2-reranking-multilingual-lie.md` — "Multilingual Re-Ranking Is a Lie" |
+| LinkedIn post | draft (v2) | 2026-03-08 | `docs/content/linkedin/phase-2-post.md` — Anna's €486 penalty story, "multilingual" lie hook, 20/40/40 storytelling |
+| Medium article | draft (v2) | 2026-03-08 | `docs/content/medium/phase-2-reranking-multilingual-lie.md` — "A Model Card Said 'Multilingual.'" 6 book refs, 20/40/40 |

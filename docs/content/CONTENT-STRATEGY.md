@@ -128,10 +128,30 @@ Score each dimension 1-5 BEFORE publishing. Fix anything below 4.
 | Accurate-but-exciting | 95% | DEFAULT. Credibility + engagement. |
 | Pure accurate | 100% | Niche/technical audience. |
 
+## The Storytelling Rule (MANDATORY for ALL content)
+
+Content is a STORY, not a report. Every post tells a narrative about a business problem and the thinking that solved it.
+
+### Series Context Paragraph (MANDATORY — once per post)
+
+Include a series bridge paragraph that connects previous phases to this one. This hooks readers into following the series. Place after the business hook (LinkedIn) or opening scenario (Medium).
+
+Pattern: "This is Phase N of a 12-phase AI system im building for a logistics company. Each phase tackles a real business problem. Phase 1 built [what]. Phase 2 proved [what]. Phase N asks: [this phase's question]."
+
+This shows PROGRESSION — each phase reference should make the reader think "I should follow this series." Also close with series position: "Post N/12 in the LogiCore series."
+
+### BANNED: Test Counts as Evidence
+
+NEVER use raw test counts ("174 tests", "18 red-team tests", "9 crash recovery tests"). Always replace with OUTCOMES — what the system DOES and REFUSES to do.
+
+### Capitalization
+
+Every new line/paragraph starts with a Capital letter. Bartek voice allows informal grammar but line starts are always capitalized.
+
 ## LinkedIn Post Rules
 
 - Hook (<210 chars): business problem or counterintuitive finding, NEVER "I built X"
-- After hook: brief series intro (1-2 sentences about 12-phase series + why logistics)
+- After hook: continue the STORY, dont explain the project
 - No headers, no bold, no bullets. Flows like a message.
 - Voice: casual dev-to-dev. "coz", parenthetical asides, honest hedging, 1-2 emoji max
 - Must include at least ONE EUR cost figure
@@ -140,8 +160,14 @@ Score each dimension 1-5 BEFORE publishing. Fix anything below 4.
 - Close with series position + next phase teaser (casual, not salesy)
 - Reply ammo: 8-10 predicted objections with architect-level responses
 
-## Medium Article Rules
+## Medium Article Rules (20/40/40)
 
+Every Medium article follows the **20/40/40 ratio**:
+- **20% Books & References**: 4-6 book references per article. Ground decisions in established thinking (Meadows, Kleppmann, Kim, Kahneman, Taleb, Drucker, etc.). Connect concepts to specific decisions — not academic citation, natural integration.
+- **40% Storytelling**: Named characters, specific scenarios, narrative tension. The reader FEELS the problem before seeing the solution. No project-description paragraphs.
+- **40% Technical Architecture**: Real code, real numbers, real tradeoffs. Proof that the story's solution works.
+
+Additional rules:
 - Title: specific claim, not description. "Embeddings Are Mandatory" not "Building a RAG System"
 - 2,000-4,000 words
 - Real code from codebase (max 4-5 blocks, each with architectural reasoning)
@@ -149,7 +175,7 @@ Score each dimension 1-5 BEFORE publishing. Fix anything below 4.
 - Must include comparison table (chose X vs rejected Y vs why)
 - Must include vendor lock-in awareness with swap costs
 - Must include "What Id Do Differently" with architect reflections
-- Series context in intro + series close
+- Series context in close ONLY (not intro) — let the story speak for itself
 
 ## Claude Code Agents
 

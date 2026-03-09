@@ -181,6 +181,6 @@
 
 | Channel | Status | Date | Notes |
 |---|---|---|---|
-| LinkedIn post | draft | 2026-03-07 | `docs/content/linkedin/phase-1-post.md` |
-| Medium article | draft | 2026-03-07 | `docs/content/medium/phase-1-hybrid-search-rbac.md` |
+| LinkedIn post | draft (v2) | 2026-03-08 | `docs/content/linkedin/phase-1-post.md` — rewritten with storytelling rules |
+| Medium article | draft (v2) | 2026-03-08 | `docs/content/medium/phase-1-embeddings-mandatory.md` — 20/40/40, book refs, named characters |
 | LinkedIn hero image | — | | Update architecture card for Phase 1 |

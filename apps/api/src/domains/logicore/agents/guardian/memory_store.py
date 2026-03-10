@@ -42,9 +42,28 @@ class MemoryStore:
         """Retrieve all memory context for a truck.
 
         Returns both medium-term history (Redis) and long-term patterns (PostgreSQL).
+        Degrades gracefully: if Redis/PostgreSQL is down, returns empty for that
+        tier rather than crashing the agent. A broken memory tier should never
+        prevent anomaly response — the agent falls back to stateless investigation.
         """
-        truck_history = await self._redis.get_truck_history(truck_id)
-        known_patterns = await self._pg.get_patterns(truck_id)
+        truck_history: list[dict[str, Any]] = []
+        known_patterns: list[Any] = []
+
+        try:
+            truck_history = await self._redis.get_truck_history(truck_id)
+        except Exception:
+            logger.warning(
+                "Redis lookup failed for truck %s — falling back to empty history",
+                truck_id,
+            )
+
+        try:
+            known_patterns = await self._pg.get_patterns(truck_id)
+        except Exception:
+            logger.warning(
+                "PostgreSQL lookup failed for truck %s — falling back to empty patterns",
+                truck_id,
+            )
 
         return {
             "truck_history": truck_history,
@@ -65,18 +84,24 @@ class MemoryStore:
         Always writes to Redis (medium-term).
         If a pattern was detected, also writes to PostgreSQL (long-term).
         """
-        # Medium-term: always record in Redis
-        await self._redis.record_anomaly(
-            truck_id=truck_id,
-            entry={
-                "alert_type": alert_type,
-                "severity": severity,
-                "action_taken": action_taken,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
+        # Medium-term: always record in Redis (graceful degradation if down)
+        try:
+            await self._redis.record_anomaly(
+                truck_id=truck_id,
+                entry={
+                    "alert_type": alert_type,
+                    "severity": severity,
+                    "action_taken": action_taken,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
+            )
+        except Exception:
+            logger.warning(
+                "Redis write failed for truck %s — anomaly not recorded in medium-term memory",
+                truck_id,
+            )
 
-        # Long-term: only persist if pattern detected
+        # Long-term: only persist if pattern detected (graceful degradation if down)
         if pattern_detected:
             entry = FleetMemoryEntry(
                 truck_id=truck_id,
@@ -87,7 +112,14 @@ class MemoryStore:
                 learned_at=datetime.now(UTC),
                 occurrence_count=occurrence_count,
             )
-            await self._pg.store_pattern(entry)
+            try:
+                await self._pg.store_pattern(entry)
+            except Exception:
+                logger.warning(
+                    "PostgreSQL write failed for truck %s — pattern '%s' not persisted",
+                    truck_id,
+                    pattern_detected,
+                )
 
     async def is_recurring_pattern(
         self, truck_id: str, alert_type: str

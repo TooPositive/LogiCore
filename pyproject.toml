@@ -30,11 +30,12 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "-m 'not live'"
+addopts = "-m 'not live and not kafka'"
 markers = [
     "integration: requires Docker services (qdrant, postgres, redis)",
     "e2e: full end-to-end workflow tests",
     "live: real API credentials required (Azure OpenAI + Docker), run manually only",
+    "kafka: requires Kafka Docker (docker compose --profile kafka up -d), run manually",
     "redteam: security and adversarial tests",
     "evaluation: LLM quality tests (slow, needs API key)",
     "slow: tests that take >10 seconds",

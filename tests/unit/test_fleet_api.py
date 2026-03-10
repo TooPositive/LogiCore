@@ -251,3 +251,131 @@ class TestConsumerHealth:
         data = response.json()
         assert "running" in data
         assert "messages_processed" in data
+
+
+# ── WebSocket Broadcast (direct test) ────────────────────────────────────
+
+
+class TestWebSocketBroadcast:
+    """Proves connected WebSocket clients receive alerts when telemetry is ingested.
+
+    CTO QUESTION: "How do I know the dashboard actually gets alerts in real-time?"
+    These tests prove it: connect WS → ingest anomaly → assert WS message arrives.
+    """
+
+    async def test_ws_client_receives_alert_on_ingest(self):
+        """Connect WS, ingest anomalous temp, verify alert arrives via WS."""
+        import json
+
+        from fastapi import FastAPI
+        from starlette.testclient import TestClient
+
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+        from apps.api.src.domains.logicore.api import fleet as fleet_module
+        from apps.api.src.domains.logicore.api.fleet import (
+            _alert_store,
+            create_fleet_router,
+        )
+
+        app = FastAPI()
+        app.include_router(create_fleet_router())
+
+        _alert_store.clear()
+        fleet_module._detector = AnomalyDetector()
+        fleet_module._ws_connections.clear()
+
+        # Use Starlette TestClient for WebSocket support
+        with TestClient(app) as client:
+            with client.websocket_connect("/api/v1/fleet/ws") as ws:
+                # Ingest an anomalous reading via HTTP (separate client)
+                response = client.post(
+                    "/api/v1/fleet/ingest/temperature",
+                    json={
+                        "truck_id": "truck-ws-test",
+                        "sensor_id": "sensor-01",
+                        "temp_celsius": 12.0,
+                        "setpoint_celsius": 3.0,
+                        "timestamp": "2026-03-10T03:01:30+00:00",
+                    },
+                )
+                assert response.status_code == 200
+                assert len(response.json()["alerts"]) >= 1
+
+                # WebSocket should have received the alert
+                ws_message = ws.receive_text()
+                alert_data = json.loads(ws_message)
+
+                assert alert_data["truck_id"] == "truck-ws-test"
+                assert alert_data["alert_type"] == "temperature_spike"
+                assert alert_data["severity"] == "critical"
+
+        _alert_store.clear()
+        fleet_module._ws_connections.clear()
+
+    async def test_multiple_ws_clients_all_receive_alert(self):
+        """Multiple WS clients connected — all should receive the same alert."""
+        import json
+
+        from fastapi import FastAPI
+        from starlette.testclient import TestClient
+
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+        from apps.api.src.domains.logicore.api import fleet as fleet_module
+        from apps.api.src.domains.logicore.api.fleet import (
+            _alert_store,
+            create_fleet_router,
+        )
+
+        app = FastAPI()
+        app.include_router(create_fleet_router())
+
+        _alert_store.clear()
+        fleet_module._detector = AnomalyDetector()
+        fleet_module._ws_connections.clear()
+
+        with TestClient(app) as client:
+            with client.websocket_connect("/api/v1/fleet/ws") as ws1:
+                with client.websocket_connect("/api/v1/fleet/ws") as ws2:
+                    # Ingest anomaly
+                    response = client.post(
+                        "/api/v1/fleet/ingest/temperature",
+                        json={
+                            "truck_id": "truck-multi-ws",
+                            "sensor_id": "sensor-01",
+                            "temp_celsius": 15.0,
+                            "setpoint_celsius": 3.0,
+                            "timestamp": "2026-03-10T03:02:00+00:00",
+                        },
+                    )
+                    assert response.status_code == 200
+
+                    # Both clients should receive the alert
+                    msg1 = json.loads(ws1.receive_text())
+                    msg2 = json.loads(ws2.receive_text())
+
+                    assert msg1["truck_id"] == "truck-multi-ws"
+                    assert msg2["truck_id"] == "truck-multi-ws"
+                    assert msg1["alert_id"] == msg2["alert_id"]
+
+        _alert_store.clear()
+        fleet_module._ws_connections.clear()
+
+    async def test_ws_ping_pong(self):
+        """WebSocket keep-alive: send ping, receive pong."""
+        from fastapi import FastAPI
+        from starlette.testclient import TestClient
+
+        from apps.api.src.domains.logicore.api.fleet import create_fleet_router
+
+        app = FastAPI()
+        app.include_router(create_fleet_router())
+
+        with TestClient(app) as client:
+            with client.websocket_connect("/api/v1/fleet/ws") as ws:
+                ws.send_text("ping")
+                response = ws.receive_text()
+                assert response == "pong"

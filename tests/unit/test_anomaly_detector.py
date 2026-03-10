@@ -111,6 +111,169 @@ class TestTemperatureThreshold:
         alerts = detector.check_temperature(reading)
         assert len(alerts) == 1
 
+
+# ── Borderline Temperature (Pharma 2C Margin vs General Freight 5C) ──────
+
+
+class TestBorderlineTemperature:
+    """Pharma cargo uses tight margins (2C), general freight uses wide (5C).
+
+    The filter rate changes dramatically: pharma margin catches spoilage earlier
+    but generates more alerts on marginal readings. This is the CTO trade-off:
+    tight margins = more false positives but zero missed cargo losses.
+
+    These tests prove the exact boundary behavior at thresholds that matter
+    for EUR 180,000 pharmaceutical cargo.
+    """
+
+    def test_pharma_margin_7_9_on_8_threshold_no_alert(self):
+        """Pharma: setpoint 3C + margin 5C = threshold 8C. 7.9C < 8.0C -> no alert."""
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+
+        detector = AnomalyDetector(threshold_margin=5.0)
+        reading = TemperatureReading(
+            truck_id="truck-pharma",
+            sensor_id="sensor-01",
+            temp_celsius=7.9,
+            setpoint_celsius=3.0,
+            timestamp=datetime.now(UTC),
+        )
+
+        alerts = detector.check_temperature(reading)
+        threshold_alerts = [a for a in alerts if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+        assert len(threshold_alerts) == 0, (
+            "7.9C is below 8.0C threshold — no alert. "
+            "But note: at 7.9C, cargo degradation may have already started. "
+            "Pharma clients should use tighter margins (2.0C)."
+        )
+
+    def test_pharma_margin_8_01_on_8_threshold_triggers(self):
+        """8.01C > 8.0C threshold -> alert fires."""
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+
+        detector = AnomalyDetector(threshold_margin=5.0)
+        reading = TemperatureReading(
+            truck_id="truck-pharma-01",
+            sensor_id="sensor-01",
+            temp_celsius=8.01,
+            setpoint_celsius=3.0,
+            timestamp=datetime.now(UTC),
+        )
+
+        alerts = detector.check_temperature(reading)
+        threshold_alerts = [a for a in alerts if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+        assert len(threshold_alerts) == 1
+
+    def test_tight_pharma_margin_catches_earlier(self):
+        """Tight margin (2C): alerts at 5.1C instead of 8.1C.
+
+        ARCHITECT DECISION: Pharma cargo should use 2C margin.
+        With 5C margin, cargo is at 8C when alert fires — damage started at 5C.
+        With 2C margin, alert fires at 5.1C — 75 minutes earlier response.
+        """
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+
+        # Tight margin (pharma): setpoint 3C + margin 2C = threshold 5C
+        tight = AnomalyDetector(threshold_margin=2.0)
+        # Wide margin (general): setpoint 3C + margin 5C = threshold 8C
+        wide = AnomalyDetector(threshold_margin=5.0)
+
+        reading = TemperatureReading(
+            truck_id="truck-compare",
+            sensor_id="sensor-01",
+            temp_celsius=5.5,  # Above 5C, below 8C
+            setpoint_celsius=3.0,
+            timestamp=datetime.now(UTC),
+        )
+
+        tight_alerts = tight.check_temperature(reading)
+        wide_alerts = wide.check_temperature(reading)
+
+        tight_spikes = [a for a in tight_alerts if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+        wide_spikes = [a for a in wide_alerts if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+
+        assert len(tight_spikes) == 1, "Tight margin (2C) should catch 5.5C"
+        assert len(wide_spikes) == 0, "Wide margin (5C) misses 5.5C — damage starts undetected"
+
+    def test_borderline_batch_100_readings_around_threshold(self):
+        """100 readings from 7.5C to 8.5C in 0.01C steps — verify exact boundary.
+
+        DECISION: threshold is strict greater-than (>), not greater-or-equal (>=).
+        At exactly 8.0C, no alert fires. This is intentional: setpoint + margin
+        defines the acceptable range, not the alert trigger. One reading at the
+        boundary is sensor noise, not an anomaly.
+        """
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+
+        detector = AnomalyDetector(threshold_margin=5.0, dedup_window_seconds=0)
+
+        alerts_below = 0
+        alerts_at = 0
+        alerts_above = 0
+
+        for i in range(101):
+            temp = 7.5 + i * 0.01  # 7.50, 7.51, ..., 8.00, ..., 8.50
+            reading = TemperatureReading(
+                truck_id=f"truck-boundary-{i:03d}",
+                sensor_id="sensor-01",
+                temp_celsius=round(temp, 2),
+                setpoint_celsius=3.0,
+                timestamp=datetime.now(UTC),
+            )
+            alerts = detector.check_temperature(reading)
+            spikes = [a for a in alerts if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+
+            if temp < 8.0:
+                alerts_below += len(spikes)
+            elif temp == 8.0:
+                alerts_at += len(spikes)
+            else:
+                alerts_above += len(spikes)
+
+        assert alerts_below == 0, "No alerts below threshold"
+        assert alerts_at == 0, "No alert at exact threshold (strict >)"
+        assert alerts_above == 50, f"All {alerts_above}/50 readings above threshold should alert"
+
+    def test_frozen_cargo_lower_boundary(self):
+        """Frozen cargo (setpoint -20C, margin 5C): alert at -25.01C but not -25.0C."""
+        from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (
+            AnomalyDetector,
+        )
+
+        detector = AnomalyDetector(threshold_margin=5.0, dedup_window_seconds=0)
+
+        # At boundary: -20 - 5 = -25, no alert
+        at_boundary = TemperatureReading(
+            truck_id="truck-frozen-at",
+            sensor_id="s01",
+            temp_celsius=-25.0,
+            setpoint_celsius=-20.0,
+            timestamp=datetime.now(UTC),
+        )
+        alerts_at = detector.check_temperature(at_boundary)
+        spikes_at = [a for a in alerts_at if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+        assert len(spikes_at) == 0
+
+        # Below boundary: alert
+        below = TemperatureReading(
+            truck_id="truck-frozen-below",
+            sensor_id="s01",
+            temp_celsius=-25.1,
+            setpoint_celsius=-20.0,
+            timestamp=datetime.now(UTC),
+        )
+        alerts_below = detector.check_temperature(below)
+        spikes_below = [a for a in alerts_below if a.alert_type == AlertType.TEMPERATURE_SPIKE]
+        assert len(spikes_below) == 1
+
     def test_negative_temperature_below_setpoint_triggers(self):
         """Frozen cargo: temperature dropping below setpoint - margin."""
         from apps.api.src.domains.logicore.agents.guardian.anomaly_detector import (

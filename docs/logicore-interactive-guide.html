@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiCore AI OS — Architecture Deep Dive</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a2e;
+    --bg4: #252540;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --accent3: #fd79a8;
+    --green: #00b894;
+    --yellow: #fdcb6e;
+    --red: #e17055;
+    --blue: #74b9ff;
+    --cyan: #81ecec;
+    --text: #e2e2e8;
+    --text2: #9999aa;
+    --text3: #666678;
+    --border: #2a2a3e;
+    --card: #16162a;
+    --card-hover: #1e1e35;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(108,92,231,0.15) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(253,121,168,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(108,92,231,0.12);
+    border: 1px solid rgba(108,92,231,0.3);
+    border-radius: 999px;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.8rem;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+  }
+
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text2);
+    max-width: 640px;
+    margin-bottom: 2rem;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hero-stat {
+    text-align: center;
+  }
+
+  .hero-stat .num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent2);
+  }
+
+  .hero-stat .label {
+    font-size: 0.75rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Navigation ── */
+  .phase-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phase-nav::-webkit-scrollbar { height: 0; }
+
+  .nav-btn {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text2);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--text); }
+  .nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── Search ── */
+  .search-wrap {
+    max-width: 640px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.9rem 1.2rem 0.9rem 2.8rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+
+  .search-wrap { position: relative; }
+
+  .search-icon {
+    position: absolute;
+    left: 2.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    pointer-events: none;
+    font-size: 1rem;
+  }
+
+  /* ── Container ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  /* ── Phase Card ── */
+  .phase-section {
+    margin-bottom: 2rem;
+    animation: fadeUp 0.4s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .phase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .phase-card:hover { border-color: rgba(108,92,231,0.4); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .phase-header:hover { background: var(--card-hover); }
+
+  .phase-number {
+    flex-shrink: 0;
+    width: 48px; height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+
+  .phase-header-text { flex: 1; }
+
+  .phase-header-text h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .phase-header-text .subtitle {
+    font-size: 0.85rem;
+    color: var(--text2);
+    margin-top: 0.2rem;
+  }
+
+  .phase-toggle {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 1.2rem;
+    transition: transform 0.3s, background 0.2s;
+  }
+
+  .phase-card.open .phase-toggle { transform: rotate(180deg); }
+
+  .phase-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+
+  .phase-card.open .phase-body { max-height: 20000px; }
+
+  .phase-content {
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  /* ── Section inside phase ── */
+  .section-block {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent2);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Business Problem ── */
+  .problem-box {
+    background: rgba(225,112,85,0.08);
+    border-left: 3px solid var(--red);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* ── Interview Point ── */
+  .interview-box {
+    background: rgba(108,92,231,0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1rem 1.2rem;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--accent2);
+    line-height: 1.7;
+  }
+
+  .interview-box::before {
+    content: '"';
+    font-size: 2rem;
+    line-height: 0;
+    vertical-align: -0.5rem;
+    color: var(--accent);
+    margin-right: 0.3rem;
+  }
+
+  /* ── Key Decisions ── */
+  .decision-grid {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .decision-item {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.8rem;
+    background: var(--bg2);
+    border-radius: 8px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .decision-icon {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: rgba(0,184,148,0.12);
+    color: var(--green);
+  }
+
+  /* ── Metrics ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .metric-card {
+    background: var(--bg2);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    text-align: center;
+  }
+
+  .metric-card .val {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .metric-card .val.warn { color: var(--yellow); }
+  .metric-card .val.bad { color: var(--red); }
+  .metric-card .val.info { color: var(--blue); }
+
+  .metric-card .desc {
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.3rem;
+  }
+
+  /* ── Components list ── */
+  .component-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .component-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--cyan);
+  }
+
+  /* ── Patterns ── */
+  .pattern-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .pattern-tag {
+    background: rgba(108,92,231,0.1);
+    border: 1px solid rgba(108,92,231,0.2);
+    border-radius: 6px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    color: var(--accent2);
+  }
+
+  /* ── Test badge ── */
+  .test-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(0,184,148,0.1);
+    border: 1px solid rgba(0,184,148,0.2);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1rem 0;
+  }
+
+  /* ── Patterns Summary ── */
+  .patterns-summary {
+    margin-top: 3rem;
+  }
+
+  .patterns-summary h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--accent2), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.85rem;
+  }
+
+  .summary-table th {
+    background: var(--bg3);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--accent2);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .summary-table td {
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text2);
+  }
+
+  .summary-table tr:hover td { background: var(--card-hover); }
+
+  /* ── File Tree ── */
+  .file-tree {
+    background: var(--bg2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--text2);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .file-tree .dir { color: var(--blue); }
+  .file-tree .file { color: var(--text2); }
+  .file-tree .comment { color: var(--text3); font-style: italic; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 0.8rem;
+  }
+
+  .footer a {
+    color: var(--accent2);
+    text-decoration: none;
+  }
+
+  /* ── Tab System inside phases ── */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text3);
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Economics Box ── */
+  .economics-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0,184,148,0.06);
+    border: 1px solid rgba(0,184,148,0.15);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+  }
+
+  .economics-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .economics-arrow .before {
+    color: var(--red);
+    font-weight: 700;
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  .economics-arrow .arrow { color: var(--text3); }
+
+  .economics-arrow .after {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .economics-arrow .savings {
+    background: rgba(0,184,148,0.15);
+    color: var(--green);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* ── Hidden ── */
+  .hidden { display: none !important; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .hero { padding: 2.5rem 1.5rem; min-height: 45vh; }
+    .hero-stats { gap: 1rem; }
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .economics-box { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── Code block ── */
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text2);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* ── Expand all ── */
+  .controls {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto 0.5rem;
+  }
+
+  .controls button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text2);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .controls button:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Timeline dots ── */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 0.8rem;
+    padding-left: 0.8rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text2);
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.65rem;
+    top: 0.45rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+
+  .timeline-item strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span> 9 phases complete</div>
+  <h1>LogiCore AI OS</h1>
+  <p>Enterprise AI for logistics — a 12-phase system proving AI Solution Architect capability. Every phase benchmarks alternatives, quantifies the cost of the wrong decision, and ships with production-grade tests.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">1,552</div><div class="label">Tests</div></div>
+    <div class="hero-stat"><div class="num">9</div><div class="label">Phases Done</div></div>
+    <div class="hero-stat"><div class="num">99.9%</div><div class="label">Cost Saved (P9)</div></div>
+    <div class="hero-stat"><div class="num">12</div><div class="label">Total Phases</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav class="phase-nav" id="phaseNav">
+  <button class="nav-btn active" data-target="all">All</button>
+  <button class="nav-btn" data-target="phase-0">P0 Skeleton</button>
+  <button class="nav-btn" data-target="phase-05">P0.5 Simulator</button>
+  <button class="nav-btn" data-target="phase-1">P1 RAG+RBAC</button>
+  <button class="nav-btn" data-target="phase-2">P2 Retrieval</button>
+  <button class="nav-btn" data-target="phase-3">P3 Multi-Agent</button>
+  <button class="nav-btn" data-target="phase-4">P4 LLMOps</button>
+  <button class="nav-btn" data-target="phase-5">P5 Assessment</button>
+  <button class="nav-btn" data-target="phase-r">PR Extraction</button>
+  <button class="nav-btn" data-target="phase-6">P6 Air-Gapped</button>
+  <button class="nav-btn" data-target="phase-7">P7 Resilience</button>
+  <button class="nav-btn" data-target="phase-8">P8 EU AI Act</button>
+  <button class="nav-btn" data-target="phase-9">P9 Streaming</button>
+  <button class="nav-btn" data-target="patterns">Patterns</button>
+  <button class="nav-btn" data-target="architecture">Architecture</button>
+</nav>
+
+<!-- ═══════════ SEARCH ═══════════ -->
+<div class="search-wrap">
+  <span class="search-icon">&#128269;</span>
+  <input type="text" class="search-input" id="searchInput" placeholder="Search phases, patterns, decisions...">
+</div>
+
+<!-- ═══════════ CONTROLS ═══════════ -->
+<div class="controls">
+  <button onclick="toggleAll()">Expand / Collapse All</button>
+</div>
+
+<!-- ═══════════ PHASES ═══════════ -->
+<div class="container" id="phasesContainer">
+
+<!-- ── Phase 0 ── -->
+<div class="phase-section" data-phase="phase-0">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #636e72, #2d3436);">0</div>
+    <div class="phase-header-text">
+      <h2>Project Skeleton</h2>
+      <div class="subtitle">FastAPI scaffold + Docker infrastructure + test structure</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+      <div class="section-block">
+        <div class="section-title">What was built</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#9881;</div><div>FastAPI project scaffold with modular structure: <code>apps/api/src/</code></div></div>
+          <div class="decision-item"><div class="decision-icon">&#128230;</div><div>Docker Compose with Qdrant (6333), PostgreSQL (5432), Redis (6379), Langfuse (3001)</div></div>
+          <div class="decision-item"><div class="decision-icon">&#128203;</div><div>Test pyramid structure: unit / integration / e2e / red-team / evaluation</div></div>
+          <div class="decision-item"><div class="decision-icon">&#128736;</div><div>Makefile shortcuts: <code>make up</code>, <code>make test</code>, <code>make lint</code>, <code>make api-dev</code></div></div>
+        </div>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Key decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>LangGraph over CrewAI</strong> — Financial workflows need deterministic routing with checkpointing and HITL gates. CrewAI's autonomy is a liability for auditable systems.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Qdrant over Pinecone</strong> — Self-hosted for data sovereignty (EU/Polish compliance), hybrid search (dense+sparse) built-in.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Python 3.12 + async/await</strong> — asyncpg, httpx, FastAPI all async. No sync bottlenecks.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 0.5 ── -->
+<div class="phase-section" data-phase="phase-05">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #636e72, #2d3436);">0.5</div>
+    <div class="phase-header-text">
+      <h2>Fleet Simulator</h2>
+      <div class="subtitle">Rust service generating realistic GPS & temperature telemetry</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+      <div class="section-block">
+        <div class="section-title">What was built</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#128666;</div><div>Rust service on port 8081 generating realistic fleet telemetry (GPS coordinates, temperature readings, cargo status)</div></div>
+          <div class="decision-item"><div class="decision-icon">&#128200;</div><div>Foundation for Phase 9's streaming tests — provides realistic event streams at scale</div></div>
+          <div class="decision-item"><div class="decision-icon">&#9889;</div><div>Chosen Rust for zero-overhead, high-throughput message generation (1K+ msgs/sec)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 1 ── -->
+<div class="phase-section" data-phase="phase-1">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">1</div>
+    <div class="phase-header-text">
+      <h2>Corporate Brain &mdash; RAG + RBAC</h2>
+      <div class="subtitle">Employees can't find documents. BM25 fails 50% of natural language queries.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Warehouse workers search "how do I handle a damaged shipment?" but the doc is titled "Reklamationsverfahren Abschnitt 4.2." BM25 returns nothing. 200 daily searches &times; 50% failure = 100 unanswered questions per day. Each one is a support ticket or a wrong decision.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Architecture</div>
+        <div class="component-list">
+          <span class="component-tag">hybrid_search()</span>
+          <span class="component-tag">build_qdrant_filter()</span>
+          <span class="component-tag">text_to_sparse_vector()</span>
+          <span class="component-tag">RRF server-side fusion</span>
+          <span class="component-tag">RBAC at query level</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Benchmark Results (26 queries, 7 categories, 12 docs)</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val bad">16/26</div><div class="desc">BM25 alone</div></div>
+          <div class="metric-card"><div class="val info">23/26</div><div class="desc">Dense only</div></div>
+          <div class="metric-card"><div class="val">24/26</div><div class="desc">Hybrid RRF</div></div>
+          <div class="metric-card"><div class="val warn">0 diff</div><div class="desc">3-large vs 3-small</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>RBAC at Qdrant query level</strong> — Unauthorized docs are excluded BEFORE retrieval. The LLM never sees them. Post-retrieval filtering is broken because the LLM has already processed the content.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Fail-closed RBAC</strong> — Empty departments = zero results, not all results. Safe when uncertain.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>text-embedding-3-large adds zero value</strong> — Same results at 6.5x cost. Recommend only when corpus exceeds 1000 semantically similar docs.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Patterns</div>
+        <div class="pattern-list">
+          <span class="pattern-tag">DI via Callable</span>
+          <span class="pattern-tag">Strategy Pattern</span>
+          <span class="pattern-tag">Fail-Closed Guard</span>
+          <span class="pattern-tag">Pydantic as First Defense</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">RBAC at query level so unauthorized documents never enter the LLM's context window. Post-retrieval filtering is fundamentally broken — the LLM has already seen the content.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 80 tests (56 unit + 3 integration + 21 e2e)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 2 ── -->
+<div class="phase-section" data-phase="phase-2">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #00b894, #55efc4);">2</div>
+    <div class="phase-header-text">
+      <h2>Retrieval Engineering</h2>
+      <div class="subtitle">AI finds "similar" but not "right." 6-model reranking benchmark on Polish corpora.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Search returns "similar" documents but not the right ones. Contract clauses get fragmented across chunks. False similarity surfaces irrelevant results. The system finds documents about shipping but misses the specific liability clause.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">What was built</div>
+        <div class="component-list">
+          <span class="component-tag">SemanticChunker</span>
+          <span class="component-tag">FixedSizeChunker</span>
+          <span class="component-tag">ParentChildChunker</span>
+          <span class="component-tag">BGE-m3 Reranker</span>
+          <span class="component-tag">QuerySanitizer (9 patterns)</span>
+          <span class="component-tag">QueryRouter (4 classes)</span>
+          <span class="component-tag">HyDETransformer</span>
+          <span class="component-tag">QueryDecomposer</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">6-Model Reranking Benchmark (52 queries, 57 docs, Polish)</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val bad">-25.5%</div><div class="desc">TinyBERT (14.5M) 28ms</div></div>
+          <div class="metric-card"><div class="val bad">-3%</div><div class="desc">ms-marco (33M) 74ms</div></div>
+          <div class="metric-card"><div class="val bad">-6.6%</div><div class="desc">mmarco-multi (118M)</div></div>
+          <div class="metric-card"><div class="val warn">+0.3%</div><div class="desc">BGE-base (278M)</div></div>
+          <div class="metric-card"><div class="val info">+23.5%</div><div class="desc">BGE-large (560M) 500ms</div></div>
+          <div class="metric-card"><div class="val">+25.8%</div><div class="desc">BGE-m3 (568M) 480ms</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Findings</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#9888;</div><div><strong>Phase 1 was wrong</strong> — Doubled the test set to 52 queries and the hybrid-vs-dense conclusion reversed. Dense MRR=0.885 beats Hybrid MRR=0.847. BM25 adds noise at scale.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#9888;</div><div><strong>"Multilingual" is marketing</strong> — mmarco-multi (trained on multilingual data) scored -6.6% on Polish. BGE-m3 (purpose-built m3 objective) scored +25.8%. Label &#8800; capability.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#9888;</div><div><strong>HyDE hurts at small corpus</strong> — -20.9% R@5 on vague queries. The hallucinated hypothetical doc misleads retrieval when the corpus is small enough for direct matching.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Negation is the Achilles heel</strong> — 0.458 MRR on negation queries. Embeddings can't reliably distinguish "allowed" from "not allowed." Phase 3's deterministic agent handles this.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Patterns</div>
+        <div class="pattern-list">
+          <span class="pattern-tag">ABC + Factory</span>
+          <span class="pattern-tag">Circuit Breaker</span>
+          <span class="pattern-tag">Pipeline Config Object</span>
+          <span class="pattern-tag">Graceful Degradation</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">Phase 1 said hybrid is best. Phase 2 doubled the test set and the conclusion reversed — BM25 adds noise when query diversity increases. An architect corrects their own spec when data proves it wrong.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 329 tests (265 unit + 7 integration + 10 e2e + 30 evaluation)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 3 ── -->
+<div class="phase-section" data-phase="phase-3">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #fd79a8, #e84393);">3</div>
+    <div class="phase-header-text">
+      <h2>Customs &amp; Finance &mdash; Multi-Agent Orchestration</h2>
+      <div class="subtitle">Clerks spend 3 hours/invoice cross-referencing contract rates manually.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">A shipping clerk opens an invoice, looks up the contract, manually compares 15 line items against negotiated rates, flags discrepancies, and routes for approval. 3 hours per invoice. 50 invoices/week = 150 hours of manual cross-referencing. One missed overcharge costs EUR 12,000.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Architecture: LangGraph Audit Workflow</div>
+        <div class="code-block"><span style="color: var(--cyan)">reader</span> &#8594; <span style="color: var(--blue)">sql_agent</span> &#8594; <span style="color: var(--accent2)">auditor</span> &#8594; <span style="color: var(--yellow)">hitl_gate</span> &#8594; <span style="color: var(--green)">report</span>
+     &#8595;
+<span style="color: var(--accent3)">compliance_subgraph</span> (triggered by keyword detection)</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Components</div>
+        <div class="component-list">
+          <span class="component-tag">AuditGraphState (9 fields)</span>
+          <span class="component-tag">ReaderAgent (RAG + sanitize)</span>
+          <span class="component-tag">AuditorAgent (pure math)</span>
+          <span class="component-tag">SqlQueryTool (parameterized)</span>
+          <span class="component-tag">ClearanceFilter</span>
+          <span class="component-tag">ComplianceSubgraph</span>
+          <span class="component-tag">HITL Gateway</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Auditor is pure math, not LLM</strong> — Rate comparison must be deterministic for crash recovery. An LLM-based auditor would produce different discrepancy amounts on retry. Idempotency is a crash-recovery prerequisite.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>LangGraph over CrewAI</strong> — Financial workflows need deterministic routing. CrewAI's autonomous agent delegation means you can't guarantee which agent handles which step. Auditability requires predictable control flow.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>SQL injection is structurally impossible</strong> — Parameterized queries via asyncpg ($1 placeholders), read-only DB role (<code>logicore_reader</code>). It's not "tested against" — it can't happen by construction.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Compliance subgraph is cost-asymmetric</strong> — Triggered by keyword, not always. Full compliance check costs 270-1176x more. You don't run the expensive path unless the data demands it.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Domain Models</div>
+        <div class="component-list">
+          <span class="component-tag">Invoice</span>
+          <span class="component-tag">ContractRate</span>
+          <span class="component-tag">Discrepancy</span>
+          <span class="component-tag">AuditResult</span>
+          <span class="component-tag">DiscrepancyBand</span>
+          <span class="component-tag">ComplianceReport</span>
+          <span class="component-tag">AuditGraphState</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Patterns</div>
+        <div class="pattern-list">
+          <span class="pattern-tag">StateGraph with checkpointing</span>
+          <span class="pattern-tag">HITL Gateway</span>
+          <span class="pattern-tag">ClearanceFilter</span>
+          <span class="pattern-tag">Decimal precision</span>
+          <span class="pattern-tag">Prompt sanitization</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">LangGraph over CrewAI because financial workflows need deterministic routing. The auditor is pure math, not LLM, because idempotency is a crash-recovery prerequisite. SQL injection is structurally impossible via parameterized queries, not just tested-against.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 174 tests (149 unit + 18 red-team + 7 e2e)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 4 ── -->
+<div class="phase-section" data-phase="phase-4">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #fdcb6e, #f39c12);">4</div>
+    <div class="phase-header-text">
+      <h2>Trust Layer &mdash; LLMOps &amp; Observability</h2>
+      <div class="subtitle">Costs invisible, quality unmonitored, cache leaks data across clearance levels.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Every query goes to GPT-5.2 regardless of complexity — "what's the weather?" costs the same as "analyze this 50-page contract." No one knows monthly LLM costs until the invoice arrives. The semantic cache doesn't partition by RBAC, so a manager's cached answer leaks to an intern.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Economics</div>
+        <div class="economics-box">
+          <div class="economics-arrow">
+            <span class="before">EUR 42/day unrouted</span>
+            <span class="arrow">&#8594;</span>
+            <span class="after">EUR 2.87/day routed+cached</span>
+            <span class="savings">-93%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Components</div>
+        <div class="component-list">
+          <span class="component-tag">ModelRouter</span>
+          <span class="component-tag">SemanticCache (RBAC partitions)</span>
+          <span class="component-tag">LangfuseHandler</span>
+          <span class="component-tag">CostTracker (Decimal EUR)</span>
+          <span class="component-tag">MockLLMJudge</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Cache partitioned by RBAC context</strong> — Key pattern: <code>cl:N|dept:X|ent:Y</code>. Structural isolation, not post-hoc filtering. A clearance-2 user CANNOT hit a clearance-3 cached answer.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Financial keywords bypass classifier</strong> — Words like "invoice", "rate", "cost" always route to GPT-5.2 at EUR 0.00 classification cost. Misrouting a financial query to GPT-5-mini costs EUR 3,240 in potential errors.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Non-blocking telemetry</strong> — Langfuse handler uses double try/except. A telemetry failure NEVER crashes a user request.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Decimal arithmetic for costs</strong> — EUR 0.000065/query precision. Float rounding errors compound over millions of queries into material discrepancies.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Model Routing Logic</div>
+        <div class="code-block">Keyword override (financial terms &#8594; GPT-5.2 at EUR 0.00)
+&#8595;
+LLM classifier (if no keyword match)
+&#8595;
+Low confidence? &#8594; Escalate to COMPLEX (fail-safe)</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Patterns</div>
+        <div class="pattern-list">
+          <span class="pattern-tag">Namespace Isolation</span>
+          <span class="pattern-tag">Graceful Degradation</span>
+          <span class="pattern-tag">Two-tier Classification</span>
+          <span class="pattern-tag">Rich Domain Models</span>
+          <span class="pattern-tag">Deterministic Test Doubles</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">Cache partitioned by RBAC context — structural isolation, not filters. Financial keywords bypass classifier at EUR 0.00 because misrouting costs EUR 3,240.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 166 tests (135 unit + 13 evaluation + 24 red-team + 4 e2e)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 5 ── -->
+<div class="phase-section" data-phase="phase-5">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #e17055, #d63031);">5</div>
+    <div class="phase-header-text">
+      <h2>Assessment Rigor &mdash; Judge Bias &amp; Drift Detection</h2>
+      <div class="subtitle">LLM judge inflates scores 10-15%. Azure silently updates models. Dashboard masks regressions.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Your LLM judge says quality is 4.2/5. But GPT-5-mini judging GPT-5.2 has 10-15% self-preference inflation (same family). Azure silently updates models and your quality dashboard shows "all green" while precision dropped 7% — masked by a 2% improvement in another metric.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Components</div>
+        <div class="component-list">
+          <span class="component-tag">JudgeConfig (family separation)</span>
+          <span class="component-tag">PairwiseScorer</span>
+          <span class="component-tag">BiasDetector (3 types)</span>
+          <span class="component-tag">HumanCalibration (Spearman)</span>
+          <span class="component-tag">BootstrapCI</span>
+          <span class="component-tag">ModelVersionRegistry</span>
+          <span class="component-tag">DriftDetector</span>
+          <span class="component-tag">PromptOptimizer</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Family-level separation</strong> — GPT-5-mini judging GPT-5.2 = same-family bias. Use Claude to judge GPT or vice versa. Never judge your own family.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Discard pairwise disagreements</strong> — When A&gt;B and B&gt;A in position swap, don't average. Discard. Averaging preserves noise; discarding preserves signal integrity.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Per-metric drift detection</strong> — Aggregate "quality score" hides regressions. A 7% precision drop + 2% recall improvement = "stable" in aggregate but broken in production.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Minimum n&ge;30 for bias detection</strong> — Below 30, return <code>insufficient_data</code> instead of a potentially misleading metric.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Bias Detection Types</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val warn">Position</div><div class="desc">First-option preference in A/B comparisons</div></div>
+          <div class="metric-card"><div class="val warn">Verbosity</div><div class="desc">Longer = "better" bias</div></div>
+          <div class="metric-card"><div class="val warn">Self-Preference</div><div class="desc">10-15% within same model family</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">Family-level separation — GPT-5-mini judging GPT-5.2 is same-family bias. Per-metric drift detection because aggregate scores mask regressions. Discard pairwise disagreements, don't average — preserves signal integrity.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 198 tests across 5 suites</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase R ── -->
+<div class="phase-section" data-phase="phase-r">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #636e72, #b2bec3);">R</div>
+    <div class="phase-header-text">
+      <h2>Core Extraction &mdash; Domain Split</h2>
+      <div class="subtitle">Separating domain-agnostic core/ from LogiCore-specific domains/logicore/</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">What this solved</div>
+        <div class="problem-box">Everything was in one flat namespace. Swapping LogiCore for a healthcare domain would require touching every file. The architecture wasn't proving "reusable AI platform" — it was proving "one-off project."</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">The Split</div>
+        <div class="code-block"><span style="color: var(--blue)">apps/api/src/core/</span>         &#8592; Domain-agnostic (RAG, telemetry, infra, security)
+<span style="color: var(--accent3)">apps/api/src/domains/logicore/</span> &#8592; Business-specific (agents, models, graphs, tools)
+<span style="color: var(--cyan)">apps/api/src/main.py</span>         &#8592; Wires both together
+
+<span style="color: var(--text3)">The test: Could someone swap domains/logicore/ for domains/healthcare/
+and have core/ work unchanged? If yes &#8594; core/. If no &#8594; domains/.</span></div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Stats</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val info">467</div><div class="desc">Imports Updated</div></div>
+          <div class="metric-card"><div class="val">867</div><div class="desc">Tests Passing</div></div>
+          <div class="metric-card"><div class="val info">0</div><div class="desc">Core &#8594; Domain Imports</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Dependency Rule</div>
+        <div class="code-block"><span style="color: var(--accent3)">domains/logicore/</span> &#8594;&#8594;imports&#8594;&#8594; <span style="color: var(--blue)">core/</span>
+<span style="color: var(--blue)">core/</span> &#8594;&#8594;NEVER imports&#8594;&#8594; <span style="color: var(--accent3)">domains/</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 6 ── -->
+<div class="phase-section" data-phase="phase-6">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">6</div>
+    <div class="phase-header-text">
+      <h2>Air-Gapped Vault &mdash; Local Inference</h2>
+      <div class="subtitle">Swiss banking and Polish pharma can't send data to cloud APIs. One env var swaps providers.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">A Swiss bank's compliance officer says "no data leaves our network." A Polish pharma company's legal team says "patient data cannot be processed by US cloud providers." Your entire AI system is hardcoded to Azure OpenAI. Either you support local inference or you lose the contract.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Architecture</div>
+        <div class="code-block"><span style="color: var(--cyan)">LLM_PROVIDER=azure</span>  &#8594; AzureOpenAIProvider (LangChain adapter)
+<span style="color: var(--cyan)">LLM_PROVIDER=ollama</span> &#8594; OllamaProvider (error translation + runbooks)
+
+Same agents. Same RBAC. Same search. Same tests.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Protocol over ABC</strong> — Structural subtyping (duck typing). No inheritance hierarchy. A provider just needs <code>ainvoke()</code> and <code>get_model_name()</code>. That's it.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Lazy imports</strong> — <code>langchain-ollama</code> only loads when <code>LLM_PROVIDER=ollama</code>. Cloud deployments don't pay the import cost of local-inference dependencies.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Error translation with runbooks</strong> — Ollama returns cryptic errors. The provider translates them: "Connection refused → Is Ollama running? Try: ollama serve"</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Patterns</div>
+        <div class="pattern-list">
+          <span class="pattern-tag">Protocol (structural subtyping)</span>
+          <span class="pattern-tag">Adapter Pattern</span>
+          <span class="pattern-tag">Lazy Import</span>
+          <span class="pattern-tag">Factory with env config</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">One environment variable swaps from Azure to Ollama. Same agents, same RBAC, same retrieval. Cloud-vs-local is a deployment decision, not an architecture decision.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 160 tests (100% behavior parity between cloud and air-gapped)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 7 ── -->
+<div class="phase-section" data-phase="phase-7">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #e84393, #fd79a8);">7</div>
+    <div class="phase-header-text">
+      <h2>Resilience Engineering</h2>
+      <div class="subtitle">Azure outage at 3 AM crashes fleet monitoring. EUR 180K refrigeration failure.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Azure goes down at 3 AM. Your fleet monitoring crashes. A refrigeration unit fails on a truck carrying EUR 180,000 of pharmaceutical cargo. Nobody gets alerted. The provider returns HTTP 200 with an empty string — your system treats silence as success.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Economics</div>
+        <div class="economics-box">
+          <div class="economics-arrow">
+            <span class="before">EUR 14/day unrouted</span>
+            <span class="arrow">&#8594;</span>
+            <span class="after">EUR 2.28/day routed</span>
+            <span class="savings">-84%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Components</div>
+        <div class="component-list">
+          <span class="component-tag">CircuitBreaker (state machine)</span>
+          <span class="component-tag">RetryPolicy (exp backoff + jitter)</span>
+          <span class="component-tag">ProviderChain (ordered fallback)</span>
+          <span class="component-tag">ResponseQualityGate</span>
+          <span class="component-tag">ProviderChainResponse</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Per-provider retry, not cascade retry</strong> — Each provider burns its own retry budget, then moves to next. Cascade retry keeps bouncing between degraded providers, extending the outage.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Circuit breaker excludes 4xx</strong> — A 401 (bad API key) is YOUR bug, not a provider outage. Opening the breaker on auth errors means you'd fail over to a backup provider that also can't fix your credentials.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Response quality gate catches 200-OK-garbage</strong> — Empty strings, invisible Unicode, content shorter than the prompt. HTTP 200 doesn't mean "correct." It means the TCP connection worked.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Routing metadata in response</strong> — <code>fallback_used</code>, <code>cache_used</code>, <code>disclaimer</code>. The consumer knows if this answer came from the primary or a fallback — important for confidence levels.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Circuit Breaker State Machine</div>
+        <div class="code-block">CLOSED (normal) &#8594; failures hit threshold &#8594; OPEN (reject fast)
+OPEN &#8594; timeout expires &#8594; HALF_OPEN (probe with 1 request)
+HALF_OPEN &#8594; success &#8594; CLOSED | failure &#8594; OPEN</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">Per-provider retry burns its own budget, then moves to next. Cascade retry keeps bouncing between degraded providers. The quality gate catches 200-OK-garbage — HTTP 200 means the TCP connection worked, not that the answer is correct.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 182 tests (circuit breaker states, quality gate edge cases, fallback chains)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 8 ── -->
+<div class="phase-section" data-phase="phase-8">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #00cec9, #81ecec);">8</div>
+    <div class="phase-header-text">
+      <h2>Regulatory Shield &mdash; EU AI Act Compliance</h2>
+      <div class="subtitle">Article 12 says "immutable audit trail." GDPR Article 17 says "right to erasure." They contradict.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">EU AI Act Article 12 requires an immutable audit trail for high-risk AI systems. GDPR Article 17 gives individuals the right to have their data erased. An employee says "delete my data." Your audit log says "this record can never be changed." Fine either way: EUR 3.5M (7% of EUR 50M turnover).</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Economics</div>
+        <div class="economics-box">
+          <div class="economics-arrow">
+            <span class="before">EUR 3.5M fine risk</span>
+            <span class="arrow">vs.</span>
+            <span class="after">EUR 5,400/yr logging cost</span>
+            <span class="savings">648:1 ratio</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Three-Layer Immutability</div>
+        <div class="code-block">Layer 1: <span style="color: var(--red)">DB REVOKE</span>        &#8594; PostgreSQL prevents UPDATE/DELETE on audit_log
+Layer 2: <span style="color: var(--yellow)">Frozen Pydantic</span>  &#8594; AuditEntry model is immutable in memory
+Layer 3: <span style="color: var(--green)">SHA-256 Hash Chain</span> &#8594; Each entry hashes the previous — tamper evidence</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">PII Vault (GDPR Resolution)</div>
+        <div class="code-block"><span style="color: var(--blue)">audit_log</span>    &#8592; Immutable, REVOKE DELETE, hash chain (EU AI Act Art.12)
+<span style="color: var(--accent3)">pii_vault</span>     &#8592; Encrypted, soft-delete capable (GDPR Art.17)
+
+Two tables. Two retention lifecycles. Conflict resolved.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Hash chain over blockchain</strong> — Same tamper evidence at EUR 0/yr vs EUR 8K-15K/yr. Blockchain adds network consensus overhead for a single-tenant audit log. Overkill.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Advisory lock prevents hash chain forking</strong> — <code>pg_advisory_xact_lock</code> ensures only one writer computes the hash chain at a time. Without it, concurrent writes fork the chain.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Explicit created_at parameter</strong> — Python's <code>datetime.now()</code> and PostgreSQL's <code>NOW()</code> have microsecond differences. The hash includes the timestamp, so any mismatch makes every entry appear tampered. Critical fix.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Atomic checkpoint+audit writes</strong> — Same <code>asyncpg</code> transaction. If the checkpoint saves but the audit write fails, you have an unaudited AI decision. Zero compliance gaps.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Polish PII detection</strong> — Unicode-aware regex with diacritics (&#261;, &#263;, &#281;, &#322;, &#324;, &#243;, &#347;, &#378;, &#380;) + 11 Polish employment keywords.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">Three-layer immutability: DB REVOKE (structural), hash chain (tamper proof), frozen Pydantic (memory). The PII vault separates concerns — immutable audit trail for EU AI Act, erasable PII for GDPR. Two tables, two lifecycles, conflict resolved.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 196 tests (41 unit + 13 red-team + 12 e2e + hash chain integrity + concurrency)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Phase 9 ── -->
+<div class="phase-section" data-phase="phase-9">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #6c5ce7, #fd79a8);">9</div>
+    <div class="phase-header-text">
+      <h2>Fleet Guardian &mdash; Real-Time Streaming</h2>
+      <div class="subtitle">Batch processing checks temps every 6 hours. Slow failures take 4h to detect. EUR 180K cargo loss.</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Business Problem</div>
+        <div class="problem-box">Temperature is checked every 6 hours. A refrigeration compressor starts failing slowly — temperature rises 0.3&deg;C per hour. After 4 hours, EUR 180,000 of pharmaceutical cargo is ruined. Batch processing would have caught it at hour 6, two hours after the damage was done. And at 1,000 messages/second, an LLM call taking 500ms creates a 500-second backlog per second of ingestion.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Economics</div>
+        <div class="economics-box">
+          <div class="economics-arrow">
+            <span class="before">EUR 662/day batch</span>
+            <span class="arrow">&#8594;</span>
+            <span class="after">EUR 0.075/day streaming</span>
+            <span class="savings">-99.9%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Two-Tier Architecture</div>
+        <div class="code-block">Tier 1: <span style="color: var(--green)">Rule-based AnomalyDetector</span> (EUR 0.00/event)
+  &#8594; Threshold: temp &gt; setpoint + margin
+  &#8594; Drift: rate-of-change &gt; 0.5&deg;C/30min (catches slow failures!)
+  &#8594; Z-score: &gt; 3.0 on rolling window (n &ge; 5)
+  &#8594; Dedup: 5-min window per truck + alert_type
+  &#8594; Filters <span style="color: var(--green)">99.95%</span> of messages
+
+Tier 2: <span style="color: var(--accent2)">FleetGuardianAgent</span> (LLM-powered investigation)
+  &#8594; Only on confirmed anomalies (<span style="color: var(--accent2)">0.05%</span> of messages)
+  &#8594; Context-aware: reads truck history, fleet patterns
+  &#8594; Decision: dispatch, monitor, or escalate</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">3-Tier Memory Architecture</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val info">Short</div><div class="desc">LangGraph state (within run)</div></div>
+          <div class="metric-card"><div class="val warn">Medium</div><div class="desc">Redis per-truck (30-day, 100 cap)</div></div>
+          <div class="metric-card"><div class="val">Long</div><div class="desc">PostgreSQL fleet_memory (patterns)</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Key Decisions</div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Two-tier is a PHYSICAL necessity</strong> — 1K msgs/sec at 500ms LLM latency = 500-second backlog per ingestion second. This isn't cost optimization. It's mathematically impossible to use LLM on every event.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Rate-of-change detection is mandatory</strong> — Threshold-only misses 40% of temperature incidents. Slow drift from 2&deg;C to 6&deg;C over 4 hours never exceeds the threshold at any single reading but ruins EUR 207K of cargo.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Pharma gets 2&deg;C margin, not 5&deg;C</strong> — Pharma cargo regulations require 2-8&deg;C. A 5&deg;C margin would alert at 13&deg;C — cargo is already destroyed. 2&deg;C margin catches degradation 75 minutes earlier.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Graceful memory degradation</strong> — Redis down? Return empty medium-term memory. PostgreSQL down? Return empty long-term. Agent falls back to stateless investigation instead of crashing.</div></div>
+          <div class="decision-item"><div class="decision-icon">&#10003;</div><div><strong>Alert deduplication</strong> — 5-minute window per truck+alert_type. Without it, a stuck sensor generates 300 alerts/hour. Dispatcher fatigue = real alerts get ignored.</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Interview Talking Point</div>
+        <div class="interview-box">1K temperature messages per second at 500ms LLM latency = 500-second backlog per ingestion second. Rule-based Tier 1 filters 99.95% without touching the LLM. Threshold-only misses 40% of incidents — you MUST detect rate-of-change, not just thresholds.</div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tests</div>
+        <span class="test-badge">&#10003; 163 tests (Kafka tests @pytest.mark.kafka, WebSocket broadcast, SQL injection vectors)</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ PATTERNS SUMMARY ═══════════ -->
+<div class="phase-section patterns-summary" data-phase="patterns">
+<h2>Architecture Patterns Across All Phases</h2>
+<table class="summary-table">
+  <thead>
+    <tr><th>Pattern</th><th>Where Used</th><th>Why It Matters</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="color:var(--cyan)">ABC + Factory</td><td>Embeddings, chunkers, rerankers, providers</td><td>Config-driven swappability — change behavior without changing code</td></tr>
+    <tr><td style="color:var(--cyan)">Dependency Injection (Callable)</td><td>embed_fn, llm_fn, judge_fn, cache_fn</td><td>Testable without credentials. Tests inject SHA-256 mock embedder.</td></tr>
+    <tr><td style="color:var(--cyan)">Circuit Breaker</td><td>Provider chains, rerankers</td><td>Fail fast on degraded services instead of cascading timeouts</td></tr>
+    <tr><td style="color:var(--cyan)">Fail-Closed Guard</td><td>RBAC (empty depts), judge config, model router</td><td>When uncertain, deny. Not "allow and log."</td></tr>
+    <tr><td style="color:var(--cyan)">Namespace Isolation</td><td>Semantic cache RBAC partitions</td><td>Structural security — cross-tenant leaks are impossible by construction</td></tr>
+    <tr><td style="color:var(--cyan)">Protocol (Structural Subtyping)</td><td>LLM providers (Phase 6)</td><td>Duck typing over inheritance — simpler, no ABC ceremony</td></tr>
+    <tr><td style="color:var(--cyan)">Atomic Transactions</td><td>Checkpoint + audit writes (Phase 8)</td><td>Zero compliance gaps — both succeed or neither does</td></tr>
+    <tr><td style="color:var(--cyan)">Frozen Models</td><td>AuditEntry, CacheEntry</td><td>Immutability by construction — can't accidentally mutate</td></tr>
+    <tr><td style="color:var(--cyan)">Pipeline Config Object</td><td>RetrievalPipelineConfig, ProviderChain</td><td>Composable stages, all optional — callers pick what they need</td></tr>
+    <tr><td style="color:var(--cyan)">Two-Tier Processing</td><td>Fleet Guardian (Phase 9)</td><td>Physical necessity at scale — LLM can't process 1K msgs/sec</td></tr>
+    <tr><td style="color:var(--cyan)">Connection Injection</td><td>Audit logger (Phase 8)</td><td>Enable transaction coordination — method takes conn, not pool</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════ ARCHITECTURE ═══════════ -->
+<div class="phase-section" data-phase="architecture">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7);">&#9881;</div>
+    <div class="phase-header-text">
+      <h2>Project Architecture &amp; File Map</h2>
+      <div class="subtitle">Where everything lives — the code placement guide</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+
+      <div class="section-block">
+        <div class="section-title">Source Structure</div>
+        <div class="file-tree"><span class="dir">apps/api/src/</span>
+<span class="dir">  core/</span>                         <span class="comment"># Domain-agnostic — works for ANY business</span>
+<span class="dir">    api/v1/</span>                      <span class="comment"># Health, search, ingest, analytics endpoints</span>
+<span class="dir">    config/</span>                      <span class="comment"># Pydantic settings (env-driven)</span>
+<span class="dir">    domain/</span>                      <span class="comment"># Document, Chunk, UserContext, SearchResult</span>
+<span class="dir">    graphs/</span>                      <span class="comment"># Core graph patterns (clearance_filter)</span>
+<span class="dir">    infrastructure/</span>              <span class="comment"># Qdrant, PostgreSQL, Redis, LLM clients</span>
+<span class="dir">    rag/</span>                         <span class="comment"># Retrieval, embeddings, chunking, reranking</span>
+<span class="dir">    security/</span>                    <span class="comment"># RBAC framework, input sanitizer</span>
+<span class="dir">    telemetry/</span>                   <span class="comment"># Langfuse, cost tracking, drift, quality</span>
+<span class="dir">  domains/logicore/</span>               <span class="comment"># LogiCore-specific — swap for healthcare/</span>
+<span class="dir">    agents/</span>                      <span class="comment"># Reader, Auditor, Fleet Guardian</span>
+<span class="dir">    api/</span>                         <span class="comment"># Audit, fleet, compliance endpoints</span>
+<span class="dir">    compliance/</span>                  <span class="comment"># EU AI Act, PII vault, hash chain</span>
+<span class="dir">    graphs/</span>                      <span class="comment"># Audit workflow, fleet response graph</span>
+<span class="dir">    models/</span>                      <span class="comment"># Invoice, ContractRate, Discrepancy</span>
+<span class="dir">    streaming/</span>                   <span class="comment"># Kafka consumer, anomaly detector</span>
+<span class="dir">    tools/</span>                       <span class="comment"># SQL query, report generator</span>
+<span class="file">  main.py</span>                        <span class="comment"># Wires core + domain routers</span></div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Test Structure</div>
+        <div class="file-tree"><span class="dir">tests/</span>
+<span class="dir">  unit/</span>              <span class="comment"># 900+ fast tests, mocked externals</span>
+<span class="dir">  integration/</span>       <span class="comment"># 150+ tests needing Docker (Qdrant, PG, Redis)</span>
+<span class="dir">  e2e/</span>               <span class="comment"># 200+ full API workflow tests</span>
+<span class="dir">  red_team/</span>          <span class="comment"># 150+ security tests (injection, RBAC bypass)</span>
+<span class="dir">  evaluation/</span>        <span class="comment"># 100+ quality evals (precision, bias, cost)</span></div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Infrastructure (Docker Compose)</div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="val info">6333</div><div class="desc">Qdrant (Vector DB)</div></div>
+          <div class="metric-card"><div class="val info">5432</div><div class="desc">PostgreSQL</div></div>
+          <div class="metric-card"><div class="val info">6379</div><div class="desc">Redis</div></div>
+          <div class="metric-card"><div class="val info">3001</div><div class="desc">Langfuse</div></div>
+          <div class="metric-card"><div class="val info">8080</div><div class="desc">FastAPI</div></div>
+          <div class="metric-card"><div class="val info">3000</div><div class="desc">Next.js</div></div>
+          <div class="metric-card"><div class="val info">8081</div><div class="desc">Rust Simulator</div></div>
+          <div class="metric-card"><div class="val info">9092</div><div class="desc">Kafka</div></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Tech Stack</div>
+        <div class="component-list">
+          <span class="component-tag">Python 3.12</span>
+          <span class="component-tag">FastAPI</span>
+          <span class="component-tag">LangGraph</span>
+          <span class="component-tag">Qdrant</span>
+          <span class="component-tag">PostgreSQL</span>
+          <span class="component-tag">Redis</span>
+          <span class="component-tag">Kafka</span>
+          <span class="component-tag">Langfuse</span>
+          <span class="component-tag">Next.js 15</span>
+          <span class="component-tag">Rust</span>
+          <span class="component-tag">Pydantic v2</span>
+          <span class="component-tag">asyncpg</span>
+          <span class="component-tag">httpx</span>
+          <span class="component-tag">pytest</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ ECONOMICS SUMMARY ═══════════ -->
+<div class="phase-section" data-phase="all">
+<div class="phase-card">
+  <div class="phase-header" onclick="togglePhase(this)">
+    <div class="phase-number" style="background: linear-gradient(135deg, #00b894, #55efc4);">&#8364;</div>
+    <div class="phase-header-text">
+      <h2>Business Impact Summary</h2>
+      <div class="subtitle">Every phase quantifies the cost of the wrong decision</div>
+    </div>
+    <div class="phase-toggle">&#9660;</div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-content">
+      <table class="summary-table">
+        <thead>
+          <tr><th>Phase</th><th>Before</th><th>After</th><th>Savings</th><th>Risk Avoided</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P1 RAG</td><td>50% query failure</td><td>92% success</td><td>100 fewer support tickets/day</td><td>Wrong decisions from missing docs</td></tr>
+          <tr><td>P2 Retrieval</td><td>MRR 0.654</td><td>MRR 0.885</td><td>+25.8% with reranker</td><td>Wrong clauses in contracts</td></tr>
+          <tr><td>P4 LLMOps</td><td>EUR 42/day</td><td>EUR 2.87/day</td><td style="color:var(--green)">93%</td><td>Unbounded cloud costs</td></tr>
+          <tr><td>P7 Resilience</td><td>EUR 14/day</td><td>EUR 2.28/day</td><td style="color:var(--green)">84%</td><td>EUR 180K cargo loss from outage</td></tr>
+          <tr><td>P8 Compliance</td><td>EUR 3.5M fine risk</td><td>EUR 5,400/yr</td><td style="color:var(--green)">648:1 ratio</td><td>EU AI Act / GDPR violations</td></tr>
+          <tr><td>P9 Streaming</td><td>EUR 662/day</td><td>EUR 0.075/day</td><td style="color:var(--green)">99.9%</td><td>EUR 207K per missed slow drift</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<div class="footer">
+  LogiCore AI OS &mdash; 12-Phase AI Solution Architect Capstone<br>
+  Python 3.12 &middot; FastAPI &middot; LangGraph &middot; Qdrant &middot; PostgreSQL &middot; Kafka &middot; Next.js 15 &middot; Rust<br>
+  <br>
+  Built by an AI Solution Architect who believes every conclusion must be actionable.
+</div>
+
+<script>
+// ── Phase toggle ──
+function togglePhase(header) {
+  const card = header.closest('.phase-card');
+  card.classList.toggle('open');
+}
+
+// ── Expand/Collapse All ──
+let allExpanded = false;
+function toggleAll() {
+  allExpanded = !allExpanded;
+  document.querySelectorAll('.phase-card').forEach(card => {
+    if (allExpanded) card.classList.add('open');
+    else card.classList.remove('open');
+  });
+}
+
+// ── Nav filtering ──
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const target = btn.dataset.target;
+    document.querySelectorAll('.phase-section').forEach(section => {
+      if (target === 'all' || section.dataset.phase === target) {
+        section.classList.remove('hidden');
+      } else {
+        section.classList.add('hidden');
+      }
+    });
+  });
+});
+
+// ── Search ──
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', () => {
+  const query = searchInput.value.toLowerCase().trim();
+  if (!query) {
+    document.querySelectorAll('.phase-section').forEach(s => s.classList.remove('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-target="all"]').classList.add('active');
+    return;
+  }
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.phase-section').forEach(section => {
+    const text = section.textContent.toLowerCase();
+    if (text.includes(query)) {
+      section.classList.remove('hidden');
+      section.querySelector('.phase-card')?.classList.add('open');
+    } else {
+      section.classList.add('hidden');
+    }
+  });
+});
+
+// ── Auto-open first phase on load ──
+// (keep all collapsed for clean overview)
+</script>
+
+</body>
+</html>

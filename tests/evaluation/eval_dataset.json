@@ -1,0 +1,302 @@
+[
+  {
+    "question": "What is the penalty for late delivery to PharmaCorp?",
+    "expected_answer": "The penalty for late delivery to PharmaCorp is 2% per day of the delayed shipment value, up to a maximum of 20% of total invoice value.",
+    "context": "PharmaCorp Service Agreement CTR-2024-001: Late delivery penalty clause states 2% per day of delayed shipment value, maximum 20% of total invoice value. Applies to all temperature-controlled shipments.",
+    "category": "search"
+  },
+  {
+    "question": "What temperature range is required for PharmaCorp shipments?",
+    "expected_answer": "PharmaCorp shipments require a temperature range of 2-8 degrees Celsius for pharmaceutical products.",
+    "context": "PharmaCorp contract specifies temperature-controlled transport at 2-8 degrees Celsius for all pharmaceutical products. Temperature deviation exceeding 2 degrees for more than 30 minutes constitutes a breach.",
+    "category": "search"
+  },
+  {
+    "question": "What is the base shipping rate for FreshFoods?",
+    "expected_answer": "The base shipping rate for FreshFoods is EUR 0.32 per kilogram for refrigerated goods.",
+    "context": "FreshFoods Logistics Agreement CTR-2024-002: Base rate EUR 0.32/kg for refrigerated goods. Volume discount: 10% for monthly volumes exceeding 50 tons.",
+    "category": "search"
+  },
+  {
+    "question": "What volume discount does FreshFoods receive?",
+    "expected_answer": "FreshFoods receives a 10% discount on monthly shipping volumes exceeding 50 tons.",
+    "context": "FreshFoods contract terms: Volume discount of 10% applies when monthly aggregate volume exceeds 50 metric tons. Calculated on the base rate of EUR 0.32/kg.",
+    "category": "search"
+  },
+  {
+    "question": "What is the contract number for the AutoParts Express agreement?",
+    "expected_answer": "The AutoParts Express contract number is CTR-2024-003.",
+    "context": "AutoParts Express Contract CTR-2024-003: Standard logistics agreement for automotive parts distribution. Effective date: January 2024.",
+    "category": "search"
+  },
+  {
+    "question": "What are the hazmat handling requirements for ChemTrans?",
+    "expected_answer": "ChemTrans hazmat shipments require ADR-certified drivers, specialized containers, and 24-hour emergency response availability.",
+    "context": "ChemTrans Hazmat Agreement CTR-2024-004: All hazardous material shipments require ADR-certified drivers, specialized UN-approved containers, and 24-hour emergency response availability. Non-compliance results in immediate contract termination.",
+    "category": "search"
+  },
+  {
+    "question": "What is the notice period for terminating the PharmaCorp contract?",
+    "expected_answer": "The PharmaCorp contract requires 90 days written notice for termination.",
+    "context": "PharmaCorp Service Agreement termination clause: Either party may terminate with 90 days written notice. Immediate termination permitted for material breach that remains uncured for 30 days.",
+    "category": "search"
+  },
+  {
+    "question": "What are the forklift certification requirements?",
+    "expected_answer": "Forklift operators must complete a UDT-certified training program, pass both written and practical exams, and renew certification every 5 years.",
+    "context": "Forklift Operation Manual: All operators must hold valid UDT (Urzad Dozoru Technicznego) certification. Training includes 40 hours classroom instruction and 20 hours practical operation. Written exam requires 80% pass rate. Certification valid for 5 years.",
+    "category": "search"
+  },
+  {
+    "question": "What is the fire evacuation procedure for Warehouse B?",
+    "expected_answer": "Warehouse B fire evacuation requires assembly at Point C within 5 minutes, with floor wardens conducting headcount.",
+    "context": "Warehouse Fire Safety Plan: Warehouse B evacuation procedure - upon alarm activation, all personnel proceed to Assembly Point C via marked emergency exits. Floor wardens conduct headcount within 5 minutes. Fire brigade response time: 8 minutes.",
+    "category": "search"
+  },
+  {
+    "question": "What is the maximum weight capacity per pallet in the warehouse?",
+    "expected_answer": "The maximum weight capacity per pallet is 1,200 kg for standard Euro pallets in the main storage area.",
+    "context": "ISO 9001 Quality Management Manual: Standard Euro pallet maximum load 1,200 kg in main storage areas. Heavy-duty zones support up to 2,000 kg with reinforced racking. All loads must be stretch-wrapped and labeled.",
+    "category": "search"
+  },
+  {
+    "question": "Compare the invoice total for INV-2024-001 against the contracted rate",
+    "expected_answer": "Invoice INV-2024-001 shows a total of EUR 4,580 for 10,000 kg at EUR 0.458/kg. The contracted rate is EUR 0.45/kg, resulting in a discrepancy of EUR 80 (1.78% overcharge).",
+    "context": "Invoice INV-2024-001: 10,000 kg at EUR 0.458/kg = EUR 4,580. Contract CTR-2024-001 base rate: EUR 0.45/kg. Expected total: EUR 4,500. Discrepancy: EUR 80 overcharge.",
+    "category": "audit"
+  },
+  {
+    "question": "Is invoice INV-2024-003 within the acceptable discrepancy band?",
+    "expected_answer": "Invoice INV-2024-003 has a 0.7% discrepancy which falls in the AUTO_APPROVE band (under 1%), requiring no human review.",
+    "context": "Invoice INV-2024-003 audit: Total EUR 3,221.40 vs expected EUR 3,199.00. Discrepancy EUR 22.40 (0.7%). Band classification: AUTO_APPROVE (<1%). No action required, logged for records.",
+    "category": "audit"
+  },
+  {
+    "question": "Which invoices from Q4 2024 had discrepancies above 5%?",
+    "expected_answer": "Three invoices from Q4 2024 had discrepancies above 5%: INV-2024-047 (7.2%), INV-2024-051 (12.3%), and INV-2024-058 (5.4%). All were escalated for HITL review.",
+    "context": "Q4 2024 audit summary: 3 invoices exceeded 5% threshold - INV-2024-047 at 7.2% (ESCALATE), INV-2024-051 at 12.3% (ESCALATE), INV-2024-058 at 5.4% (ESCALATE). All required human-in-the-loop review.",
+    "category": "audit"
+  },
+  {
+    "question": "What was the total value of discrepancies found in March 2026?",
+    "expected_answer": "The total value of discrepancies found in March 2026 was EUR 2,847.30 across 45 audited invoices.",
+    "context": "March 2026 audit report: 45 invoices audited, 12 discrepancies found. Total discrepancy value: EUR 2,847.30. Average discrepancy: EUR 237.28. Largest single discrepancy: EUR 588.00 on INV-2026-012.",
+    "category": "audit"
+  },
+  {
+    "question": "What action is required for a 3% invoice discrepancy?",
+    "expected_answer": "A 3% discrepancy falls in the INVESTIGATE band (1-5%), requiring flagging for review but not mandatory HITL approval.",
+    "context": "Discrepancy band policy: <1% AUTO_APPROVE (rounding/FX), 1-5% INVESTIGATE (possible data entry error, flag for review), 5-15% ESCALATE (significant, HITL required), >15% CRITICAL (potential fraud, CFO alert).",
+    "category": "audit"
+  },
+  {
+    "question": "How many invoices were auto-approved in Q1 2026?",
+    "expected_answer": "In Q1 2026, 287 out of 312 invoices (92%) were auto-approved with discrepancies under 1%.",
+    "context": "Q1 2026 audit statistics: 312 total invoices processed. 287 auto-approved (<1% discrepancy), 18 investigated (1-5%), 5 escalated (5-15%), 2 critical (>15%). Auto-approval rate: 92%.",
+    "category": "audit"
+  },
+  {
+    "question": "What does RODO require regarding employee data retention?",
+    "expected_answer": "Under RODO (Polish GDPR), employee personal data must be retained for the duration of employment plus a maximum of 10 years, after which it must be securely deleted.",
+    "context": "RODO compliance guidelines: Employee personal data retention period is limited to employment duration plus maximum 10 years for archival purposes as per Art. 94 Kodeks Pracy. Data must be securely deleted after retention period. Consent must be documented.",
+    "category": "compliance"
+  },
+  {
+    "question": "What are the requirements for terminating an employee under Kodeks Pracy?",
+    "expected_answer": "Employee termination under Kodeks Pracy requires written notice, consultation with the trade union representative, and adherence to notice periods based on length of service.",
+    "context": "Employee Termination Procedures: Per Art. 38 Kodeks Pracy, employer must notify trade union of intent to terminate. Written notice required with reason stated. Notice periods: 2 weeks (<6 months), 1 month (6 months-3 years), 3 months (>3 years).",
+    "category": "compliance"
+  },
+  {
+    "question": "What ADR certification is required for hazmat transport drivers?",
+    "expected_answer": "Hazmat transport drivers must hold a valid ADR certificate covering the specific class of dangerous goods being transported, renewed every 5 years.",
+    "context": "ChemTrans Hazmat Agreement: All drivers handling hazardous materials must possess valid ADR (European Agreement concerning International Carriage of Dangerous Goods) certification specific to the goods class. Certification must be renewed every 5 years through accredited training centers.",
+    "category": "compliance"
+  },
+  {
+    "question": "What are the ISO 9001 audit frequency requirements?",
+    "expected_answer": "ISO 9001 requires internal audits at least annually, with surveillance audits by the certification body every 12 months.",
+    "context": "ISO 9001 Quality Management Manual: Internal quality audits conducted at minimum annually. Certification body surveillance audits every 12 months. Full recertification audit every 3 years. Non-conformities must be addressed within 30 days.",
+    "category": "compliance"
+  },
+  {
+    "question": "What temperature monitoring requirements exist for pharmaceutical transport?",
+    "expected_answer": "Pharmaceutical transport requires continuous temperature monitoring with GPS-enabled data loggers, with readings recorded every 5 minutes and deviation alerts triggered within 2 minutes.",
+    "context": "PharmaCorp temperature monitoring: Continuous monitoring via GPS-enabled data loggers required. Temperature readings every 5 minutes. Deviation alerts trigger within 2 minutes. Full temperature history must be provided with each delivery. Non-compliance: EUR 500 penalty per incident.",
+    "category": "compliance"
+  },
+  {
+    "question": "What data must be included in a transport compliance report?",
+    "expected_answer": "Transport compliance reports must include driver ADR certification status, vehicle inspection records, temperature logs, incident reports, and delivery time adherence statistics.",
+    "context": "Compliance reporting requirements: Monthly transport compliance reports must contain: 1) Driver ADR certification status, 2) Vehicle inspection records, 3) Temperature monitoring logs, 4) Incident and near-miss reports, 5) On-time delivery statistics. Reports due by 5th business day.",
+    "category": "compliance"
+  },
+  {
+    "question": "What happens when the query contains no recognizable question?",
+    "expected_answer": "The system should return an error or indicate that the input is not a valid question, rather than generating a hallucinated response.",
+    "context": "System behavior specification: Invalid or empty queries return HTTP 422 with descriptive error message. No LLM call is made for unparseable input. Rate limiting applies to all endpoints including invalid requests.",
+    "category": "edge_case"
+  },
+  {
+    "question": "What is the response when asking about a non-existent contract CTR-9999-999?",
+    "expected_answer": "The system indicates that contract CTR-9999-999 was not found in the database, and suggests verifying the contract number.",
+    "context": "Contract lookup behavior: When a queried contract ID does not exist in the database, the system returns 'Contract not found' with suggestion to verify the ID. No hallucinated contract details are generated.",
+    "category": "edge_case"
+  },
+  {
+    "question": "Can the system handle a query that mixes Polish and English?",
+    "expected_answer": "The system processes mixed-language queries by identifying key terms in both languages and retrieving relevant documents regardless of language.",
+    "context": "Multilingual query handling: The retrieval pipeline uses multilingual embeddings (text-embedding-3-small) that handle mixed-language input. Polish and English terms are embedded in the same vector space. Query 'Jaka jest kara za late delivery?' retrieves the same docs as the English equivalent.",
+    "category": "edge_case"
+  },
+  {
+    "question": "What happens when all retrieved chunks have very low relevance scores?",
+    "expected_answer": "When all retrieved chunks score below the minimum relevance threshold, the system returns a 'no confident answer' response rather than generating from low-quality context.",
+    "context": "Low-confidence handling: If all retrieved chunks score below 0.3 cosine similarity, the system returns 'Insufficient context to provide a reliable answer' rather than generating from weak evidence. This prevents confident-sounding hallucinations.",
+    "category": "edge_case"
+  },
+  {
+    "question": "How does the system handle concurrent requests for the same query?",
+    "expected_answer": "Concurrent identical requests are handled independently, with the second request potentially hitting the semantic cache if the first has completed.",
+    "context": "Concurrency model: Each request is processed independently in async handlers. Semantic cache is checked before LLM call. If two identical requests arrive simultaneously, both may trigger LLM calls (no request deduplication). Second subsequent request benefits from cache.",
+    "category": "edge_case"
+  },
+  {
+    "question": "What is the maximum query length the system accepts?",
+    "expected_answer": "The system accepts queries up to 2000 characters. Queries exceeding this limit are truncated with a warning in the response metadata.",
+    "context": "Input validation: Maximum query length is 2000 characters. Queries exceeding this limit are truncated to 2000 characters. A warning flag is included in response metadata. This prevents abuse and ensures consistent embedding quality.",
+    "category": "edge_case"
+  },
+  {
+    "question": "Jaka jest kara za opozniona dostawe do PharmaCorp?",
+    "expected_answer": "Kara za opozniona dostawe do PharmaCorp wynosi 2% dziennie wartosci opoznionej przesylki, maksymalnie 20% calkowitej wartosci faktury.",
+    "context": "PharmaCorp Service Agreement CTR-2024-001: Klauzula kar za opoznienie: 2% dziennie wartosci opoznionej przesylki, maksymalnie 20% calkowitej wartosci faktury. Dotyczy wszystkich przesylek kontrolowanych temperaturowo.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Jakie sa wymagania dotyczace certyfikacji operatorow wozkow widlowych?",
+    "expected_answer": "Operatorzy wozkow widlowych musza ukonczyc szkolenie certyfikowane przez UDT, zdac egzamin pisemny i praktyczny, oraz odnawiac certyfikat co 5 lat.",
+    "context": "Instrukcja obslugi wozka widlowego: Wszyscy operatorzy musza posiadac wazny certyfikat UDT (Urzad Dozoru Technicznego). Szkolenie obejmuje 40 godzin zajec teoretycznych i 20 godzin praktyki. Egzamin pisemny wymaga 80% poprawnych odpowiedzi. Certyfikat wazny 5 lat.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Ile wynosi stawka bazowa za transport chlodniczy FreshFoods?",
+    "expected_answer": "Stawka bazowa za transport chlodniczy FreshFoods wynosi 0.32 EUR za kilogram.",
+    "context": "Umowa logistyczna FreshFoods CTR-2024-002: Stawka bazowa 0.32 EUR/kg za towary chlodzone. Rabat ilosciowy: 10% przy miesiecznym wolumenie przekraczajacym 50 ton.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Jakie sa procedury ewakuacji przeciwpozarowej dla Magazynu B?",
+    "expected_answer": "Procedura ewakuacji Magazynu B wymaga zgromadzenia sie w Punkcie C w ciagu 5 minut, z kierownikami pieter przeprowadzajacymi liczenie osob.",
+    "context": "Plan bezpieczenstwa przeciwpozarowego: Procedura ewakuacji Magazynu B - po wlaczeniu alarmu, caly personel udaje sie do Punktu Zbiorczego C wyznaczonymi wyjsciami ewakuacyjnymi. Kierownicy pieter przeprowadzaja liczenie osob w ciagu 5 minut.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Co wymaga RODO w zakresie przechowywania danych pracownikow?",
+    "expected_answer": "Zgodnie z RODO, dane osobowe pracownikow moga byc przechowywane przez okres zatrudnienia plus maksymalnie 10 lat, po czym musza zostac bezpiecznie usuniete.",
+    "context": "Wytyczne zgodnosci z RODO: Okres przechowywania danych osobowych pracownikow jest ograniczony do czasu trwania zatrudnienia plus maksymalnie 10 lat na cele archiwalne zgodnie z Art. 94 Kodeksu Pracy. Dane musza byc bezpiecznie usuniete po uplywie okresu przechowywania.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Jakie sa wymagania ADR dla kierowcow przewozacych materialy niebezpieczne?",
+    "expected_answer": "Kierowcy przewozacy materialy niebezpieczne musza posiadac wazny certyfikat ADR obejmujacy konkretna klase towarow, odnawiany co 5 lat.",
+    "context": "Umowa ChemTrans Hazmat: Wszyscy kierowcy obslugujacy materialy niebezpieczne musza posiadac wazny certyfikat ADR (Umowa Europejska dotyczaca Miedzynarodowego Przewozu Drogowego Towarow Niebezpiecznych) odpowiedni do klasy towarow. Certyfikat musi byc odnawiany co 5 lat.",
+    "category": "multilingual"
+  },
+  {
+    "question": "What is the cost breakdown per LLM call for an invoice audit workflow?",
+    "expected_answer": "An invoice audit workflow involves 4 LLM calls: reader extraction (GPT-5 mini, ~EUR 0.002), SQL query generation (GPT-5 mini, ~EUR 0.001), auditor analysis (GPT-5.2, ~EUR 0.031), and report generation (GPT-5 mini, ~EUR 0.004). Total: ~EUR 0.038 per audit.",
+    "context": "Audit workflow cost analysis: 4 LLM calls per audit. Reader (GPT-5 mini): 2800 input + 400 output = EUR 0.0015. SQL generator (GPT-5 mini): 1500 input + 200 output = EUR 0.000775. Auditor (GPT-5.2): 8200 input + 1200 output = EUR 0.03115. Report (GPT-5 mini): 3000 input + 800 output = EUR 0.00235. Total: EUR 0.035275.",
+    "category": "audit"
+  },
+  {
+    "question": "What is the ROI of automated invoice auditing versus manual?",
+    "expected_answer": "Manual invoice audit costs EUR 45/hour with 3 hours per audit at 50 audits/month = EUR 6,750/month. Automated audit costs EUR 1.55/day = EUR 46.50/month. ROI: 145x on invoice audit alone.",
+    "context": "ROI analysis: Manual process - EUR 45/hour clerk, 3 hours per audit, 50 audits/month = EUR 6,750/month. Automated - EUR 0.031 per audit at 50/month = EUR 1.55. Monthly savings: EUR 6,703.50. ROI: 145x. Break-even: Day 1.",
+    "category": "audit"
+  },
+  {
+    "question": "What is the annual cost of the AI system with model routing?",
+    "expected_answer": "With model routing and semantic caching, the annual AI system cost is approximately EUR 1,032 for cloud LLM usage, compared to EUR 15,120 without routing.",
+    "context": "Annual cost projection: Routed (nano+mini+5.2) with 35% cache hit rate: EUR 86/month = EUR 1,032/year. Unrouted (all GPT-5.2): EUR 1,260/month = EUR 15,120/year. Savings: EUR 14,088/year (93% reduction).",
+    "category": "audit"
+  },
+  {
+    "question": "At what query volume does self-hosted GPU become cheaper than cloud?",
+    "expected_answer": "Self-hosted GPU becomes cheaper than cloud at approximately 1,300 queries per day, or about 40,000 queries per month.",
+    "context": "Break-even analysis: Cloud cost: EUR 650/month infrastructure + queries * EUR 0.015 average. Self-hosted GPU: EUR 1,250/month amortized over 3 years. Break-even: (1250-650)/0.015 = 40,000 queries/month = ~1,300/day. LogiCore at 2,400/day: self-hosted saves EUR 290/month.",
+    "category": "audit"
+  },
+  {
+    "question": "What is the employee onboarding process at LogiCore?",
+    "expected_answer": "New employee onboarding includes documentation submission, safety training, IT account setup, department introduction, and a 90-day probation period review.",
+    "context": "Employee Onboarding Handbook: Day 1: Documentation and contracts. Week 1: Safety orientation and warehouse tour. Week 2: IT account setup, system access, department-specific training. Month 1: Mentor assignment. Day 90: Probation review with department manager.",
+    "category": "search"
+  },
+  {
+    "question": "What are the delivery time windows for warehouse operations?",
+    "expected_answer": "Warehouse delivery acceptance hours are Monday to Friday 6:00-20:00, Saturday 8:00-14:00, with no deliveries accepted on Sundays and public holidays.",
+    "context": "Warehouse operations schedule: Delivery acceptance hours - Monday to Friday 06:00-20:00, Saturday 08:00-14:00. No deliveries accepted on Sundays or Polish public holidays. Pre-booking required for oversized loads. Loading dock capacity: 12 trucks simultaneously.",
+    "category": "search"
+  },
+  {
+    "question": "What insurance coverage is required for hazmat shipments?",
+    "expected_answer": "Hazmat shipments require a minimum of EUR 5 million liability insurance coverage, plus environmental contamination coverage of EUR 2 million.",
+    "context": "ChemTrans insurance requirements: Minimum EUR 5 million general liability insurance for hazmat transport. Additional EUR 2 million environmental contamination coverage required. Insurance certificates must be submitted annually. Coverage must include ADR-class specific incidents.",
+    "category": "compliance"
+  },
+  {
+    "question": "What dispute resolution mechanism does the master service agreement specify?",
+    "expected_answer": "The master service agreement specifies a three-step dispute resolution: first mediation, then arbitration under ICC rules in Warsaw, and finally litigation as a last resort.",
+    "context": "LogiCore Master Service Agreement: Dispute resolution: Step 1 - Good faith mediation within 30 days. Step 2 - Binding arbitration under ICC rules, seat in Warsaw, conducted in Polish. Step 3 - Litigation in Polish courts as last resort. All disputes governed by Polish law.",
+    "category": "compliance"
+  },
+  {
+    "question": "What are the data backup and recovery requirements?",
+    "expected_answer": "Critical data must be backed up daily with 30-day retention, weekly full backups stored offsite, and a recovery time objective of 4 hours for tier-1 systems.",
+    "context": "IT infrastructure policy: Daily incremental backups with 30-day retention. Weekly full backups stored in offsite location. Recovery Time Objective (RTO): Tier-1 systems 4 hours, Tier-2 systems 24 hours. Recovery Point Objective (RPO): Maximum 1 hour data loss.",
+    "category": "compliance"
+  },
+  {
+    "question": "What happens when the system receives a prompt injection attempt?",
+    "expected_answer": "Prompt injection attempts are caught by the query sanitizer which strips 9 known injection patterns before any LLM call. The sanitized query is then processed normally.",
+    "context": "Security: Query sanitizer intercepts injection patterns before LLM calls. 9 pattern categories: ignore instructions, reveal passwords, system prompt extraction, role override, context manipulation, output format hijacking, tool calling, code execution, data exfiltration. Sanitized input is logged for security review.",
+    "category": "edge_case"
+  },
+  {
+    "question": "How does the system handle API rate limiting?",
+    "expected_answer": "All public endpoints are rate limited to 100 requests per minute per user. LLM-calling endpoints have a stricter limit of 30 requests per minute. Exceeded limits return HTTP 429 with Retry-After header.",
+    "context": "Rate limiting policy: Public endpoints: 100 req/min per user. LLM endpoints: 30 req/min per user. Analytics endpoints: 60 req/min per user. Exceeded: HTTP 429 with Retry-After header. IP-based fallback when auth unavailable.",
+    "category": "edge_case"
+  },
+  {
+    "question": "Jak system obsluguje zapytania w wielu jezykach jednoczesnie?",
+    "expected_answer": "System wykorzystuje wielojezyczne modele embedding (text-embedding-3-small) ktore koduja zapytania w roznych jezykach w tej samej przestrzeni wektorowej, umozliwiajac wyszukiwanie dokumentow niezaleznie od jezyka zapytania.",
+    "context": "Obsluga wielojezyczna: Pipeline wyszukiwania wykorzystuje wielojezyczne modele embedding (text-embedding-3-small) z Azure OpenAI. Zapytania polskie i angielskie sa kodowane w tej samej 1536-wymiarowej przestrzeni wektorowej. Obslugiwane jezyki: polski, angielski, niemiecki.",
+    "category": "multilingual"
+  },
+  {
+    "question": "Jakie sa koszty monitorowania temperatury podczas transportu farmaceutykow?",
+    "expected_answer": "Monitoring temperatury przy transporcie farmaceutykow to 500 EUR kary za kazde odchylenie, plus koszt rejestratorow GPS-enabled i systemu alertow czasu rzeczywistego.",
+    "context": "Koszty monitoringu temperatury: Rejestratory GPS-enabled: EUR 150/sztuka. System alertow: EUR 50/miesiac. Kara za odchylenie temperatury: EUR 500 za incydent. Rejestratory odczytuja temperature co 5 minut. Alerty wyzwalane w ciagu 2 minut od odchylenia.",
+    "category": "multilingual"
+  },
+  {
+    "question": "What is the maximum invoice amount that can be auto-approved without HITL?",
+    "expected_answer": "Any invoice with a discrepancy under 1% of the total value is auto-approved regardless of the absolute amount. There is no maximum invoice amount threshold for auto-approval.",
+    "context": "Auto-approval policy: Discrepancy bands are percentage-based, not absolute. <1% discrepancy = AUTO_APPROVE regardless of invoice value. A EUR 1 million invoice with 0.5% discrepancy (EUR 5,000 absolute) is auto-approved. Policy rationale: percentage-based bands normalize for invoice size.",
+    "category": "audit"
+  },
+  {
+    "question": "What is the master service agreement template clause about force majeure?",
+    "expected_answer": "The force majeure clause covers natural disasters, pandemics, government actions, and other events beyond reasonable control, with a 30-day notification requirement and 90-day termination right if the event persists.",
+    "context": "LogiCore MSA Template - Force Majeure: Neither party liable for failure due to events beyond reasonable control including natural disasters, pandemics, war, government actions, strikes. Affected party must notify within 30 days. If force majeure persists beyond 90 days, either party may terminate without penalty.",
+    "category": "search"
+  },
+  {
+    "question": "Jaki jest koszt dzienny systemu AI z routingiem modeli?",
+    "expected_answer": "Dzienny koszt systemu AI z routingiem modeli wynosi okolo 2.87 EUR przy 2400 zapytaniach dziennie, w porownaniu do 42 EUR bez routingu.",
+    "context": "Analiza kosztow dziennych: Z routingiem (nano+mini+5.2) i cache 35%: EUR 2.87/dzien. Bez routingu (wszystko na GPT-5.2): EUR 42/dzien. Oszczednosc: 93%. Rozklad: 800 wyszukiwan, 50 audytow, 30 flota, 900 prostych, 620 z cache.",
+    "category": "multilingual"
+  }
+]

@@ -1,0 +1,37 @@
+# Air-gapped deployment overlay.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.airgap.yml up
+#
+# Adds Ollama for local LLM inference. Zero external API calls.
+# All data stays within the Docker network.
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          memory: 16G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  api:
+    environment:
+      LLM_PROVIDER: ollama
+      EMBEDDING_PROVIDER: ollama
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: qwen3:8b
+      OLLAMA_EMBED_MODEL: nomic-embed-text
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama-models:

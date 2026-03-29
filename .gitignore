@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+
+# uv
+.python-version
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.local.yml
+
+# Data
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# Claude Code (private agents/commands)
+.claude/
+AGENTS.md
+
+# Content & marketing (private)
+docs/content/
+docs/content copy*/
+docs/BARTEK-VOICE.md
+docs/CONTENT-STRATEGY.md
+docs/PROGRESS.md
+docs/linkedin-*.html
+
+# Phase internals (private — specs, tracking, reviews)
+docs/phases/phase-*.md
+docs/phases/trackers/
+docs/phases/reviews/
+docs/phases/recaps/
+docs/phases/analysis/
+
+# Architect notes (private strategy docs)
+docs/architect-notes/
+
+# Demo screenshots (outdated, re-add when updated)
+demo-screenshots/
+
+# Temp
+temp/
+tmp/
+*.zip
+
+# Playwright
+.playwright-mcp/

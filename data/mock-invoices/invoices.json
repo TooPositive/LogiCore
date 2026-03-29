@@ -1,0 +1,428 @@
+[
+  {
+    "_comment": "BAND: AUTO_APPROVE (<1%) -- rounding difference, 0.1% over",
+    "invoice_id": "INV-2024-0801",
+    "vendor": "PharmaCorp",
+    "contract_id": "CTR-2024-001",
+    "issue_date": "2024-10-01T00:00:00Z",
+    "total_amount": "3783.78",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Pharmaceutical cargo transport",
+        "quantity": "8400",
+        "unit": "kg",
+        "unit_price": "0.4505",
+        "total": "3783.78",
+        "cargo_type": "pharmaceutical"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: AUTO_APPROVE (<1%) -- exact match, 0% difference",
+    "invoice_id": "INV-2024-0802",
+    "vendor": "CargoFlex",
+    "contract_id": "CTR-2024-002",
+    "issue_date": "2024-10-05T00:00:00Z",
+    "total_amount": "5000.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "General cargo pallets",
+        "quantity": "100",
+        "unit": "pallet",
+        "unit_price": "50.00",
+        "total": "5000.00",
+        "cargo_type": "general"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: AUTO_APPROVE (<1%) -- 0.5% under (undercharge)",
+    "invoice_id": "INV-2024-0803",
+    "vendor": "PolTrans",
+    "contract_id": "CTR-2024-004",
+    "issue_date": "2024-10-10T00:00:00Z",
+    "total_amount": "2985.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Bulk cargo transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.2985",
+        "total": "2985.00",
+        "cargo_type": "bulk"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: AUTO_APPROVE (<1%) -- 0.8% over",
+    "invoice_id": "INV-2024-0804",
+    "vendor": "TransEuropa",
+    "contract_id": "CTR-2024-003",
+    "issue_date": "2024-10-12T00:00:00Z",
+    "total_amount": "6048.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Refrigerated dairy transport",
+        "quantity": "5000",
+        "unit": "kg",
+        "unit_price": "1.2096",
+        "total": "6048.00",
+        "cargo_type": "refrigerated"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: AUTO_APPROVE (<1%) -- 0.3% over",
+    "invoice_id": "INV-2024-0805",
+    "vendor": "SwissLog",
+    "contract_id": "CTR-2024-005",
+    "issue_date": "2024-10-15T00:00:00Z",
+    "total_amount": "1257.50",
+    "currency": "CHF",
+    "line_items": [
+      {
+        "description": "Electronics transport",
+        "quantity": "500",
+        "unit": "kg",
+        "unit_price": "2.5075",
+        "total": "1253.75",
+        "cargo_type": "electronics"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: INVESTIGATE (1-5%) -- 2.2% over",
+    "invoice_id": "INV-2024-0810",
+    "vendor": "PharmaCorp",
+    "contract_id": "CTR-2024-001",
+    "issue_date": "2024-10-20T00:00:00Z",
+    "total_amount": "4614.96",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Pharmaceutical cargo transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.46",
+        "total": "4614.96",
+        "cargo_type": "pharmaceutical"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: INVESTIGATE (1-5%) -- 4.0% over",
+    "invoice_id": "INV-2024-0811",
+    "vendor": "CargoFlex",
+    "contract_id": "CTR-2024-002",
+    "issue_date": "2024-10-22T00:00:00Z",
+    "total_amount": "2600.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "General cargo pallets",
+        "quantity": "50",
+        "unit": "pallet",
+        "unit_price": "52.00",
+        "total": "2600.00",
+        "cargo_type": "general"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: INVESTIGATE (1-5%) -- 3.3% over",
+    "invoice_id": "INV-2024-0812",
+    "vendor": "PolTrans",
+    "contract_id": "CTR-2024-004",
+    "issue_date": "2024-10-25T00:00:00Z",
+    "total_amount": "3099.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Bulk cargo transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.31",
+        "total": "3099.00",
+        "cargo_type": "bulk"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: INVESTIGATE (1-5%) -- 1.7% over",
+    "invoice_id": "INV-2024-0813",
+    "vendor": "TransEuropa",
+    "contract_id": "CTR-2024-003",
+    "issue_date": "2024-10-28T00:00:00Z",
+    "total_amount": "3660.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Refrigerated meat transport",
+        "quantity": "3000",
+        "unit": "kg",
+        "unit_price": "1.22",
+        "total": "3660.00",
+        "cargo_type": "refrigerated"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: INVESTIGATE (1-5%) -- 4.8% over",
+    "invoice_id": "INV-2024-0814",
+    "vendor": "SwissLog",
+    "contract_id": "CTR-2024-005",
+    "issue_date": "2024-11-01T00:00:00Z",
+    "total_amount": "2622.00",
+    "currency": "CHF",
+    "line_items": [
+      {
+        "description": "Electronics transport",
+        "quantity": "1000",
+        "unit": "kg",
+        "unit_price": "2.622",
+        "total": "2622.00",
+        "cargo_type": "electronics"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: ESCALATE (5-15%) -- 10.0% over",
+    "invoice_id": "INV-2024-0820",
+    "vendor": "PharmaCorp",
+    "contract_id": "CTR-2024-001",
+    "issue_date": "2024-11-05T00:00:00Z",
+    "total_amount": "4950.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Pharmaceutical cargo transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.495",
+        "total": "4950.00",
+        "cargo_type": "pharmaceutical"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: ESCALATE (5-15%) -- 6.0% over",
+    "invoice_id": "INV-2024-0821",
+    "vendor": "CargoFlex",
+    "contract_id": "CTR-2024-002",
+    "issue_date": "2024-11-08T00:00:00Z",
+    "total_amount": "2650.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "General cargo pallets",
+        "quantity": "50",
+        "unit": "pallet",
+        "unit_price": "53.00",
+        "total": "2650.00",
+        "cargo_type": "general"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: ESCALATE (5-15%) -- 8.3% over",
+    "invoice_id": "INV-2024-0822",
+    "vendor": "TransEuropa",
+    "contract_id": "CTR-2024-003",
+    "issue_date": "2024-11-10T00:00:00Z",
+    "total_amount": "6500.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Refrigerated seafood transport",
+        "quantity": "5000",
+        "unit": "kg",
+        "unit_price": "1.30",
+        "total": "6500.00",
+        "cargo_type": "refrigerated"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: ESCALATE (5-15%) -- 14.0% over",
+    "invoice_id": "INV-2024-0823",
+    "vendor": "PolTrans",
+    "contract_id": "CTR-2024-004",
+    "issue_date": "2024-11-12T00:00:00Z",
+    "total_amount": "3420.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Bulk chemicals transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.342",
+        "total": "3420.00",
+        "cargo_type": "bulk"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: ESCALATE (5-15%) -- 12.0% over",
+    "invoice_id": "INV-2024-0824",
+    "vendor": "SwissLog",
+    "contract_id": "CTR-2024-005",
+    "issue_date": "2024-11-15T00:00:00Z",
+    "total_amount": "2800.00",
+    "currency": "CHF",
+    "line_items": [
+      {
+        "description": "Electronics transport",
+        "quantity": "1000",
+        "unit": "kg",
+        "unit_price": "2.80",
+        "total": "2800.00",
+        "cargo_type": "electronics"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: CRITICAL (>15%) -- 15.6% over (the spec scenario)",
+    "invoice_id": "INV-2024-0847",
+    "vendor": "PharmaCorp",
+    "contract_id": "CTR-2024-001",
+    "issue_date": "2024-11-15T00:00:00Z",
+    "total_amount": "4368.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Pharmaceutical cargo transport",
+        "quantity": "8400",
+        "unit": "kg",
+        "unit_price": "0.52",
+        "total": "4368.00",
+        "cargo_type": "pharmaceutical"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: CRITICAL (>15%) -- 88.9% over (extreme fraud signal)",
+    "invoice_id": "INV-2024-0830",
+    "vendor": "PharmaCorp",
+    "contract_id": "CTR-2024-001",
+    "issue_date": "2024-11-18T00:00:00Z",
+    "total_amount": "5100.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Pharmaceutical cargo transport",
+        "quantity": "6000",
+        "unit": "kg",
+        "unit_price": "0.85",
+        "total": "5100.00",
+        "cargo_type": "pharmaceutical"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: CRITICAL (>15%) -- 70.0% over on hazmat",
+    "invoice_id": "INV-2024-0831",
+    "vendor": "CargoFlex",
+    "contract_id": "CTR-2024-002",
+    "issue_date": "2024-11-20T00:00:00Z",
+    "total_amount": "4335.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Hazardous materials pallets",
+        "quantity": "30",
+        "unit": "pallet",
+        "unit_price": "144.50",
+        "total": "4335.00",
+        "cargo_type": "hazardous"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: CRITICAL (>15%) -- 33.3% over",
+    "invoice_id": "INV-2024-0832",
+    "vendor": "PolTrans",
+    "contract_id": "CTR-2024-004",
+    "issue_date": "2024-11-22T00:00:00Z",
+    "total_amount": "4000.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Bulk grain transport",
+        "quantity": "10000",
+        "unit": "kg",
+        "unit_price": "0.40",
+        "total": "4000.00",
+        "cargo_type": "bulk"
+      }
+    ]
+  },
+  {
+    "_comment": "BAND: CRITICAL (>15%) -- 25.0% over",
+    "invoice_id": "INV-2024-0833",
+    "vendor": "TransEuropa",
+    "contract_id": "CTR-2024-003",
+    "issue_date": "2024-11-25T00:00:00Z",
+    "total_amount": "7500.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Refrigerated vaccine transport",
+        "quantity": "5000",
+        "unit": "kg",
+        "unit_price": "1.50",
+        "total": "7500.00",
+        "cargo_type": "refrigerated"
+      }
+    ]
+  },
+  {
+    "_comment": "MULTI-LINE: one line clean, one line overcharged (ESCALATE)",
+    "invoice_id": "INV-2024-0840",
+    "vendor": "CargoFlex",
+    "contract_id": "CTR-2024-002",
+    "issue_date": "2024-11-28T00:00:00Z",
+    "total_amount": "7150.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "General cargo pallets",
+        "quantity": "80",
+        "unit": "pallet",
+        "unit_price": "50.00",
+        "total": "4000.00",
+        "cargo_type": "general"
+      },
+      {
+        "description": "Hazardous materials pallets",
+        "quantity": "30",
+        "unit": "pallet",
+        "unit_price": "105.00",
+        "total": "3150.00",
+        "cargo_type": "hazardous"
+      }
+    ]
+  },
+  {
+    "_comment": "EXACT MATCH: zero discrepancy (no issue)",
+    "invoice_id": "INV-2024-0850",
+    "vendor": "TransEuropa",
+    "contract_id": "CTR-2024-003",
+    "issue_date": "2024-12-01T00:00:00Z",
+    "total_amount": "6000.00",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Refrigerated produce transport",
+        "quantity": "5000",
+        "unit": "kg",
+        "unit_price": "1.20",
+        "total": "6000.00",
+        "cargo_type": "refrigerated"
+      }
+    ]
+  }
+]

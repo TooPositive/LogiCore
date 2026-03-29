@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiCore Knowledge Base — Enterprise AI Architecture Study Guide</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #273449;
+  --surface-3: #334155;
+  --border: #475569;
+  --border-hover: #64748b;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #60a5fa;
+  --accent-dim: #3b82f6;
+  --accent-bg: rgba(96,165,250,0.1);
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.08);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251,191,36,0.08);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.08);
+  --orange: #fb923c;
+  --purple: #a78bfa;
+  --cyan: #22d3ee;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  --sidebar-w: 280px;
+  --header-h: 56px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; font-size: 15px; }
+
+/* ── Header ── */
+.header {
+  position: fixed; top:0; left:0; right:0; height: var(--header-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px; z-index: 1000;
+  backdrop-filter: blur(12px);
+}
+.header-logo { font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+.header-logo span { color: var(--text-dim); font-weight: 400; margin-left: 8px; font-size: 13px; }
+.header-search {
+  margin-left: auto; position: relative; width: 320px;
+}
+.header-search input {
+  width: 100%; padding: 8px 14px 8px 36px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: 14px; outline: none;
+}
+.header-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(96,165,250,0.2); }
+.header-search .search-icon {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 14px;
+}
+.header-search .search-count {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 12px;
+}
+.menu-toggle {
+  display: none; background: none; border: none; color: var(--text); font-size: 22px;
+  cursor: pointer; margin-right: 16px;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: var(--header-h); left: 0; width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h)); background: var(--surface);
+  border-right: 1px solid var(--border); overflow-y: auto; z-index: 900;
+  padding: 16px 0;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.sidebar-section { margin-bottom: 4px; }
+.sidebar-section-title {
+  display: flex; align-items: center; padding: 8px 18px; cursor: pointer;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); font-weight: 600; user-select: none;
+  transition: color 0.15s;
+}
+.sidebar-section-title:hover { color: var(--text-dim); }
+.sidebar-section-title .arrow {
+  margin-right: 6px; transition: transform 0.2s; font-size: 10px;
+}
+.sidebar-section-title.collapsed .arrow { transform: rotate(-90deg); }
+.sidebar-links { padding: 2px 0; }
+.sidebar-links.hidden { display: none; }
+.sidebar-link {
+  display: block; padding: 6px 18px 6px 32px; color: var(--text-dim);
+  text-decoration: none; font-size: 13px; transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover { color: var(--text); background: var(--accent-bg); }
+.sidebar-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-bg); }
+.sidebar-phase-num {
+  display: inline-block; width: 22px; height: 22px; line-height: 22px;
+  text-align: center; border-radius: 4px; font-size: 11px; font-weight: 700;
+  margin-right: 6px; background: var(--surface-3); color: var(--text-dim);
+}
+
+/* ── Main Content ── */
+.main {
+  margin-left: var(--sidebar-w); margin-top: var(--header-h);
+  padding: 32px 48px 120px 48px; max-width: 960px;
+}
+
+/* Phase Section */
+.phase-section { margin-bottom: 64px; }
+.phase-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);
+}
+.phase-num {
+  font-size: 36px; font-weight: 800; color: var(--accent); line-height: 1;
+  min-width: 48px;
+}
+.phase-title-block h2 { font-size: 24px; font-weight: 700; line-height: 1.2; }
+.phase-title-block .phase-subtitle { color: var(--text-dim); font-size: 14px; margin-top: 2px; }
+
+/* Expandable Sections */
+.expandable { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.expandable-header {
+  display: flex; align-items: center; padding: 14px 18px; cursor: pointer;
+  background: var(--surface); transition: background 0.15s; user-select: none;
+}
+.expandable-header:hover { background: var(--surface-2); }
+.expandable-header .exp-icon {
+  margin-right: 10px; font-size: 12px; color: var(--text-muted);
+  transition: transform 0.2s; flex-shrink: 0;
+}
+.expandable-header.open .exp-icon { transform: rotate(90deg); }
+.expandable-header .exp-title { font-weight: 600; font-size: 15px; }
+.expandable-header .exp-badge {
+  margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  background: var(--surface-3); color: var(--text-muted);
+}
+.expandable-body { display: none; padding: 18px; border-top: 1px solid var(--border); background: var(--bg); }
+.expandable-body.open { display: block; }
+
+/* Content Typography */
+.content h3 { font-size: 17px; font-weight: 700; margin: 24px 0 10px 0; color: var(--accent); }
+.content h3:first-child { margin-top: 0; }
+.content h4 { font-size: 15px; font-weight: 600; margin: 18px 0 8px 0; color: var(--text); }
+.content p { margin-bottom: 12px; color: var(--text-dim); }
+.content ul, .content ol { margin: 8px 0 16px 20px; color: var(--text-dim); }
+.content li { margin-bottom: 6px; }
+.content strong { color: var(--text); }
+.content em { color: var(--yellow); font-style: normal; }
+
+/* Code Blocks */
+pre {
+  background: #0c1222; border: 1px solid var(--border); border-radius: 6px;
+  padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 13px;
+  line-height: 1.6; font-family: var(--mono); color: #93c5fd;
+}
+code {
+  font-family: var(--mono); font-size: 13px; background: var(--surface-3);
+  padding: 2px 6px; border-radius: 3px; color: var(--cyan);
+}
+pre code { background: none; padding: 0; border-radius: 0; color: inherit; }
+.kw { color: #c084fc; } /* keyword */
+.fn { color: #67e8f9; } /* function */
+.str { color: #86efac; } /* string */
+.cmt { color: #64748b; } /* comment */
+.num { color: #fbbf24; } /* number */
+.op { color: #f9a8d4; } /* operator */
+
+/* Tables */
+table {
+  width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;
+}
+th {
+  text-align: left; padding: 10px 14px; background: var(--surface);
+  border: 1px solid var(--border); color: var(--text); font-weight: 600;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+td {
+  padding: 8px 14px; border: 1px solid var(--border); color: var(--text-dim);
+}
+tr:hover td { background: var(--surface-2); }
+.tbl-good { color: var(--green); font-weight: 600; }
+.tbl-warn { color: var(--yellow); font-weight: 600; }
+.tbl-bad { color: var(--red); font-weight: 600; }
+
+/* Callout Boxes */
+.callout {
+  padding: 14px 18px; border-radius: 6px; margin: 14px 0; font-size: 14px;
+  border-left: 3px solid;
+}
+.callout-decision { background: var(--accent-bg); border-color: var(--accent); }
+.callout-warning { background: var(--yellow-bg); border-color: var(--yellow); }
+.callout-security { background: var(--red-bg); border-color: var(--red); }
+.callout-insight { background: var(--green-bg); border-color: var(--green); }
+.callout-title { font-weight: 700; margin-bottom: 4px; color: var(--text); }
+
+/* Interview Cards */
+.interview-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; margin: 10px 0;
+}
+.interview-card .q { color: var(--accent); font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.interview-card .a { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+
+/* Pattern Badge */
+.pattern-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px;
+  background: var(--surface-3); color: var(--purple); margin: 2px 4px 2px 0;
+  border: 1px solid rgba(167,139,250,0.2);
+}
+
+/* Cross-phase table checkmarks */
+.check { color: var(--green); font-weight: 700; text-align: center; }
+.cross-phase-table td:not(:first-child) { text-align: center; }
+
+/* Search highlighting */
+.search-highlight { background: rgba(251,191,36,0.3); border-radius: 2px; padding: 0 1px; }
+.search-hidden { display: none !important; }
+
+/* Quick-Reference Cards */
+.qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+.qr-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 18px; transition: border-color 0.15s;
+}
+.qr-card:hover { border-color: var(--accent-dim); }
+.qr-card h4 { color: var(--accent); margin: 0 0 8px 0; font-size: 15px; }
+.qr-card p { color: var(--text-dim); font-size: 13px; margin: 0; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 999; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 24px 20px 80px; }
+  .menu-toggle { display: block; }
+  .header-search { width: 200px; }
+}
+
+/* Print */
+@media print {
+  .sidebar, .header, .menu-toggle { display: none !important; }
+  .main { margin: 0; padding: 20px; max-width: 100%; }
+  .expandable-body { display: block !important; }
+  body { background: #fff; color: #111; font-size: 12px; }
+  pre { background: #f5f5f5; border: 1px solid #ddd; }
+  .callout { border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
+  <div class="header-logo">LogiCore KB <span>Enterprise AI Architecture Study Guide</span></div>
+  <div class="header-search">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="Search all content... (Ctrl+K)" autocomplete="off">
+    <span class="search-count" id="searchCount"></span>
+  </div>
+</header>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-section-title" onclick="toggleSidebarSection(this)">
+      <span class="arrow">&#9654;</span> Overview
+    </div>
+    <div class="sidebar-links">
+      <a href="#overview" class="sidebar-link">System Overview</a>
+      <a href="#quick-ref" class="sidebar-link">Quick Reference Cards</a>
+      <a href="#cross-phase" class="sidebar-link">Cross-Phase Patterns</a>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title" onclick="toggleSidebarSection(this)">
+      <span class="arrow">&#9654;</span> Phases
+    </div>
+    <div class="sidebar-links">
+      <a href="#phase-1" class="sidebar-link"><span class="sidebar-phase-num">1</span> Corporate Brain</a>
+      <a href="#phase-2" class="sidebar-link"><span class="sidebar-phase-num">2</span> Retrieval Engineering</a>
+      <a href="#phase-3" class="sidebar-link"><span class="sidebar-phase-num">3</span> Multi-Agent</a>
+      <a href="#phase-4" class="sidebar-link"><span class="sidebar-phase-num">4</span> Trust Layer</a>
+      <a href="#phase-5" class="sidebar-link"><span class="sidebar-phase-num">5</span> Assessment Rigor</a>
+      <a href="#phase-6" class="sidebar-link"><span class="sidebar-phase-num">6</span> Air-Gapped Vault</a>
+      <a href="#phase-7" class="sidebar-link"><span class="sidebar-phase-num">7</span> Resilience</a>
+      <a href="#phase-8" class="sidebar-link"><span class="sidebar-phase-num">8</span> Regulatory Shield</a>
+      <a href="#phase-9" class="sidebar-link"><span class="sidebar-phase-num">9</span> Fleet Guardian</a>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title" onclick="toggleSidebarSection(this)">
+      <span class="arrow">&#9654;</span> Reference
+    </div>
+    <div class="sidebar-links">
+      <a href="#patterns-glossary" class="sidebar-link">Patterns Glossary</a>
+      <a href="#security-summary" class="sidebar-link">Security Model Summary</a>
+      <a href="#cost-summary" class="sidebar-link">Cost Analysis Summary</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="main" id="mainContent">
+
+<!-- ════════════════════════════════════════ -->
+<!-- OVERVIEW SECTION                        -->
+<!-- ════════════════════════════════════════ -->
+<section id="overview" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>LogiCore &mdash; Enterprise AI OS for Logistics</h2>
+      <div class="phase-subtitle">12-phase capstone project: RAG, multi-agent orchestration, LLMOps, streaming, EU AI Act compliance</div>
+    </div>
+  </div>
+  <div class="content">
+    <p>LogiCore Sp. z o.o. is a Polish logistics company. This knowledge base covers 9 completed phases of an enterprise AI system built with <strong>Python 3.12, FastAPI, LangGraph, Qdrant, PostgreSQL, Redis, Kafka, and Langfuse</strong>. Each phase solves a concrete business problem with measurable outcomes, benchmarked alternatives, and architect-level decision rationale.</p>
+    <h3>System Architecture Overview</h3>
+<pre>
+                            +-------------------+
+                            |   Next.js 15 UI   |  :3000
+                            +--------+----------+
+                                     |
+                            +--------v----------+
+                            |   FastAPI (8080)   |
+                            |   /api/v1/...      |
+                            +--+-----+-----+----+
+                               |     |     |
+              +----------------+     |     +----------------+
+              |                      |                      |
+     +--------v-------+    +--------v-------+    +---------v------+
+     |   Qdrant 6333  |    | PostgreSQL 5432|    |  Redis 6379    |
+     | Hybrid Search  |    | State, Audit,  |    | Semantic Cache |
+     | RBAC Filters   |    | Checkpoints    |    | Agent Memory   |
+     +----------------+    +----------------+    +----------------+
+                                     |
+                            +--------v----------+
+                            |   Kafka 9092      |
+                            | fleet.gps-pings   |
+                            | fleet.temperature |
+                            +-------------------+
+                                     |
+                            +--------v----------+
+                            | Rust Simulator    |  :8081
+                            | 200 trucks, IoT   |
+                            +-------------------+
+</pre>
+    <h3>Technology Stack</h3>
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+      <tr><td>API</td><td>FastAPI + Pydantic v2</td><td>Async REST, type-safe models</td></tr>
+      <tr><td>Orchestration</td><td>LangGraph</td><td>Deterministic agent state machines</td></tr>
+      <tr><td>Vector DB</td><td>Qdrant</td><td>Hybrid search (dense + sparse), RBAC filters</td></tr>
+      <tr><td>State DB</td><td>PostgreSQL</td><td>Checkpoints, audit logs, hash chains</td></tr>
+      <tr><td>Cache</td><td>Redis</td><td>RBAC-partitioned semantic cache, agent memory</td></tr>
+      <tr><td>Streaming</td><td>Kafka</td><td>IoT telemetry (47K msgs/day)</td></tr>
+      <tr><td>Observability</td><td>Langfuse</td><td>LLM cost tracking, quality monitoring</td></tr>
+      <tr><td>Embeddings</td><td>Azure OpenAI</td><td>text-embedding-3-small (1536d)</td></tr>
+      <tr><td>LLM</td><td>Azure OpenAI / Ollama</td><td>GPT-5-mini, GPT-5.2, qwen3:8b (local)</td></tr>
+      <tr><td>Simulator</td><td>Rust</td><td>200 trucks, GPS + temperature streams</td></tr>
+    </table>
+    <h3>Code Organization</h3>
+<pre>
+apps/api/src/
+  core/               <span class="cmt"># Domain-agnostic (swappable across industries)</span>
+    api/v1/           <span class="cmt"># Health, search, ingest, analytics endpoints</span>
+    config/           <span class="cmt"># Pydantic settings</span>
+    domain/           <span class="cmt"># Document, Chunk, UserContext models</span>
+    graphs/           <span class="cmt"># Clearance filter, core graph patterns</span>
+    infrastructure/   <span class="cmt"># LLM, Postgres, Qdrant, Redis clients</span>
+    rag/              <span class="cmt"># Retrieval, embeddings, chunking, reranking</span>
+    security/         <span class="cmt"># RBAC, input sanitization, guardrails</span>
+    telemetry/        <span class="cmt"># Langfuse, cost tracker, drift, quality</span>
+  domains/logicore/   <span class="cmt"># LogiCore-specific business logic</span>
+    agents/           <span class="cmt"># Reader, auditor, fleet guardian</span>
+    api/              <span class="cmt"># Audit, fleet endpoints</span>
+    compliance/       <span class="cmt"># EU AI Act audit logging</span>
+    graphs/           <span class="cmt"># Audit workflow, fleet response</span>
+    models/           <span class="cmt"># Invoice, ContractRate, FleetAlert</span>
+    tools/            <span class="cmt"># SQL query, report generator</span>
+</pre>
+    <div class="callout callout-decision">
+      <div class="callout-title">Dependency Rule</div>
+      <code>domains/logicore/</code> imports from <code>core/</code>. <code>core/</code> NEVER imports from <code>domains/</code>. Test: "Could someone swap <code>domains/logicore/</code> for <code>domains/healthcare/</code> and have core work unchanged?" If yes, it belongs in <code>core/</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ -->
+<!-- QUICK REFERENCE CARDS                   -->
+<!-- ════════════════════════════════════════ -->
+<section id="quick-ref" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>Quick Reference Cards</h2>
+      <div class="phase-subtitle">Key concepts at a glance</div>
+    </div>
+  </div>
+  <div class="qr-grid">
+    <div class="qr-card">
+      <h4>RBAC (Role-Based Access Control)</h4>
+      <p>Filter at Qdrant query level &mdash; unauthorized docs never enter the pipeline. Fail-closed: empty departments = ValueError. The LLM never sees content the user cannot access.</p>
+    </div>
+    <div class="qr-card">
+      <h4>Circuit Breaker</h4>
+      <p>3-state machine: CLOSED (normal) &rarr; OPEN (fast-fail) &rarr; HALF_OPEN (probe). Error classification excludes 4xx (caller bugs). HALF_OPEN failure = immediate re-open.</p>
+    </div>
+    <div class="qr-card">
+      <h4>RRF (Reciprocal Rank Fusion)</h4>
+      <p>Fuses ranks, not scores. Avoids scale mismatch between cosine similarity (0&ndash;1) and BM25 TF-IDF (unbounded). Single Qdrant API call via prefetch.</p>
+    </div>
+    <div class="qr-card">
+      <h4>LangGraph</h4>
+      <p>Deterministic state machine for agent orchestration. Nodes are pure functions. Edges are conditional. Checkpointing enables crash recovery and HITL interrupts.</p>
+    </div>
+    <div class="qr-card">
+      <h4>Semantic Cache</h4>
+      <p>RBAC-partitioned by <code>cl:N|dept:X|ent:Y</code>. Physical namespace isolation (not filter). Hit rate: 15&ndash;25% (honest with RBAC, not the 60% you see in demos).</p>
+    </div>
+    <div class="qr-card">
+      <h4>Hash Chain</h4>
+      <p>SHA-256 chain over audit entries. Same tamper evidence as blockchain at EUR 0 vs EUR 8K&ndash;15K/yr. Advisory lock prevents forking under concurrency.</p>
+    </div>
+    <div class="qr-card">
+      <h4>Two-Tier Processing</h4>
+      <p>Physical necessity for streaming: 1K msgs/sec through LLM = 500s backlog/sec. Tier 1: rule-based (EUR 0.00). Tier 2: LLM (anomalies only, &lt;0.05%).</p>
+    </div>
+    <div class="qr-card">
+      <h4>Fail-Closed Guard</h4>
+      <p>Unknown state = deny access. Empty departments = ValueError (not empty filter). Missing clearance defaults to 1 (most restrictive). Prevents silent data leaks.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 1: Corporate Brain                -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-1" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">01</div>
+    <div class="phase-title-block">
+      <h2>Corporate Brain</h2>
+      <div class="phase-subtitle">RAG + RBAC &mdash; Hybrid Search with Query-Level Authorization</div>
+    </div>
+  </div>
+
+  <!-- Business Problem -->
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Logistics companies have mountains of unstructured documents: HR manuals, safety protocols, customs regulations, contracts. Employees search for "towary niebezpieczne" (dangerous goods) but the document says "substancje chemiczne" (chemical substances). BM25 returns nothing.</p>
+      <p><strong>The real problem isn't search &mdash; it's authorization.</strong> A warehouse worker searches a query that happens to match an HR termination document they shouldn't see. Post-retrieval filtering means the LLM already has the content in its context window. A prompt injection in that retrieved content could leak it.</p>
+      <div class="callout callout-security">
+        <div class="callout-title">Security Architecture Decision</div>
+        RBAC is enforced at the Qdrant query level. Unauthorized documents are excluded from the search results before they ever enter the pipeline. The LLM cannot leak what it never sees.
+      </div>
+      <p><strong>Quantified impact</strong>: With BM25 alone, 38% of natural-language queries return wrong or no results. For a company with 200 daily searches, that's 76 unanswered questions per day &mdash; each one a support ticket or a wrong operational decision.</p>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>Data Flow</h3>
+<pre>
+User Query (e.g. "towary niebezpieczne")
+  &rarr; POST /api/v1/search
+    &rarr; resolve_user_context(user_id)
+       &rarr; UserContext(clearance=1, departments=["warehouse"])
+    &rarr; build_qdrant_filter(user)
+       &rarr; Filter(dept IN [...], clearance &lt;= N)
+    &rarr; hybrid_search(query, user)
+       &rarr; embed_fn(query)              <span class="cmt"># [float] * 1536 (dense)</span>
+       &rarr; text_to_sparse_vector(query)  <span class="cmt"># SparseVector (BM25 TF)</span>
+       &rarr; qdrant.query_points(
+            prefetch=[dense, bm25],
+            query=FusionQuery(RRF),
+            query_filter=rbac_filter       <span class="cmt"># &lt;-- authorization HERE</span>
+          )
+    &rarr; format_results() &rarr; SearchResponse
+</pre>
+      <h3>Key Insight</h3>
+      <p>The RBAC filter is injected into the Qdrant query itself. This is not a post-processing step. The database engine applies the filter during index traversal, so unauthorized documents are never scored, never ranked, and never returned.</p>
+
+      <h3>Ingestion Pipeline</h3>
+<pre>
+Document Upload
+  &rarr; validate_path(file_path)       <span class="cmt"># .resolve() + allowlist (path traversal defense)</span>
+  &rarr; chunk_text(content, 512, 50)   <span class="cmt"># 512 chars, word-boundary, 50 char overlap</span>
+  &rarr; for each chunk:
+       embed_fn(chunk)                  <span class="cmt"># dense vector [1536]</span>
+       text_to_sparse_vector(chunk)     <span class="cmt"># sparse vector (BM25 TF)</span>
+       PointStruct(
+         id=uuid, vector={dense, bm25_sparse},
+         payload={text, doc_id, department_id, clearance_level, ...}
+       )
+  &rarr; qdrant.upsert(collection, points)
+</pre>
+    </div>
+  </div>
+
+  <!-- Components Built -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">8 components</span>
+    </div>
+    <div class="expandable-body content">
+
+      <h3>1. RBAC Filter (rbac.py) &mdash; Fail-Closed Guard</h3>
+      <p>Builds Qdrant filter conditions from user context. The critical design choice: <strong>empty departments = ValueError</strong>, not an empty filter.</p>
+<pre>
+<span class="kw">def</span> <span class="fn">build_qdrant_filter</span>(user: UserContext) -> Filter:
+    <span class="kw">if not</span> user.departments:
+        <span class="kw">raise</span> ValueError(<span class="str">"Empty departments - fail closed"</span>)
+    <span class="kw">return</span> Filter(must=[
+        FieldCondition(key=<span class="str">"department_id"</span>,
+                       match=MatchAny(any=user.departments)),
+        FieldCondition(key=<span class="str">"clearance_level"</span>,
+                       range=Range(lte=user.clearance_level)),
+    ])
+</pre>
+      <div class="callout callout-warning">
+        <div class="callout-title">Why Fail-Closed?</div>
+        <code>MatchAny([])</code> has undefined behavior in Qdrant &mdash; could match everything (data leak) or nothing. Both are wrong. The guard makes the failure mode explicit and immediate.
+      </div>
+
+      <h3>2. Hybrid Search Retriever (retriever.py) &mdash; Strategy + DI</h3>
+      <p>Uses Strategy Pattern via enum for search mode selection. <code>embed_fn</code> is injected as a callable &mdash; tests inject mocks, production injects Azure OpenAI.</p>
+<pre>
+<span class="kw">class</span> <span class="fn">HybridRetriever</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, client, collection, embed_fn: Callable):
+        self.embed_fn = embed_fn  <span class="cmt"># DI: injected, not imported</span>
+
+    <span class="kw">async def</span> <span class="fn">search</span>(self, query, user, mode=SearchMode.HYBRID):
+        dense = <span class="kw">await</span> self.embed_fn(query)
+        sparse = text_to_sparse_vector(query)
+        prefetch_limit = top_k * <span class="num">4</span>  <span class="cmt"># over-fetch candidates</span>
+        <span class="cmt"># Single Qdrant API call with RRF fusion</span>
+        results = client.query_points(
+            prefetch=[dense_prefetch, bm25_prefetch],
+            query=FusionQuery(Fusion.RRF),
+            query_filter=build_qdrant_filter(user)
+        )
+</pre>
+
+      <h3>3. Sparse Vector Encoder (sparse.py) &mdash; BM25 TF with Hash Collision Fix</h3>
+      <p>Tokenizer regex preserves "ISO-9001" as single token. Hash collision fix: <code>index_map</code> dict sums colliding indices instead of overwriting.</p>
+<pre>
+<span class="cmt"># Hash collision: two tokens hash to same index</span>
+<span class="cmt"># BAD:  indices = [hash(t) for t in tokens]  # overwrites</span>
+<span class="cmt"># GOOD: index_map[hash(t)] += tf              # sums</span>
+index_map: dict[int, float] = {}
+<span class="kw">for</span> token <span class="kw">in</span> tokens:
+    idx = hash(token) % vocab_size
+    index_map[idx] = index_map.get(idx, <span class="num">0.0</span>) + tf
+</pre>
+
+      <h3>4. Document Ingestion (ingestion.py)</h3>
+      <p>512-char chunks with word-boundary awareness. Each Qdrant point stores both dense AND sparse vectors plus full RBAC metadata.</p>
+
+      <h3>5. Collection Schema (collections.py) &mdash; Idempotent Setup</h3>
+      <p>Creates collection if not exists. Configures dense + sparse vectors. <code>Modifier.IDF</code> for server-side IDF weighting. Payload indexes on <code>department_id</code> (KEYWORD) and <code>clearance_level</code> (INTEGER) for fast filtering.</p>
+
+      <h3>6. Embedding Module (embeddings.py) &mdash; ABC + Factory + Deterministic Test Double</h3>
+      <p><code>MockEmbedder</code> uses SHA-256 hash expansion: same text = same vector, different text = different vector, no API calls. 4 providers: Azure, Cohere, Nomic, Mock.</p>
+<pre>
+<span class="kw">class</span> <span class="fn">MockEmbedder</span>(BaseEmbedder):
+    <span class="kw">async def</span> <span class="fn">embed</span>(self, text: str) -> list[float]:
+        h = hashlib.sha256(text.encode()).digest()
+        <span class="cmt"># Expand 32 bytes to 1536 floats deterministically</span>
+        <span class="kw">return</span> [((b &amp; <span class="num">0xF</span>) / <span class="num">15.0</span>) * <span class="num">2</span> - <span class="num">1</span> <span class="kw">for</span> b <span class="kw">in</span> expand(h, <span class="num">1536</span>)]
+</pre>
+
+      <h3>7. API Endpoints (search.py, ingest.py)</h3>
+      <p>Path traversal protection via <code>.resolve()</code> + allowlist. Unknown user = 403 (not 404, to avoid leaking which users exist).</p>
+
+      <h3>8. Domain Models (document.py) &mdash; Pydantic Validation as First Defense</h3>
+<pre>
+<span class="kw">class</span> <span class="fn">Document</span>(BaseModel):
+    clearance_level: int = Field(ge=<span class="num">1</span>, le=<span class="num">4</span>)  <span class="cmt"># Rejected before RBAC</span>
+    department_id: str = Field(min_length=<span class="num">1</span>)
+</pre>
+    </div>
+  </div>
+
+  <!-- Key Decisions -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th><th>Revisit When</th></tr>
+        <tr>
+          <td>Sparse encoding</td>
+          <td class="tbl-good">Qdrant native BM25</td>
+          <td>SPLADE</td>
+          <td>SPLADE needs 400MB+ model for ~10% retrieval gain at 12 docs. BM25 with Qdrant IDF sufficient for exact code/ID matching.</td>
+          <td>Corpus exceeds 10K docs and exact-match recall drops below 90%</td>
+        </tr>
+        <tr>
+          <td>Fusion method</td>
+          <td class="tbl-good">RRF (Reciprocal Rank Fusion)</td>
+          <td>Alpha weighting</td>
+          <td>One API call vs two queries + manual score merging. RRF fuses ranks (not scores) &mdash; avoids scale mismatch between cosine (0&ndash;1) and TF-IDF (unbounded).</td>
+          <td>Need fine-grained control over dense vs sparse weighting</td>
+        </tr>
+        <tr>
+          <td>RBAC enforcement</td>
+          <td class="tbl-good">Query-level filter</td>
+          <td>Post-retrieval filter</td>
+          <td>Post-retrieval = LLM already saw unauthorized docs. Prompt injection in retrieved docs could leak content.</td>
+          <td>Never &mdash; this is an architectural principle</td>
+        </tr>
+        <tr>
+          <td>Test strategy</td>
+          <td class="tbl-good">Two-tier (auto + live)</td>
+          <td>Single tier</td>
+          <td>Auto tests use SHA-256 fake embeddings (no credentials needed). Live tests verify semantic quality with real Azure OpenAI.</td>
+          <td>Never &mdash; both tiers serve different purposes</td>
+        </tr>
+        <tr>
+          <td>Path security</td>
+          <td class="tbl-good">.resolve() + allowlist</td>
+          <td>Blocklist</td>
+          <td>You can't enumerate all dangerous paths. Allowlist is restrictive by default.</td>
+          <td>Never &mdash; allowlist is always safer</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Design Patterns -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">7 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">DI via Callable</span>
+      <span class="pattern-badge">ABC + Factory</span>
+      <span class="pattern-badge">Deterministic Test Double</span>
+      <span class="pattern-badge">Strategy Pattern</span>
+      <span class="pattern-badge">Fail-Closed Guard</span>
+      <span class="pattern-badge">Idempotent Setup</span>
+      <span class="pattern-badge">Pydantic Validation as First Defense</span>
+
+      <h3>DI via Callable</h3>
+      <p><strong>Where:</strong> <code>embed_fn</code> parameter in HybridRetriever</p>
+      <p><strong>Why:</strong> Decouples retriever from embedding provider. Tests inject deterministic mock, production injects Azure OpenAI.</p>
+      <p><strong>When NOT to use:</strong> When the dependency is always the same and will never need mocking/swapping.</p>
+
+      <h3>ABC + Factory</h3>
+      <p><strong>Where:</strong> BaseEmbedder ABC + get_embedder() factory</p>
+      <p><strong>Why:</strong> Enforces interface contract. Factory centralizes provider selection based on settings.</p>
+      <p><strong>When NOT to use:</strong> When you have exactly one implementation and no foreseeable alternatives. Use Protocol instead.</p>
+
+      <h3>Deterministic Test Double (SHA-256)</h3>
+      <p><strong>Where:</strong> MockEmbedder</p>
+      <p><strong>Why:</strong> Same text = same vector on any machine. No randomness, no API calls. 56 unit tests run without credentials.</p>
+      <p><strong>When NOT to use:</strong> When you need to test semantic similarity (use real embeddings in live tests).</p>
+
+      <h3>Fail-Closed Guard</h3>
+      <p><strong>Where:</strong> build_qdrant_filter() raises ValueError on empty departments</p>
+      <p><strong>Why:</strong> Undefined behavior (MatchAny([])) could leak data or silently fail. Explicit error is always safer.</p>
+      <p><strong>When NOT to use:</strong> When "empty" is a valid state (e.g., optional filters that should match all).</p>
+    </div>
+  </div>
+
+  <!-- Benchmark Results -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Benchmark Results</span>
+      <span class="exp-badge">26 queries, 12 docs</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>Search Mode Comparison (7 categories, 26 queries)</h3>
+      <table>
+        <tr><th>Mode</th><th>Synonym (4)</th><th>Exact Code (4)</th><th>Ranking (4)</th><th>Jargon (4)</th><th>Polish (4)</th><th>Typo (4)</th><th>Negation (2)</th><th>Total</th></tr>
+        <tr><td>BM25</td><td class="tbl-bad">2/4</td><td class="tbl-good">4/4</td><td class="tbl-bad">2/4</td><td class="tbl-bad">2/4</td><td class="tbl-bad">2/4</td><td class="tbl-bad">2/4</td><td class="tbl-good">2/2</td><td class="tbl-bad">16/26 (62%)</td></tr>
+        <tr><td>Dense</td><td class="tbl-good">4/4</td><td class="tbl-good">4/4</td><td>3/4</td><td>3/4</td><td class="tbl-good">4/4</td><td class="tbl-good">4/4</td><td class="tbl-bad">1/2</td><td>23/26 (88%)</td></tr>
+        <tr><td>Hybrid (RRF)</td><td class="tbl-good">4/4</td><td class="tbl-good">4/4</td><td>3/4</td><td>3/4</td><td class="tbl-good">4/4</td><td class="tbl-good">4/4</td><td class="tbl-good">2/2</td><td class="tbl-good">24/26 (92%)</td></tr>
+      </table>
+      <div class="callout callout-insight">
+        <div class="callout-title">Architect Interpretation</div>
+        BM25 isn't a search engine &mdash; it's a lookup tool. It fails 38% of natural-language queries because warehouse workers don't search for "termination procedures pursuant to Art. 52 KP." They search "zwolnienie pracownika" (employee dismissal). BM25's only role: supplementing dense search with exact code/ID precision.
+      </div>
+
+      <h3>Embedding Model Comparison</h3>
+      <table>
+        <tr><th>Model</th><th>Dimensions</th><th>Cost (per 1M tokens)</th><th>Score</th><th>Verdict</th></tr>
+        <tr><td>text-embedding-3-small</td><td>1536</td><td>$0.02</td><td class="tbl-good">23/26</td><td class="tbl-good">RECOMMENDED</td></tr>
+        <tr><td>text-embedding-3-large</td><td>3072</td><td>$0.13</td><td>23/26</td><td class="tbl-bad">6.5x cost, zero gain</td></tr>
+      </table>
+      <div class="callout callout-decision">
+        <div class="callout-title">Decision</div>
+        Higher dimensions add zero discriminating power at 12 documents. Recommend upgrading only when corpus exceeds 1000 semantically similar documents where fine-grained distance matters.
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Model -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Security Model</span>
+      <span class="exp-badge">4 layers</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Layer</th><th>Protection</th><th>Attack Vector Tested</th></tr>
+        <tr><td>Pydantic validation</td><td>Invalid clearance levels rejected before logic runs</td><td>clearance=0, clearance=99, negative values</td></tr>
+        <tr><td>RBAC query filter</td><td>Unauthorized docs excluded at DB level</td><td>User with clearance=1 searching clearance=3 docs</td></tr>
+        <tr><td>Fail-closed guard</td><td>Empty departments = error (not empty filter)</td><td>User with no departments assigned</td></tr>
+        <tr><td>Path traversal</td><td>.resolve() + allowlist</td><td>../../etc/passwd, symlink attacks</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Test Strategy -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Test Strategy</span>
+      <span class="exp-badge">80 tests</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>What the tests prove (not just what they count)</h3>
+      <table>
+        <tr><th>Test Category</th><th>What It Proves</th><th>Why It Matters</th></tr>
+        <tr><td>RBAC isolation</td><td>User A cannot see User B's documents even with similar queries</td><td>Data leak = GDPR violation (EUR 3.5M fine)</td></tr>
+        <tr><td>Fail-closed behavior</td><td>System errors on invalid state rather than returning data</td><td>Silent failures are worse than visible errors</td></tr>
+        <tr><td>Deterministic embeddings</td><td>Same input always produces same output across machines</td><td>Test reproducibility without API credentials</td></tr>
+        <tr><td>Search quality (live)</td><td>Dense search finds "towary niebezpieczne" when doc says "substancje chemiczne"</td><td>BM25 fails this &mdash; proves embedding value</td></tr>
+        <tr><td>Path traversal</td><td>../../etc/passwd and symlinks are blocked</td><td>File upload endpoints are common attack targets</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Interview Points -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you handle authorization in your RAG system?</div>
+        <div class="a">"We filter at the Qdrant query level so unauthorized documents never enter the LLM's context window. Post-retrieval filtering is fundamentally broken &mdash; the LLM has already seen the content. A prompt injection in a retrieved document could exfiltrate it. Our approach: if the database doesn't return it, the LLM can't leak it."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why not just use BM25?</div>
+        <div class="a">"BM25 isn't a search engine &mdash; it's a lookup tool. It fails 38% of natural-language queries in our benchmarks. Warehouse workers don't search for 'termination procedures pursuant to Art. 52 KP.' They search 'zwolnienie pracownika.' BM25's only role in our system is supplementing dense search with exact code/ID precision."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why did you choose text-embedding-3-small over large?</div>
+        <div class="a">"We benchmarked both on production data. Identical results at 6.5x cost difference. Higher dimensions only add discriminating power when you have thousands of semantically similar documents. At our scale, the extra 1536 dimensions encode noise, not signal."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you test without API keys?</div>
+        <div class="a">"Our MockEmbedder uses SHA-256 hash expansion. Same text = same vector, deterministically, on any machine. 56 unit tests run without API credentials. Separate live tests verify semantic quality with real Azure OpenAI. Two tiers: mechanical correctness (auto) and semantic correctness (live)."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 2: Retrieval Engineering          -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-2" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">02</div>
+    <div class="phase-title-block">
+      <h2>Retrieval Engineering</h2>
+      <div class="phase-subtitle">Chunking, Re-ranking, Query Transformation, Multi-Provider Embeddings</div>
+    </div>
+  </div>
+
+  <!-- Business Problem -->
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Phase 1 finds "similar" documents but not the RIGHT ones. Naive chunking cuts contract clauses in half &mdash; the system returns a chunk containing "The penalty for late delivery is" without the actual penalty amount. Vector similarity returns irrelevant documents at top ranks because cosine similarity doesn't understand domain relevance.</p>
+      <p><strong>Phase 2 adds four capabilities:</strong> intelligent chunking (semantic boundaries), re-ranking (domain-aware relevance scoring), query transformation (handling vague and complex queries), and query sanitization (blocking prompt injection before it reaches the LLM).</p>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+User Query
+  &rarr; QuerySanitizer                     <span class="cmt"># strip 9 injection patterns</span>
+  &rarr; QueryRouter                        <span class="cmt"># classify query type</span>
+     &rarr; KEYWORD  &rarr; skip transforms, skip reranker &rarr; hybrid_search
+     &rarr; STANDARD &rarr; hybrid_search &rarr; reranker
+     &rarr; VAGUE    &rarr; HyDETransformer &rarr; hybrid_search &rarr; reranker
+     &rarr; MULTI_HOP &rarr; QueryDecomposer &rarr; multi-search &rarr; merge &rarr; reranker
+  &rarr; enhanced_search()                  <span class="cmt"># wraps hybrid_search()</span>
+  &rarr; RetrievalPipelineConfig            <span class="cmt"># dataclass, all stages optional</span>
+</pre>
+      <h3>Pipeline Config Pattern</h3>
+      <p>Every stage is optional via <code>None</code> defaults. This means the pipeline can be configured for any combination: chunking only, reranking only, full pipeline, or bare search.</p>
+<pre>
+@dataclass
+<span class="kw">class</span> <span class="fn">RetrievalPipelineConfig</span>:
+    chunker: BaseChunker | <span class="kw">None</span> = <span class="kw">None</span>
+    reranker: BaseReranker | <span class="kw">None</span> = <span class="kw">None</span>
+    sanitizer: QuerySanitizer | <span class="kw">None</span> = <span class="kw">None</span>
+    router: QueryRouter | <span class="kw">None</span> = <span class="kw">None</span>
+    transformer: QueryTransformer | <span class="kw">None</span> = <span class="kw">None</span>
+</pre>
+    </div>
+  </div>
+
+  <!-- Components -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">5 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Chunking Module (chunking.py) &mdash; Strategy + ABC + Factory</h3>
+      <p>Three strategies, selected at configuration time:</p>
+      <table>
+        <tr><th>Strategy</th><th>How It Works</th><th>Best For</th></tr>
+        <tr><td><strong>FixedSize</strong></td><td>Word-boundary splitting, configurable overlap</td><td>General documents, consistent chunk sizes</td></tr>
+        <tr><td><strong>Semantic</strong></td><td>Embed all sentences, cosine similarity drop = new chunk boundary. <code>min_chunk_size</code> merging prevents tiny fragments.</td><td>Contracts, legal docs where meaning boundaries matter</td></tr>
+        <tr><td><strong>ParentChild</strong></td><td>Section headers detected via regex. Children reference parent for context.</td><td>Structured docs with headers (manuals, policies)</td></tr>
+      </table>
+
+      <h3>2. Re-ranking Module (reranker.py) &mdash; ABC + Factory + Circuit Breaker</h3>
+      <p>Cross-encoders process query-doc PAIRS together (more accurate than bi-encoders which embed separately). Five implementations:</p>
+      <table>
+        <tr><th>Implementation</th><th>Purpose</th><th>Key Detail</th></tr>
+        <tr><td>NoOpReranker</td><td>Baseline / fallback</td><td>Returns results unchanged</td></tr>
+        <tr><td>CohereReranker</td><td>Cloud re-ranking</td><td>httpx (no SDK dependency)</td></tr>
+        <tr><td>LocalCrossEncoder</td><td>On-premise re-ranking</td><td>Lazy model loading, try/except ImportError</td></tr>
+        <tr><td>CircuitBreakerReranker</td><td>Wraps any reranker pair</td><td>Primary fails &rarr; breaker trips &rarr; fallback (NoOp)</td></tr>
+      </table>
+<pre>
+<span class="kw">class</span> <span class="fn">CircuitBreakerReranker</span>(BaseReranker):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, primary: BaseReranker, fallback: BaseReranker):
+        self.breaker = CircuitBreaker(
+            failure_threshold=<span class="num">3</span>,
+            recovery_timeout=<span class="num">60</span>,
+            half_open_max_calls=<span class="num">1</span>
+        )
+        self.primary = primary
+        self.fallback = fallback  <span class="cmt"># typically NoOpReranker</span>
+</pre>
+
+      <h3>3. Query Transformation (query_transform.py)</h3>
+      <p><strong>QuerySanitizer</strong>: Strips 9 injection patterns BEFORE LLM sees the query. Critical design: custom patterns REPLACE defaults (not supplement). In security, implicit behavior is dangerous &mdash; if someone sets custom patterns, they should know exactly what's active.</p>
+      <p><strong>HyDE</strong> (Hypothetical Document Embeddings): Generates a hypothetical answer for embedding &mdash; but original query preserved for BM25. Built, tested, then disabled because evidence showed it hurts at small corpus scale.</p>
+      <p><strong>QueryRouter</strong>: Classifies into KEYWORD / STANDARD / VAGUE / MULTI_HOP. Defaults to STANDARD on failure (safe middle ground).</p>
+
+      <h3>4. Multi-Provider Embeddings (embeddings.py)</h3>
+      <p>ABC + Factory + Model Registry. Registry centralizes model metadata (dimensions, cost, provider). MockEmbedder for deterministic testing.</p>
+
+      <h3>5. Enhanced Retrieval Pipeline (retriever.py)</h3>
+      <p>Deduplication: keeps highest-scoring instance per <code>(document_id, chunk_index)</code> when multiple search paths return the same chunk.</p>
+    </div>
+  </div>
+
+  <!-- Key Decisions -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th><th>Revisit When</th></tr>
+        <tr>
+          <td>Re-ranker model</td>
+          <td class="tbl-good">BGE-m3 (568M)</td>
+          <td>5 alternatives</td>
+          <td>+25.8% MRR on production Polish corpora. mmarco-multi ("multilingual") actually HURT by -6.6%. Translated training data does not equal cross-lingual understanding.</td>
+          <td>Corpus becomes English-only (then TinyBERT at 14.5M suffices)</td>
+        </tr>
+        <tr>
+          <td>Search mode (at scale)</td>
+          <td class="tbl-good">Dense-only (MRR=0.885)</td>
+          <td>Hybrid (MRR=0.847)</td>
+          <td>Phase 1 conclusion REVERSED at 52 queries. BM25 adds noise at higher query diversity. Benchmark conclusions are scale-dependent.</td>
+          <td>Corpus has many alphanumeric codes where BM25 excels</td>
+        </tr>
+        <tr>
+          <td>Embedding model</td>
+          <td class="tbl-good">text-embedding-3-small</td>
+          <td>text-embedding-3-large</td>
+          <td>Large is 6.5x more expensive AND worse (-0.029 MRR) at this corpus scale.</td>
+          <td>Corpus exceeds 1000 semantically similar docs</td>
+        </tr>
+        <tr>
+          <td>HyDE</td>
+          <td class="tbl-bad">DISABLED</td>
+          <td>Enabled</td>
+          <td>Hurts across all 4 tested categories. Vague: -20.9% R@5. At small corpus, the hypothetical adds noise instead of bridging vocabulary gaps.</td>
+          <td>Corpus exceeds 10K docs where vocabulary gap is real</td>
+        </tr>
+        <tr>
+          <td>Sanitizer custom patterns</td>
+          <td class="tbl-good">Replace defaults</td>
+          <td>Supplement defaults</td>
+          <td>In security, implicit behavior is dangerous. If you set custom patterns, you should know exactly what's active.</td>
+          <td>Never &mdash; explicit is always safer</td>
+        </tr>
+      </table>
+
+      <div class="callout callout-insight">
+        <div class="callout-title">Key Lesson: We Disabled a Feature We Built</div>
+        HyDE was designed, implemented, tested &mdash; and disabled. The evidence showed it hurts at small corpus scale. An architect who disables a feature based on evidence demonstrates more maturity than one who ships everything they build.
+      </div>
+    </div>
+  </div>
+
+  <!-- Benchmarks -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Benchmark Results</span>
+      <span class="exp-badge">52 queries, 57 docs, 6 models</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>Re-ranking Model Benchmark (Production Polish Corpora)</h3>
+      <table>
+        <tr><th>Model</th><th>Params</th><th>MRR Change</th><th>Latency</th><th>Verdict</th></tr>
+        <tr><td>No reranker (baseline)</td><td>&mdash;</td><td>&mdash;</td><td>3ms</td><td>Baseline</td></tr>
+        <tr><td>TinyBERT</td><td>14.5M</td><td class="tbl-bad">-25.5%</td><td>28ms</td><td>English-only; Phase 6 air-gapped candidate</td></tr>
+        <tr><td>ms-marco</td><td>33M</td><td class="tbl-bad">-3.0%</td><td>74ms</td><td>Deprecated</td></tr>
+        <tr><td>mmarco-multi</td><td>118M</td><td class="tbl-bad">-6.6%</td><td>120ms</td><td>"Multilingual" training fails on real Polish</td></tr>
+        <tr><td>BGE-base</td><td>278M</td><td>+0.3%</td><td>250ms</td><td>Neutral &mdash; wastes compute</td></tr>
+        <tr><td>BGE-large</td><td>560M</td><td class="tbl-good">+23.5%</td><td>500ms</td><td>Strong backup</td></tr>
+        <tr><td>BGE-m3</td><td>568M</td><td class="tbl-good">+25.8%</td><td>480ms</td><td class="tbl-good">BEST &mdash; purpose-built multilingual</td></tr>
+      </table>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">mmarco-multi: "Multilingual" Is Marketing</div>
+        mmarco-multi is trained on machine-translated MS MARCO passages. Translation preserves surface structure but loses domain terminology, idiomatic expressions, and morphological patterns. It DEGRADES Polish retrieval by 6.6%. Lesson: always benchmark on YOUR production data, never trust label claims.
+      </div>
+
+      <h3>Search Mode Comparison (52 queries)</h3>
+      <table>
+        <tr><th>Mode</th><th>MRR</th><th>Recall@5</th><th>Notes</th></tr>
+        <tr><td>BM25</td><td class="tbl-bad">0.770</td><td>0.731</td><td>Fails synonyms, typos, jargon</td></tr>
+        <tr><td>Hybrid (RRF)</td><td>0.847</td><td>0.827</td><td>BM25 noise degrades at scale</td></tr>
+        <tr><td>Dense-only</td><td class="tbl-good">0.885</td><td class="tbl-good">0.865</td><td>Best at 52-query diversity</td></tr>
+      </table>
+
+      <h3>HyDE Impact</h3>
+      <table>
+        <tr><th>Category</th><th>Without HyDE</th><th>With HyDE</th><th>Impact</th></tr>
+        <tr><td>Vague queries</td><td>R@5: 0.810</td><td>R@5: 0.641</td><td class="tbl-bad">-20.9%</td></tr>
+        <tr><td>Exact codes</td><td>MRR: 0.920</td><td>MRR: 0.690</td><td class="tbl-bad">-25.0%</td></tr>
+        <tr><td>Overall</td><td>MRR: 0.885</td><td>MRR: 0.656</td><td class="tbl-bad">-25.8%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Design Patterns -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">6 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">ABC + Factory</span>
+      <span class="pattern-badge">Circuit Breaker</span>
+      <span class="pattern-badge">DI via Callable</span>
+      <span class="pattern-badge">Deterministic Test Doubles</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+      <span class="pattern-badge">Pipeline Config Object</span>
+
+      <h3>Circuit Breaker (3-State Machine)</h3>
+      <p><strong>Where:</strong> CircuitBreakerReranker wrapping any BaseReranker</p>
+      <p><strong>States:</strong> CLOSED (normal) &rarr; OPEN (fast-fail after N failures) &rarr; HALF_OPEN (single probe request)</p>
+      <p><strong>Why:</strong> The 568M parameter re-ranker can fail (OOM, timeout). Without circuit breaker, every request waits for timeout. With it, failures are fast and the system falls back to NoOp reranker.</p>
+<pre>
+CLOSED &rarr;[failure_threshold reached]&rarr; OPEN
+OPEN   &rarr;[recovery_timeout elapsed]&rarr; HALF_OPEN
+HALF_OPEN &rarr;[success]&rarr; CLOSED
+HALF_OPEN &rarr;[failure]&rarr; OPEN  <span class="cmt"># immediate re-open</span>
+</pre>
+    </div>
+  </div>
+
+  <!-- Security Model -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Security Model</span>
+      <span class="exp-badge">Query sanitization</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>QuerySanitizer &mdash; 9 Injection Patterns</h3>
+      <p>Applied BEFORE the query reaches any LLM. Strips patterns like "ignore previous instructions", "system:", "you are now", etc.</p>
+      <table>
+        <tr><th>Attack Vector</th><th>Defense</th></tr>
+        <tr><td>Prompt injection in query</td><td>9 regex patterns strip known injection phrases before LLM</td></tr>
+        <tr><td>Custom pattern bypass</td><td>Custom patterns REPLACE defaults (no implicit active patterns)</td></tr>
+        <tr><td>HyDE injection amplification</td><td>Sanitizer runs before HyDE, so injected query can't generate malicious hypothetical</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Interview Points -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How did you choose your re-ranking model?</div>
+        <div class="a">"We benchmarked 6 models on production Polish corpora &mdash; 57 documents, 5-9K characters each. A model labeled 'multilingual' actually degraded search by 6.6%. Translated training data is not the same as cross-lingual understanding. BGE-m3 won with +25.8% MRR because it was purpose-built for multilingual retrieval, not retrained on translated data."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why did your Phase 1 conclusion change?</div>
+        <div class="a">"At 26 queries, hybrid won. At 52 queries, dense-only won. BM25's exact-match contribution becomes noise when query diversity increases. This taught us that benchmark conclusions are scale-dependent &mdash; and any architecture review must state the scale at which conclusions hold."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: You built HyDE and then disabled it?</div>
+        <div class="a">"Yes. HyDE hurt across all 4 tested categories. At small corpus scale, the hypothetical document adds noise instead of bridging vocabulary gaps. We built it, measured it, and disabled it. An architect who disables a feature based on evidence demonstrates more maturity than one who ships everything."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What happens when the re-ranker fails?</div>
+        <div class="a">"Circuit breaker trips after 3 failures, switches to NoOp reranker. User gets slightly less relevant results instead of an error page. After 60 seconds, a single probe request tests recovery. The system self-heals without human intervention."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 3: Multi-Agent Orchestration      -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-3" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">03</div>
+    <div class="phase-title-block">
+      <h2>Multi-Agent Orchestration</h2>
+      <div class="phase-subtitle">Customs &amp; Finance &mdash; LangGraph Workflow with HITL Gateway</div>
+    </div>
+  </div>
+
+  <!-- Business Problem -->
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>LogiCore processes 12,000 invoices per year. Each invoice takes ~3 hours of manual processing: compare rates against contracts, check compliance, flag discrepancies. That's 36,000 person-hours annually.</p>
+      <p><strong>The real problem isn't automation &mdash; it's trust.</strong> A CFO won't accept "the AI says the invoice is wrong" without understanding the reasoning path. Financial workflows need deterministic routing where the decision path is visible and auditable.</p>
+      <div class="callout callout-decision">
+        <div class="callout-title">Why LangGraph, Not CrewAI</div>
+        CrewAI's role-play paradigm is non-deterministic. The CFO needs to see EXACTLY which node made which decision. LangGraph state machines provide deterministic, inspectable execution paths.
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+POST /api/v1/audit/start { invoice_id }
+  &rarr; LangGraph StateGraph (AuditGraphState &mdash; 9 fields)
+    &rarr; [reader]     ReaderAgent &mdash; RAG contract rate extraction
+    &rarr; [sql_agent]  SqlQueryTool &mdash; parameterized SQL ($1 params)
+    &rarr; [auditor]    AuditorAgent &mdash; pure-function rate comparison
+       &rarr; (conditional) compliance_subgraph
+          &rarr; ClearanceFilter &rarr; compliance_findings[]
+    &rarr; [hitl_gate]  interrupt_before &mdash; workflow BLOCKS here
+       &mdash;&mdash;&mdash; CFO reviews discrepancies &mdash;&mdash;&mdash;
+    &rarr; [report]     ReportGenerator &mdash; structured AuditReport
+
+  Checkpointing: MemorySaver (tests) / PostgreSQL (production)
+</pre>
+      <h3>Graph Topology</h3>
+<pre>
+START &rarr; reader &rarr; sql_agent &rarr; auditor &rarr; route_by_findings
+                                              |            |
+                                        [has compliance]  [no compliance]
+                                              |            |
+                                      compliance_sub    hitl_gate
+                                              |            |
+                                         hitl_gate &larr;&mdash;&mdash;&mdash;&mdash;+
+                                              |
+                                   [interrupt_before]
+                                              |
+                                           report &rarr; END
+</pre>
+    </div>
+  </div>
+
+  <!-- Components -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">8 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Domain Models (audit.py) &mdash; Financial Precision</h3>
+      <p>7 Pydantic models using <code>Decimal</code> for financial precision (never float). <code>classify_discrepancy_band()</code> implements 4-tier business logic with 42 boundary tests.</p>
+      <table>
+        <tr><th>Band</th><th>Threshold</th><th>Action</th></tr>
+        <tr><td class="tbl-good">auto_approve</td><td>&lt;1%</td><td>No human review needed</td></tr>
+        <tr><td class="tbl-warn">investigate</td><td>1&ndash;5%</td><td>Analyst reviews</td></tr>
+        <tr><td class="tbl-warn">escalate</td><td>5&ndash;15%</td><td>Manager reviews</td></tr>
+        <tr><td class="tbl-bad">critical</td><td>&ge;15%</td><td>CFO reviews immediately</td></tr>
+      </table>
+
+      <h3>2. Reader Agent (reader.py) &mdash; DI + Prompt Sanitization</h3>
+      <p>Extracts contract rates via RAG. Constructor injection for all dependencies. Prompt sanitization: 3 regex patterns strip injection before LLM. Hard truncation at 2000 chars.</p>
+
+      <h3>3. Auditor Agent (comparator.py) &mdash; Pure Function, No LLM</h3>
+      <div class="callout callout-insight">
+        <div class="callout-title">Why No LLM for Rate Comparison</div>
+        <code>0.52 > 0.45</code> is always true. An LLM adds EUR 0.02/call plus non-determinism for a comparison that is mathematically deterministic. Idempotency (same input = same output) is a prerequisite for crash recovery &mdash; if the system crashes mid-audit and replays, results must be identical.
+      </div>
+
+      <h3>4. SQL Query Tool (sql_query.py) &mdash; Two-Layer Defense</h3>
+<pre>
+<span class="cmt"># Layer 1: Parameterized queries (prevents SQL injection)</span>
+query = <span class="str">"SELECT * FROM invoices WHERE id = $1"</span>
+result = <span class="kw">await</span> conn.fetch(query, invoice_id)
+
+<span class="cmt"># Layer 2: Read-only DB role (limits blast radius)</span>
+<span class="cmt"># PostgreSQL role: logicore_reader (SELECT only)</span>
+<span class="cmt"># Even if injection somehow succeeds, can't UPDATE/DELETE</span>
+</pre>
+
+      <h3>5. LangGraph State + Graph (audit_graph.py) &mdash; Factory Function</h3>
+      <p>Factory returns UNCOMPILED graph. Caller decides checkpointer + interrupt points at compile time. This separates graph topology from execution infrastructure.</p>
+<pre>
+<span class="kw">def</span> <span class="fn">create_audit_graph</span>() -> StateGraph:
+    graph = StateGraph(AuditGraphState)
+    graph.add_node(<span class="str">"reader"</span>, reader_node)
+    graph.add_node(<span class="str">"sql_agent"</span>, sql_node)
+    graph.add_node(<span class="str">"auditor"</span>, auditor_node)
+    graph.add_node(<span class="str">"hitl_gate"</span>, hitl_passthrough)
+    graph.add_node(<span class="str">"report"</span>, report_node)
+    <span class="cmt"># ... edges ...</span>
+    <span class="kw">return</span> graph  <span class="cmt"># uncompiled! caller .compile()s</span>
+
+<span class="cmt"># Test: compiled with MemorySaver</span>
+app = create_audit_graph().compile(
+    checkpointer=MemorySaver(),
+    interrupt_before=[<span class="str">"hitl_gate"</span>]
+)
+</pre>
+
+      <h3>6. HITL Gateway &mdash; Orthogonal Interrupt</h3>
+      <p>The <code>hitl_gate</code> node is a pass-through (does nothing). The interrupt is declared at compile time via <code>interrupt_before=["hitl_gate"]</code>. This means the approval UX can change (Slack, email, dashboard) without touching node code.</p>
+
+      <h3>7. Clearance Filter (clearance_filter.py) &mdash; Architectural Guard</h3>
+      <p>Python code at graph boundary, not LLM prompts. Missing clearance defaults to 1 (most restrictive). Prevents EUR 25,000&ndash;250,000 data leak penalties.</p>
+
+      <h3>8. Compliance Subgraph (compliance_subgraph.py)</h3>
+      <p>Keyword-based delegation trigger: 11 Polish compliance keywords. Recall-over-precision tradeoff: false negative (missed compliance issue) = EUR 136&ndash;588. False positive (unnecessary check) = 500ms. The 270&ndash;1176x cost asymmetry makes 100% recall with ~10% false positives optimal.</p>
+    </div>
+  </div>
+
+  <!-- Key Decisions -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Orchestration framework</td>
+          <td class="tbl-good">LangGraph</td>
+          <td>CrewAI</td>
+          <td>Financial workflows need deterministic routing. CFO sees exact execution path. CrewAI's role-play is non-deterministic.</td>
+        </tr>
+        <tr>
+          <td>Rate comparison</td>
+          <td class="tbl-good">Pure function (no LLM)</td>
+          <td>LLM comparison</td>
+          <td>Deterministic, idempotent, EUR 0.00/call. Crash recovery prerequisite: replay must produce identical results.</td>
+        </tr>
+        <tr>
+          <td>HITL mechanism</td>
+          <td class="tbl-good">interrupt_before (compile-time)</td>
+          <td>interrupt() (in-node)</td>
+          <td>Separates HITL concern from node logic. Approval UX changes never touch agent code.</td>
+        </tr>
+        <tr>
+          <td>Compliance delegation</td>
+          <td class="tbl-good">Keyword-based trigger</td>
+          <td>LLM classification</td>
+          <td>270&ndash;1176x cost asymmetry. Keyword = EUR 0.00 + 100% recall. LLM = EUR 0.02 + potential misses.</td>
+        </tr>
+        <tr>
+          <td>Security filter location</td>
+          <td class="tbl-good">Graph-level (Python code)</td>
+          <td>Prompt-based</td>
+          <td>Prompt defense is bypassable. Python filter at graph boundary cannot be bypassed by the LLM.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Design Patterns -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">7 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">DI (Constructor Injection)</span>
+      <span class="pattern-badge">Factory Function</span>
+      <span class="pattern-badge">Architectural Guard</span>
+      <span class="pattern-badge">Idempotent Nodes</span>
+      <span class="pattern-badge">Orthogonal Interrupt</span>
+      <span class="pattern-badge">Recall-Over-Precision</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+
+      <h3>Factory Function (Uncompiled Graph)</h3>
+      <p><strong>Where:</strong> <code>create_audit_graph()</code> returns StateGraph without .compile()</p>
+      <p><strong>Why:</strong> Separates graph topology from execution concerns. Caller chooses checkpointer (MemorySaver in tests, PostgreSQL in production) and interrupt points.</p>
+      <p><strong>When NOT to use:</strong> When graph configuration is fixed and there's only one deployment target.</p>
+
+      <h3>Orthogonal Interrupt</h3>
+      <p><strong>Where:</strong> <code>interrupt_before=["hitl_gate"]</code> at compile time</p>
+      <p><strong>Why:</strong> The HITL concern is orthogonal to node logic. The node doesn't know it will be interrupted. Approval UX (Slack, email, dashboard) changes without touching the graph.</p>
+      <p><strong>When NOT to use:</strong> When the interrupt has complex conditions that depend on node state.</p>
+
+      <h3>Idempotent Nodes</h3>
+      <p><strong>Where:</strong> Auditor (pure-function comparison)</p>
+      <p><strong>Why:</strong> Crash recovery. If the system crashes after the auditor runs but before saving the checkpoint, replaying the node must produce identical results. LLM non-determinism breaks this guarantee.</p>
+    </div>
+  </div>
+
+  <!-- Interview Points -->
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: Why LangGraph over CrewAI?</div>
+        <div class="a">"Financial workflows need deterministic execution paths. When the CFO asks 'why was this invoice flagged?', I need to show the exact sequence: reader extracted rate X, SQL confirmed charge Y, auditor found Z% discrepancy. CrewAI's role-play paradigm introduces non-determinism that's unacceptable for audit trails."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why no LLM for rate comparison?</div>
+        <div class="a">"0.52 greater than 0.45 is always true. An LLM adds EUR 0.02/call plus non-determinism for a mathematically deterministic operation. More importantly, idempotency is a prerequisite for crash recovery &mdash; if the graph replays after a crash, the auditor must produce identical results."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you handle human-in-the-loop?</div>
+        <div class="a">"The HITL gate is a pass-through node with interrupt_before at compile time. The node doesn't know it will be interrupted. This means I can change the approval UX &mdash; Slack, email, dashboard &mdash; without touching any graph code. It's the Orthogonal Interrupt pattern: the HITL concern is completely separated from the workflow logic."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you decide when to trigger compliance checks?</div>
+        <div class="a">"Keyword-based, not LLM. The cost asymmetry is 270-to-1: a missed compliance issue costs EUR 136-588, a false positive costs 500ms. At that ratio, 100% recall with 10% false positives is optimal. The keywords are 11 Polish compliance terms. Zero API cost, instant execution."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 4: Trust Layer (LLMOps)          -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-4" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">04</div>
+    <div class="phase-title-block">
+      <h2>Trust Layer</h2>
+      <div class="phase-subtitle">LLMOps &mdash; Cost Visibility, Model Routing, RBAC-Partitioned Cache, Quality Gate</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Nobody knows what each query costs, whether quality is degrading, or whether the cache leaks confidential data across clearance levels. The CEO sees a monthly Azure bill of EUR 12,600 but can't attribute costs to search vs audit vs fleet.</p>
+      <p><strong>Three problems:</strong></p>
+      <ul>
+        <li><strong>Cost blindness:</strong> No per-query, per-feature cost attribution</li>
+        <li><strong>Quality drift:</strong> No automated detection of model degradation</li>
+        <li><strong>Cache safety:</strong> Naive semantic cache ignores RBAC &mdash; "PharmaCorp penalty" serves "FreshFoods penalty" (0.96 cosine similarity, EUR 3,240/incident)</li>
+      </ul>
+      <div class="callout callout-warning">
+        <div class="callout-title">The Cache Danger</div>
+        Two queries about "delivery penalty clause" from different companies have 0.96 cosine similarity. Without RBAC partitioning, the cache serves PharmaCorp's penalty clause to FreshFoods. That's a data leak AND a wrong business decision.
+      </div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+Incoming Query
+  &rarr; ModelRouter (GPT-5 nano classifier + keyword overrides)
+     &rarr; SIMPLE  &rarr; GPT-5 nano  (EUR 0.000065/query)
+     &rarr; MODERATE &rarr; GPT-5-mini  (EUR 0.0015/query)
+     &rarr; COMPLEX  &rarr; GPT-5.2     (EUR 0.031/query)
+  &rarr; SemanticCache (RBAC-partitioned)
+     &rarr; key = cl:{clearance}|dept:{sorted_depts}|ent:{entity}
+     &rarr; Hit  &rarr; return cached (EUR 0.00)
+     &rarr; Miss &rarr; LLM Call (routed model)
+  &rarr; LangfuseHandler + CostTracker
+     &rarr; Langfuse fails &rarr; FallbackStore (local)
+     &rarr; Fallback fails &rarr; log and continue (NEVER block user)
+  &rarr; Analytics API
+     &rarr; GET /api/v1/analytics/costs
+     &rarr; GET /api/v1/analytics/quality
+
+Evaluation Pipeline (CI):
+  eval_dataset.json &rarr; llm_judge &rarr; EvalScore
+    &rarr; passes_quality_gate() &rarr; exit 0 (pass) / exit 1 (fail)
+</pre>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">7 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Domain Models (telemetry.py) &mdash; Rich Models with Embedded Business Logic</h3>
+      <p><code>CacheEntry.rbac_partition_key()</code> generates sorted department + entity keys. <code>CacheEntry.is_stale()</code> checks TTL. <code>EvalScore.passes_quality_gate()</code> encapsulates the quality threshold.</p>
+
+      <h3>2. Semantic Cache (cache.py) &mdash; RBAC-Aware Namespace Isolation</h3>
+<pre>
+<span class="cmt"># Partition = physical namespace separation, NOT filter</span>
+<span class="cmt"># clearance-1 query CANNOT reach clearance-3 entry</span>
+partition_key = f<span class="str">"cl:{user.clearance}|dept:{sorted_depts}|ent:{entity}"</span>
+
+<span class="cmt"># Redis key structure:</span>
+<span class="cmt"># cache:{partition_key}:{query_hash}</span>
+<span class="cmt"># Two queries with 0.96 cosine similarity but different</span>
+<span class="cmt"># partitions are STRUCTURALLY separated</span>
+</pre>
+      <div class="callout callout-security">
+        <div class="callout-title">Entity Partitioning Prevents Cross-Client Leaks</div>
+        PharmaCorp and FreshFoods queries about "delivery penalty" are 0.96 similar. Without entity partitioning, the cache serves wrong data. Cost of one wrong response: EUR 3,240 + potential GDPR violation. Cache hit rate drops from ~35% to 15-25% with RBAC partitioning &mdash; but one wrong response costs more than a year of extra LLM calls.
+      </div>
+
+      <h3>3. Model Router (router.py) &mdash; Two-Tier Classification</h3>
+      <table>
+        <tr><th>Tier</th><th>Method</th><th>Cost</th><th>Purpose</th></tr>
+        <tr><td>1. Keyword override</td><td>10 financial keywords &rarr; COMPLEX</td><td>EUR 0.00</td><td>Never misroute financial queries</td></tr>
+        <tr><td>2. LLM classifier</td><td>GPT-5 nano classifies rest</td><td>EUR 0.000065</td><td>Handles ambiguous queries</td></tr>
+      </table>
+      <p>Low confidence (&lt;0.7) escalates to COMPLEX. Unparseable LLM response = COMPLEX (safe default).</p>
+
+      <h3>4. Langfuse Handler &mdash; Double Try/Except (Non-Blocking)</h3>
+<pre>
+<span class="kw">try</span>:
+    langfuse.log(trace)        <span class="cmt"># primary</span>
+<span class="kw">except</span> Exception:
+    <span class="kw">try</span>:
+        fallback.store(trace)  <span class="cmt"># local fallback</span>
+    <span class="kw">except</span> Exception:
+        logger.error(...)      <span class="cmt"># log and continue</span>
+<span class="cmt"># User query NEVER blocked by observability failure</span>
+<span class="cmt"># Reconciliation backfills Langfuse after recovery</span>
+</pre>
+
+      <h3>5. Cost Tracker (cost_tracker.py) &mdash; Decimal Arithmetic</h3>
+      <p>EUR 0.000065 &times; 72,000 queries = exactly EUR 4.68, not 4.680000000000001. Financial calculations use <code>Decimal</code> throughout to prevent floating-point drift over months of accumulation.</p>
+
+      <h3>6. Analytics API &mdash; Factory with DI</h3>
+      <p><code>create_analytics_router(cost_tracker, eval_scores)</code> &mdash; dependencies injected at route creation, not imported globally.</p>
+
+      <h3>7. Evaluation Pipeline (llm_judge.py) &mdash; CI Quality Gate</h3>
+      <p>Mock LLM-as-Judge using word overlap heuristics. Validates pipeline mechanics (dataset loading, scoring, gating). Real LLM quality scoring deferred to Phase 5.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th><th>Revisit When</th></tr>
+        <tr>
+          <td>Cache isolation</td>
+          <td class="tbl-good">RBAC partition key</td>
+          <td>Post-retrieval filter</td>
+          <td>Partition = structural boundary. Can't have bugs that cross it. One wrong response = EUR 3,240 + GDPR.</td>
+          <td>Never &mdash; structural isolation is the only safe approach</td>
+        </tr>
+        <tr>
+          <td>Financial query routing</td>
+          <td class="tbl-good">Keyword override before LLM</td>
+          <td>LLM-only classification</td>
+          <td>Financial misrouting = EUR 486&ndash;3,240. Keyword check = EUR 0.00. Asymmetric cost.</td>
+          <td>Never &mdash; deterministic rules always precede probabilistic classification</td>
+        </tr>
+        <tr>
+          <td>Telemetry failure handling</td>
+          <td class="tbl-good">Non-blocking (double try/except)</td>
+          <td>Blocking (fail query)</td>
+          <td>Observability failure must never block user results. Reconciliation backfills later.</td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td>Judge implementation</td>
+          <td class="tbl-good">Mock judge for CI</td>
+          <td>Real LLM judge</td>
+          <td>Validates pipeline mechanics without API cost. Real scoring in Phase 5.</td>
+          <td>Phase 5 (done)</td>
+        </tr>
+        <tr>
+          <td>Financial precision</td>
+          <td class="tbl-good">Decimal arithmetic</td>
+          <td>Float</td>
+          <td>Float compounds errors. EUR 0.000065 &times; 72K = 4.680000000000001 with float.</td>
+          <td>Never</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Benchmark Results</span>
+      <span class="exp-badge">Cost analysis</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>Cost Routing Impact</h3>
+      <table>
+        <tr><th>Scenario</th><th>Daily Cost</th><th>Monthly Cost</th><th>Reduction</th></tr>
+        <tr><td>Unrouted (all GPT-5.2)</td><td>EUR 42.00</td><td>EUR 1,260</td><td>&mdash;</td></tr>
+        <tr><td>Routed + cached</td><td class="tbl-good">EUR 2.87</td><td class="tbl-good">EUR 86</td><td class="tbl-good">93%</td></tr>
+      </table>
+      <h3>Per-Feature Cost</h3>
+      <table>
+        <tr><th>Operation</th><th>Cost</th><th>Model</th></tr>
+        <tr><td>Simple search</td><td>EUR 0.000065</td><td>GPT-5 nano</td></tr>
+        <tr><td>Standard search</td><td>EUR 0.0015</td><td>GPT-5-mini</td></tr>
+        <tr><td>Invoice audit</td><td>EUR 0.031</td><td>GPT-5.2</td></tr>
+      </table>
+      <h3>Cache Hit Rates</h3>
+      <table>
+        <tr><th>Configuration</th><th>Hit Rate</th><th>Notes</th></tr>
+        <tr><td>No RBAC partition</td><td>35%</td><td class="tbl-bad">Unsafe &mdash; cross-tenant data leaks</td></tr>
+        <tr><td>RBAC + entity partition</td><td>15&ndash;25%</td><td class="tbl-good">Safe &mdash; structurally isolated</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">5 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">DI via Callable</span>
+      <span class="pattern-badge">Strategy Pattern</span>
+      <span class="pattern-badge">Namespace Isolation</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+      <span class="pattern-badge">Two-Tier Classification</span>
+
+      <h3>Namespace Isolation</h3>
+      <p><strong>Where:</strong> Semantic cache RBAC partition keys</p>
+      <p><strong>Why:</strong> Physical separation (not filter) means there's no code path that could accidentally serve cross-tenant data. The isolation is structural, not logical.</p>
+      <p><strong>When NOT to use:</strong> When all users have identical access rights and data isolation is unnecessary.</p>
+
+      <h3>Two-Tier Classification</h3>
+      <p><strong>Where:</strong> ModelRouter (keyword override + LLM classifier)</p>
+      <p><strong>Why:</strong> Deterministic rules handle known patterns (financial keywords) with zero cost. LLM handles the long tail of ambiguous queries.</p>
+      <p><strong>When NOT to use:</strong> When the classification categories are fluid and can't be captured by keywords.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you manage LLM costs?</div>
+        <div class="a">"Three-tier routing: nano for simple queries (EUR 0.000065), mini for standard (EUR 0.0015), GPT-5.2 for complex (EUR 0.031). Financial keywords force COMPLEX to prevent misrouting. RBAC-partitioned cache reduces daily cost from EUR 42 to EUR 2.87 &mdash; 93% reduction. Every query is attributed to a feature for cost transparency."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why not just cache everything?</div>
+        <div class="a">"Because naive caching leaks data. Two queries about 'delivery penalty' from different companies have 0.96 cosine similarity. Without RBAC partitioning, PharmaCorp sees FreshFoods data. We partition by clearance, department, and entity. Hit rate drops from 35% to 15-25%, but one wrong response costs EUR 3,240 plus a GDPR investigation."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What happens when Langfuse goes down?</div>
+        <div class="a">"Double try/except: Langfuse fails, write to local fallback store. Fallback fails, log and continue. User query is NEVER blocked by observability failure. Reconciliation job backfills Langfuse after recovery. Observability is important but it's not worth blocking users."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why Decimal and not float for costs?</div>
+        <div class="a">"EUR 0.000065 times 72,000 queries should be exactly EUR 4.68. With float, it's 4.680000000000001. Over months, that drift compounds. Financial calculations must be exact because they appear in reports that get audited."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 5: Assessment Rigor               -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-5" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">05</div>
+    <div class="phase-title-block">
+      <h2>Assessment Rigor</h2>
+      <div class="phase-subtitle">Judge Bias Detection, Drift Detection, Honest Cache Metrics</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Phase 4's quality score of 0.92 might be inflated by 10&ndash;15%. Why? The judge (GPT-5-mini) evaluates output from GPT-5.2 &mdash; same model family. Same-family judges show measurable self-preference bias.</p>
+      <p><strong>Three problems:</strong></p>
+      <ul>
+        <li><strong>Judge bias:</strong> Same-family evaluation inflates scores by 10&ndash;15%</li>
+        <li><strong>Drift blindness:</strong> Gradual quality degradation goes undetected until catastrophic</li>
+        <li><strong>Metric dishonesty:</strong> Phase 4 spec predicted 60% cache hit rate. Reality with RBAC: 15&ndash;25%</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">7 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Judge Config (judge_config.py) &mdash; Model Family Separation</h3>
+      <p>Prefix matching + exact-match override registry. UNKNOWN model family = fail closed (refuses to judge, don't produce untrustworthy scores).</p>
+<pre>
+<span class="cmt"># Family detection: prefix matching</span>
+<span class="str">"gpt-5-mini"</span>  &rarr; family: <span class="str">"gpt-5"</span>
+<span class="str">"gpt-5.2"</span>     &rarr; family: <span class="str">"gpt-5"</span>
+<span class="str">"claude-3.5"</span>  &rarr; family: <span class="str">"claude"</span>
+
+<span class="cmt"># Same family = biased evaluation</span>
+<span class="cmt"># gpt-5-mini judging gpt-5.2 = 10-15% inflation</span>
+<span class="cmt"># Solution: use claude-family or open-source judge</span>
+</pre>
+
+      <h3>2. Pairwise Scorer &mdash; Position-Swap Agreement</h3>
+      <p>Run each comparison twice with candidates in swapped positions. If the judge picks a different winner based on position alone, both scores are discarded (not averaged).</p>
+      <div class="callout callout-decision">
+        <div class="callout-title">Why Discard, Not Average?</div>
+        Averaging masks bias. If position A wins in order (A,B) and position B wins in order (B,A), the judge is responding to position, not quality. Averaging gives a false sense of confidence. Discarding preserves signal integrity at the cost of sample size &mdash; which is the right tradeoff.
+      </div>
+
+      <h3>3. Bias Detector &mdash; Three Methods</h3>
+      <table>
+        <tr><th>Bias Type</th><th>Detection Method</th><th>What It Catches</th></tr>
+        <tr><td>Position bias</td><td>Pairwise disagreement rate</td><td>Judge prefers first/second position regardless of quality</td></tr>
+        <tr><td>Verbosity bias</td><td>Short correct vs long wrong</td><td>Judge prefers longer responses even when wrong</td></tr>
+        <tr><td>Self-preference</td><td>Same-family vs cross-family scores (scaled 0.0&ndash;1.0)</td><td>GPT-5-mini rates GPT-5.2 output 10&ndash;15% higher than cross-family judge would</td></tr>
+      </table>
+
+      <h3>4. Human Calibration &mdash; Spearman Rank Correlation</h3>
+      <p>Compares judge rankings to 50 golden set human rankings. Uses Pearson-of-ranks (not d&sup2; formula) because d&sup2; breaks on tied values. PASS threshold: &ge;0.85 correlation. Below = HALT deployment.</p>
+
+      <h3>5. Bootstrap CI &mdash; Non-Parametric Confidence Intervals</h3>
+      <p>Resamples scores with replacement to compute 95% confidence intervals. "0.83 &plusmn; 0.09" means the true score might be 0.74 &mdash; below the quality gate. Without CI, a point estimate of 0.83 looks like it passes.</p>
+
+      <h3>6. Drift Detector &mdash; Per-Metric Three-Tier Severity</h3>
+      <table>
+        <tr><th>Severity</th><th>Threshold</th><th>Action</th></tr>
+        <tr><td class="tbl-good">GREEN</td><td>&lt;2% change</td><td>Normal operation</td></tr>
+        <tr><td class="tbl-warn">YELLOW</td><td>2&ndash;5% change</td><td>Alert team, investigate</td></tr>
+        <tr><td class="tbl-bad">RED</td><td>&gt;5% change</td><td>Block deployment, rollback</td></tr>
+      </table>
+      <p><strong>Per-metric detection prevents aggregation masking:</strong> If relevance drops 8% but fluency improves 6%, the aggregate drifts only 1% (GREEN). But the relevance drop is a RED that should block deployment. Per-metric alerting catches this.</p>
+
+      <h3>7. Prompt Optimizer &mdash; Cache-Friendly Restructuring</h3>
+      <p>Static-first prompt restructuring. Cache-friendliness score = cacheable_ratio &times; prefix_ratio. RBAC-honest: reports 15&ndash;25% multi-tenant hit rate, not the 60% single-tenant demo rate.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Judge separation</td>
+          <td class="tbl-good">Family-level (prefix matching)</td>
+          <td>Model-level</td>
+          <td>GPT-5-mini judging GPT-5.2 = same family = 10&ndash;15% inflation. Model-level misses this (different model names).</td>
+        </tr>
+        <tr>
+          <td>Position bias handling</td>
+          <td class="tbl-good">Discard disagreements</td>
+          <td>Average scores</td>
+          <td>Averaging masks bias. Signal integrity > sample size.</td>
+        </tr>
+        <tr>
+          <td>Drift detection</td>
+          <td class="tbl-good">Per-metric, three-tier</td>
+          <td>Aggregate, binary</td>
+          <td>Aggregate masking: relevance -8% + fluency +6% = aggregate -1% (looks fine, isn't).</td>
+        </tr>
+        <tr>
+          <td>Cache hit rate claim</td>
+          <td class="tbl-good">15&ndash;25% (honest)</td>
+          <td>60% (spec)</td>
+          <td>RBAC partition fragmentation is real. Dishonest metrics destroy trust when reality hits production.</td>
+        </tr>
+        <tr>
+          <td>Correlation method</td>
+          <td class="tbl-good">Spearman via Pearson-of-ranks</td>
+          <td>d&sup2; formula</td>
+          <td>d&sup2; breaks on tied values (common in scoring). Pearson-of-ranks handles ties correctly.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">4 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">Fail-Closed Guard</span>
+      <span class="pattern-badge">Strategy Pattern</span>
+      <span class="pattern-badge">Observer via ABC</span>
+      <span class="pattern-badge">Deterministic Test Doubles</span>
+
+      <h3>Observer via ABC</h3>
+      <p><strong>Where:</strong> AlertHandler ABC for drift detection extensibility</p>
+      <p><strong>Why:</strong> Drift detector discovers alerts. Different handlers (Slack, email, PagerDuty) consume them. Adding a new handler doesn't touch detector logic.</p>
+      <p><strong>When NOT to use:</strong> When there's only one notification channel and no foreseeable alternatives.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you know your AI quality scores are trustworthy?</div>
+        <div class="a">"We check for three types of bias: position (does the judge prefer whichever answer appears first?), verbosity (does it prefer longer answers even when wrong?), and self-preference (does a GPT-family judge inflate GPT-family output?). Same-family evaluation inflates scores by 10-15%. We detect this with family-level separation and reject biased evaluations."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you detect quality drift?</div>
+        <div class="a">"Per-metric, not aggregate. If relevance drops 8% but fluency improves 6%, the aggregate drifts only 1% and looks fine. But that relevance drop should block deployment. Three-tier severity: GREEN under 2%, YELLOW 2-5% triggers investigation, RED above 5% blocks deployment. Each metric is tracked independently."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Your spec predicted 60% cache hit rate. What happened?</div>
+        <div class="a">"Reality. RBAC partition fragmentation is real. Each unique combination of clearance, department, and entity creates a separate cache namespace. Multi-tenant systems fragment naturally. We revised to 15-25% because honest metrics build trust. Dishonest metrics destroy it when production data doesn't match the slide deck."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why discard disagreeing scores instead of averaging?</div>
+        <div class="a">"If the judge picks A over B in order (A,B) but picks B over A in order (B,A), it's responding to position, not quality. Averaging gives you a number that looks like a score but is actually noise. Discarding preserves signal integrity. You lose sample size but gain truthful evaluation."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 6: Air-Gapped Vault              -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-6" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">06</div>
+    <div class="phase-title-block">
+      <h2>Air-Gapped Vault</h2>
+      <div class="phase-subtitle">Local Inference &mdash; Cloud-to-Local Switch via One Environment Variable</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Regulated industries cannot send data to cloud APIs. Swiss banking regulations (FINMA), Polish pharma (Prawo farmaceutyczne), and EU data sovereignty requirements all mandate that certain data categories never leave the premises.</p>
+      <p><strong>Phase 6 makes the entire system run locally by changing one environment variable.</strong> No code changes, no conditional branches, no deployment scripts. <code>LLM_PROVIDER=ollama</code> and the system uses local models.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+Settings.llm_provider: <span class="str">"azure"</span> | <span class="str">"ollama"</span>
+  &rarr; get_llm_provider(settings)
+     &rarr; AzureOpenAIProvider (LangChain AzureChatAI)
+     &rarr; OllamaProvider     (LangChain ChatOllama)
+  Both implement LLMProvider Protocol:
+     generate(prompt) &rarr; str
+     generate_structured(prompt, schema) &rarr; T
+     model_name &rarr; str
+
+Embeddings: same pattern
+  &rarr; AzureOpenAIEmbedder | OllamaEmbedder | MockEmbedder
+  All implement BaseEmbedder ABC
+</pre>
+      <h3>Protocol vs ABC</h3>
+<pre>
+<span class="cmt"># Protocol = structural subtyping (duck typing)</span>
+<span class="kw">class</span> <span class="fn">LLMProvider</span>(Protocol):
+    <span class="kw">async def</span> <span class="fn">generate</span>(self, prompt: str) -> str: ...
+    <span class="kw">async def</span> <span class="fn">generate_structured</span>[T](self, prompt: str, schema: type[T]) -> T: ...
+    @property
+    <span class="kw">def</span> <span class="fn">model_name</span>(self) -> str: ...
+
+<span class="cmt"># Any class with these methods satisfies the Protocol</span>
+<span class="cmt"># No inheritance required</span>
+<span class="cmt"># Important when wrapping third-party classes (LangChain)</span>
+</pre>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">3 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Provider interface</td>
+          <td class="tbl-good">Protocol (structural typing)</td>
+          <td>ABC (nominal typing)</td>
+          <td>Protocol doesn't require inheritance. Critical when wrapping third-party classes like LangChain's ChatOllama &mdash; you can't always control the inheritance chain.</td>
+        </tr>
+        <tr>
+          <td>Switch mechanism</td>
+          <td class="tbl-good">Environment variable</td>
+          <td>Config file / feature flag</td>
+          <td>One variable, zero code changes. Env var is the simplest mechanism that solves the problem. Config files add deployment complexity for zero benefit here.</td>
+        </tr>
+        <tr>
+          <td>Local models</td>
+          <td class="tbl-good">Ollama (qwen3:8b, qwen3:32b)</td>
+          <td>vLLM, llama.cpp</td>
+          <td>Ollama has the simplest API compatibility with LangChain. vLLM adds GPU scheduling complexity. llama.cpp requires C++ build toolchain.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">2 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">Protocol (Structural Typing)</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+
+      <h3>Protocol (Structural Typing)</h3>
+      <p><strong>Where:</strong> LLMProvider Protocol for cloud/local provider swap</p>
+      <p><strong>Why:</strong> No inheritance required. Any class with <code>generate()</code>, <code>generate_structured()</code>, and <code>model_name</code> satisfies the Protocol. This is critical when wrapping third-party classes where you can't control the inheritance chain.</p>
+      <p><strong>When NOT to use:</strong> When you need shared implementation (default methods, common state). ABC is better when implementations share code.</p>
+      <p><strong>ABC vs Protocol decision guide:</strong></p>
+      <table>
+        <tr><th>Use ABC when</th><th>Use Protocol when</th></tr>
+        <tr><td>Implementations share code (default methods)</td><td>Interface is pure contract (no shared code)</td></tr>
+        <tr><td>You control all implementations</td><td>You wrap third-party classes</td></tr>
+        <tr><td>Enforcement at class definition time</td><td>Enforcement at usage time (duck typing)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">3 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you handle regulated environments that can't use cloud?</div>
+        <div class="a">"One environment variable: LLM_PROVIDER=ollama. The entire system switches to local inference. No code changes, no conditional branches. We use Protocol (structural typing) so both Azure and Ollama providers satisfy the same interface without requiring inheritance. The same tests run against both providers."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why Protocol over ABC for the LLM provider?</div>
+        <div class="a">"Protocol is structural typing &mdash; any class with the right methods satisfies it without inheritance. This is critical when wrapping third-party classes like LangChain's ChatOllama where you can't control the inheritance chain. ABC forces you into nominal typing which breaks when you can't modify the base class."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What's the quality difference between cloud and local?</div>
+        <div class="a">"Local models (qwen3:8b) handle standard queries adequately. Complex financial auditing sees measurable quality drops. The system uses graceful degradation &mdash; local inference is better than no inference, and the is_degraded flag lets downstream governance adjust thresholds."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 7: Resilience Engineering         -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-7" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">07</div>
+    <div class="phase-title-block">
+      <h2>Resilience Engineering</h2>
+      <div class="phase-subtitle">Circuit Breakers, Fallback Chains, Tiered Provider Routing</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Azure goes down at 3 AM. Every request fails. Without resilience, the fleet monitoring system goes blind. A refrigeration unit fails at 3:15 AM but nobody knows because the anomaly detection pipeline is dead. By 7 AM: EUR 180,000 in spoiled pharmaceutical cargo.</p>
+      <p><strong>Phase 7 ensures the system always returns SOMETHING</strong> &mdash; even if degraded. The fallback chain: Azure &rarr; Ollama (local) &rarr; cached response with disclaimer.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+User Query
+  &rarr; ResilientLLM (orchestrator)
+     &rarr; ModelRouter.classify &rarr; QueryComplexity (SIMPLE/MODERATE/COMPLEX)
+     &rarr; ProviderChain (ordered fallback, per-tier)
+        &rarr; [0] Azure OpenAI
+              + CircuitBreaker (3-state machine)
+              + RetryPolicy (exponential backoff + jitter)
+              + ResponseQualityGate (catches 200-OK-garbage)
+        &rarr; [1] Ollama (local)
+              + CircuitBreaker
+              + RetryPolicy
+        &rarr; [Last] Cache Lookup (async callback)
+              + is_degraded = <span class="kw">True</span>
+              + disclaimer appended
+</pre>
+      <h3>Circuit Breaker State Machine</h3>
+<pre>
+CLOSED <span class="cmt"># Normal operation. Counting failures.</span>
+  &rarr; [failure_threshold (3) reached] &rarr; OPEN
+OPEN   <span class="cmt"># Fast-fail. All requests immediately rejected.</span>
+  &rarr; [recovery_timeout (60s) elapsed] &rarr; HALF_OPEN
+HALF_OPEN <span class="cmt"># Single probe request allowed.</span>
+  &rarr; [success] &rarr; CLOSED  <span class="cmt"># Recovery confirmed</span>
+  &rarr; [failure] &rarr; OPEN    <span class="cmt"># Immediate re-open (not another wait)</span>
+</pre>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">5 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Generic CircuitBreaker &mdash; Error Classification</h3>
+      <p>4xx errors are excluded from failure counting. Why? A 400 Bad Request is a caller bug, not a provider outage. Without error classification, bad requests from one user trip the breaker for ALL users &mdash; shutting down a healthy provider.</p>
+<pre>
+<span class="kw">class</span> <span class="fn">CircuitBreaker</span>:
+    <span class="kw">def</span> <span class="fn">record_failure</span>(self, error):
+        <span class="kw">if</span> isinstance(error, ClientError):  <span class="cmt"># 4xx</span>
+            <span class="kw">return</span>  <span class="cmt"># Don't count caller bugs</span>
+        self.failure_count += <span class="num">1</span>
+        <span class="kw">if</span> self.failure_count >= self.threshold:
+            self.state = State.OPEN
+</pre>
+
+      <h3>2. RetryPolicy &mdash; Exponential Backoff with Full Jitter</h3>
+<pre>
+<span class="cmt"># Full jitter prevents thundering herd</span>
+delay = random.random() * min(base * <span class="num">2</span> ** attempt, max_delay)
+<span class="cmt"># Without jitter: 100 requests retry at exactly 2s, 4s, 8s</span>
+<span class="cmt"># With jitter: 100 requests retry at random times within window</span>
+</pre>
+
+      <h3>3. ProviderChain &mdash; Ordered Fallback</h3>
+      <p>Each entry has provider + breaker + retry. Cache as last resort with disclaimer: "This response was served from cache and may not reflect current data."</p>
+
+      <h3>4. ResponseQualityGate &mdash; Catches 200-OK-Garbage</h3>
+      <p>Provider returns HTTP 200 but content is empty, truncated, or nonsensical. Without this gate, the system treats garbage as a valid response. The gate checks response length, completeness markers, and structural validity.</p>
+
+      <h3>5. ResilientLLM &mdash; Orchestrator</h3>
+      <p>Combines routing + chain. <code>is_degraded</code> flag propagates downstream so governance can adjust thresholds (e.g., don't auto-approve financial decisions from cached responses).</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">3 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Error classification</td>
+          <td class="tbl-good">Exclude 4xx from breaker</td>
+          <td>Count all errors</td>
+          <td>400 errors are caller bugs, not provider outages. Counting them shuts down healthy providers.</td>
+        </tr>
+        <tr>
+          <td>Jitter strategy</td>
+          <td class="tbl-good">Full jitter</td>
+          <td>Equal jitter, no jitter</td>
+          <td>Full jitter (random within window) distributes retry load. Equal jitter still clusters. No jitter = thundering herd.</td>
+        </tr>
+        <tr>
+          <td>Degraded flag</td>
+          <td class="tbl-good">Propagated downstream</td>
+          <td>Silent fallback</td>
+          <td>Silent fallback means governance doesn't know the response quality is lower. is_degraded lets downstream systems adjust (e.g., require human review for cached financial responses).</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">3 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">Circuit Breaker</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+      <span class="pattern-badge">Strategy Pattern</span>
+
+      <h3>Graceful Degradation (Full Chain)</h3>
+      <p><strong>Where:</strong> ResilientLLM fallback chain</p>
+      <p><strong>Levels:</strong></p>
+      <ol>
+        <li>Azure OpenAI (full quality)</li>
+        <li>Ollama local (reduced quality, zero data egress)</li>
+        <li>Cached response + disclaimer (stale data, but system stays responsive)</li>
+      </ol>
+      <p><strong>Why:</strong> Any response is better than a 500 error for a fleet monitoring system. A cached alert about potential refrigeration issues is better than blindness.</p>
+      <p><strong>When NOT to use:</strong> When wrong answers are worse than no answers (e.g., medical dosage calculations). In those cases, fail explicitly.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">3 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: What happens when Azure goes down?</div>
+        <div class="a">"Three-level fallback chain: Azure fails, circuit breaker trips after 3 failures, switches to Ollama local inference. Ollama fails, falls back to cached response with a disclaimer. The is_degraded flag propagates downstream so governance can require human review for degraded responses. The system always returns something &mdash; a cached alert about refrigeration issues is infinitely better than a 500 error while cargo spoils."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why exclude 4xx errors from the circuit breaker?</div>
+        <div class="a">"A 400 Bad Request is a caller bug, not a provider outage. Without error classification, one user sending malformed requests would trip the breaker for ALL users, shutting down a healthy provider. We only count 5xx errors and timeouts as real provider failures."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you prevent retry storms?</div>
+        <div class="a">"Full jitter on exponential backoff. Without jitter, 100 failed requests all retry at exactly 2 seconds, then 4, then 8 &mdash; synchronized waves that overwhelm the recovering provider. Full jitter randomizes each retry within the backoff window, distributing load evenly."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 8: Regulatory Shield              -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-8" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">08</div>
+    <div class="phase-title-block">
+      <h2>Regulatory Shield</h2>
+      <div class="phase-subtitle">EU AI Act Compliance &mdash; Immutable Audit Logs, PII Vault, Hash Chain</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p><strong>EU AI Act Article 12</strong> requires every high-risk AI decision to be recorded and reconstructable. <strong>GDPR Article 17</strong> requires deletion rights. These contradict when audit logs contain personal data.</p>
+      <p>"Delete my data" vs "We must keep every AI decision forever." Both are law. Both carry fines. The cost of non-compliance: EUR 3.5M (7% of EUR 50M turnover). The cost of compliance: EUR 5,400/year in logging infrastructure. A 648:1 ratio.</p>
+      <div class="callout callout-security">
+        <div class="callout-title">The Regulatory Conflict</div>
+        EU AI Act says: "Record every decision." GDPR says: "Delete personal data on request." Solution: two tables, two retention lifecycles. Audit log stores decision metadata (immutable, forever). PII vault stores personal data (soft-deletable, GDPR-compliant). Linked by reference, separated by lifecycle.
+      </div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+AI Decision
+  &rarr; atomic_audit_write (same asyncpg transaction)
+     &rarr; LangGraph Checkpointer (graph state)
+     &rarr; AuditLogger (compliance record)
+     <span class="cmt"># Both succeed or both roll back &mdash; zero compliance gaps</span>
+
+PostgreSQL Tables:
+  audit_log          <span class="cmt"># APPEND ONLY (REVOKE UPDATE, REVOKE DELETE)</span>
+  audit_pii_vault    <span class="cmt"># GDPR soft-delete, AES-256-GCM encrypted</span>
+  document_versions  <span class="cmt"># Document lineage tracking</span>
+  chunk_versions     <span class="cmt"># Chunk lineage tracking</span>
+
+Three-Layer Immutability:
+  Layer 1: DB REVOKE           <span class="cmt"># PostgreSQL prevents app tampering</span>
+  Layer 2: Frozen Pydantic     <span class="cmt"># Python prevents memory mutation</span>
+  Layer 3: SHA-256 Hash Chain  <span class="cmt"># Cryptography proves no rows modified</span>
+
+Concurrency Safety:
+  pg_advisory_xact_lock(hash_chain_key)
+  <span class="cmt"># Prevents hash chain forking under concurrent writes</span>
+</pre>
+      <h3>Hash Chain Mechanism</h3>
+<pre>
+Entry 1: hash_1 = SHA256(data_1 + <span class="str">"genesis"</span>)
+Entry 2: hash_2 = SHA256(data_2 + hash_1)
+Entry 3: hash_3 = SHA256(data_3 + hash_2)
+<span class="cmt"># Modifying Entry 2 changes hash_2</span>
+<span class="cmt"># hash_3 depends on hash_2 &rarr; chain breaks</span>
+<span class="cmt"># Tamper evidence: verify by recomputing chain</span>
+</pre>
+      <h3>PII Vault Design</h3>
+<pre>
+audit_log (immutable):
+  id, decision_type, model_used, confidence, timestamp
+  pii_vault_ref &rarr; FK to audit_pii_vault
+  hash_chain_prev, hash_chain_current
+
+audit_pii_vault (soft-deletable):
+  id, encrypted_name (AES-256-GCM), encrypted_context
+  is_deleted, deleted_at
+  <span class="cmt"># GDPR Art.17: set is_deleted=true, clear encrypted fields</span>
+  <span class="cmt"># Audit log still references the vault entry (by ID)</span>
+  <span class="cmt"># Decision metadata preserved, personal data gone</span>
+</pre>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">6 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Audit Logger &mdash; Atomic Checkpoint+Audit Writes</h3>
+      <p>Same asyncpg transaction for LangGraph checkpoint AND audit log entry. If either fails, both roll back. Zero compliance gaps.</p>
+
+      <h3>2. Hash Chain &mdash; Tamper Evidence</h3>
+      <p><code>pg_advisory_xact_lock</code> prevents hash chain forking under concurrency. Without it, two concurrent writes could both read the same "previous hash" and create a fork.</p>
+      <div class="callout callout-decision">
+        <div class="callout-title">Hash Chain over Blockchain</div>
+        Same tamper evidence. EUR 0/year vs EUR 8K&ndash;15K/year for blockchain infrastructure. A hash chain proves "no rows were modified" just as well as a blockchain, without the consensus overhead, gas fees, or operational complexity.
+      </div>
+
+      <h3>3. PII Vault &mdash; Two-Table Resolution</h3>
+      <p>Resolves GDPR Art.17 vs EU AI Act Art.12 conflict. Two tables, two retention lifecycles. Linked by reference, separated by lifecycle. After GDPR deletion, the audit log still shows "decision X was made with confidence Y at time Z" but the personal data (who requested, what context) is gone.</p>
+
+      <h3>4. Three-Layer Immutability</h3>
+      <table>
+        <tr><th>Layer</th><th>Mechanism</th><th>What It Prevents</th></tr>
+        <tr><td>1. DB REVOKE</td><td>REVOKE UPDATE, DELETE on audit_log</td><td>Application code tampering (even admin accounts)</td></tr>
+        <tr><td>2. Frozen Pydantic</td><td><code>model_config = {"frozen": True}</code></td><td>In-memory mutation after creation</td></tr>
+        <tr><td>3. Hash Chain</td><td>SHA-256 linking each entry to previous</td><td>Post-write tampering (proves chain integrity)</td></tr>
+      </table>
+
+      <h3>5. PII Detection &mdash; Unicode-Aware Regex</h3>
+      <p>Polish diacritics (Zaj&aogon;c, Jab&lstrok;o&nacute;ski) + 11 Polish employment keywords. Standard ASCII regex misses "Zaj\u0105c" as a name.</p>
+
+      <h3>6. Bias Detection &mdash; Minimum Sample Size</h3>
+      <p>n&ge;30 requirement with <code>insufficient_data</code> flag. Below 30 samples, bias metrics are noise. The system reports "insufficient data" rather than a misleading number.</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Tamper evidence</td>
+          <td class="tbl-good">Hash chain (EUR 0/yr)</td>
+          <td>Blockchain (EUR 8K&ndash;15K/yr)</td>
+          <td>Same tamper evidence. Hash chain is simpler, cheaper, no consensus overhead.</td>
+        </tr>
+        <tr>
+          <td>GDPR vs EU AI Act</td>
+          <td class="tbl-good">PII vault (two tables)</td>
+          <td>Single table with deletion</td>
+          <td>Single table can't satisfy both: delete PII = violate audit requirement. Two tables, two lifecycles.</td>
+        </tr>
+        <tr>
+          <td>Atomic writes</td>
+          <td class="tbl-good">Same asyncpg transaction</td>
+          <td>Eventual consistency</td>
+          <td>Eventual consistency = window where checkpoint exists without audit entry. That's a compliance gap.</td>
+        </tr>
+        <tr>
+          <td>Concurrency</td>
+          <td class="tbl-good">Advisory lock (pg_advisory_xact_lock)</td>
+          <td>Row-level locking</td>
+          <td>Hash chain is table-level concern (latest entry). Advisory lock is cleaner than locking rows.</td>
+        </tr>
+        <tr>
+          <td>Explicit created_at</td>
+          <td class="tbl-good">Pass as $20 parameter</td>
+          <td>PostgreSQL NOW()</td>
+          <td>Python and PostgreSQL clocks can differ by milliseconds. For hash chain ordering, explicit timestamp eliminates mismatch.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">3 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">Architectural Guard</span>
+      <span class="pattern-badge">Hash Chain</span>
+      <span class="pattern-badge">Fail-Closed Guard</span>
+
+      <h3>Hash Chain</h3>
+      <p><strong>Where:</strong> audit_log entries linked by SHA-256</p>
+      <p><strong>Why:</strong> Each entry's hash depends on the previous entry. Modifying any entry breaks the chain from that point forward. Verification: recompute chain and compare.</p>
+      <p><strong>When NOT to use:</strong> When tamper evidence isn't required, or when the audit volume is so high that hash computation becomes a bottleneck (then batch hashing).</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you handle the GDPR vs EU AI Act conflict?</div>
+        <div class="a">"Two tables, two lifecycles. The audit log stores decision metadata: what model, what confidence, when. The PII vault stores personal data: who requested, what context. They're linked by reference. When GDPR deletion happens, we soft-delete the PII vault entry. The audit log still proves the decision was made and how, but the personal data is gone. Both laws satisfied."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: Why not blockchain for audit integrity?</div>
+        <div class="a">"A SHA-256 hash chain provides identical tamper evidence at EUR 0 per year vs EUR 8K-15K for blockchain infrastructure. Each entry's hash depends on the previous entry. Modify any row and the chain breaks from that point forward. Verification is just recomputing hashes. No consensus mechanism, no gas fees, no operational complexity."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you prevent audit log gaps?</div>
+        <div class="a">"Atomic writes: LangGraph checkpoint and audit log entry in the same asyncpg transaction. Both succeed or both roll back. There's no window where a checkpoint exists without its audit entry. We also use pg_advisory_xact_lock to prevent hash chain forking under concurrent writes."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What's the cost of compliance vs non-compliance?</div>
+        <div class="a">"648:1 ratio. EUR 5,400 per year for logging infrastructure vs EUR 3.5M fine at 7% of EUR 50M turnover. The three-layer immutability &mdash; DB REVOKE, frozen Pydantic, hash chain &mdash; costs almost nothing to implement. The fine for missing it is existential."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 9: Fleet Guardian                 -->
+<!-- ════════════════════════════════════════ -->
+<section id="phase-9" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-num">09</div>
+    <div class="phase-title-block">
+      <h2>Fleet Guardian</h2>
+      <div class="phase-subtitle">Kafka Streaming &mdash; Real-Time Anomaly Detection for 200 Trucks</div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header open" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Business Problem</span>
+      <span class="exp-badge">WHY</span>
+    </div>
+    <div class="expandable-body open content">
+      <p>Batch processing checks temperatures every 6 hours. Refrigeration fault at 3 AM &rarr; cargo spoiled by 9 AM &rarr; EUR 180,000 in pharmaceutical cargo lost. This happens 2&ndash;3 times per year.</p>
+      <p><strong>The harder problem: slow drift.</strong> Temperature rises 0.3&deg;C every 30 minutes. Threshold-only detection catches nothing until it crosses the limit &mdash; by then the cargo margin is gone. Rate-of-change detection catches this 75 minutes earlier.</p>
+      <div class="callout callout-warning">
+        <div class="callout-title">Why Two-Tier Processing Is a PHYSICAL Necessity</div>
+        200 trucks &times; 1 GPS ping/30sec = ~47K messages/day. LLM processing at 1K msgs/sec creates a 500-second backlog PER SECOND. Two-tier isn't a cost optimization &mdash; it's physically impossible to process this volume through an LLM synchronously.
+      </div>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Architecture</span>
+      <span class="exp-badge">HOW</span>
+    </div>
+    <div class="expandable-body content">
+<pre>
+IoT Sensors (200 trucks)
+  &rarr; Kafka Topics
+     fleet.gps-pings    <span class="cmt"># ~47K msgs/day (every 30s per truck)</span>
+     fleet.temperature   <span class="cmt"># ~1K msgs/day (every 5min per truck)</span>
+  &rarr; Kafka Consumer (JSON deser, health tracking, error isolation)
+  &rarr; FleetGuardianAgent (topic routing, two-tier gate)
+
+Tier 1: AnomalyDetector (EUR 0.00/event &mdash; pure Python)
+  Threshold:  temp > setpoint + margin
+  Drift:      rate-of-change > 0.5C/30min
+  Speed:      > 120 km/h OR 0 km/h + engine on
+  Z-score:    > 3.0 on rolling window (n &ge; 5)
+  Dedup:      5-min window per truck + alert_type
+
+Tier 2: LangGraph Fleet Response (only on anomaly, &lt;0.05% of events)
+  &rarr; memory_lookup
+     &rarr; 3-tier: LangGraph state | Redis (30-day) | PostgreSQL (long-term)
+  &rarr; route_by_memory (conditional)
+     &rarr; [new issue]       &rarr; investigate (full RAG + LLM)
+     &rarr; [recurring issue]  &rarr; escalate_maintenance
+  &rarr; write_memory &rarr; notify
+  &rarr; WebSocket broadcast (real-time dashboard alerts)
+</pre>
+      <h3>Anomaly Detection Logic</h3>
+<pre>
+<span class="kw">class</span> <span class="fn">AnomalyDetector</span>:
+    <span class="kw">def</span> <span class="fn">check_temperature</span>(self, reading, setpoint, cargo_type):
+        margin = <span class="num">2.0</span> <span class="kw">if</span> cargo_type == <span class="str">"pharma"</span> <span class="kw">else</span> <span class="num">5.0</span>
+        <span class="cmt"># Pharma: 2C margin catches degradation 75 min earlier</span>
+
+        <span class="cmt"># Threshold check</span>
+        <span class="kw">if</span> reading.temp > setpoint + margin:
+            <span class="kw">return</span> Alert(type=<span class="str">"THRESHOLD_EXCEEDED"</span>)
+
+        <span class="cmt"># Rate-of-change (catches slow drift)</span>
+        rate = self.compute_rate(reading.truck_id)
+        <span class="kw">if</span> rate > <span class="num">0.5</span>:  <span class="cmt"># 0.5C per 30 min</span>
+            <span class="kw">return</span> Alert(type=<span class="str">"DRIFT_DETECTED"</span>)
+
+        <span class="cmt"># Z-score (statistical anomaly)</span>
+        <span class="kw">if</span> self.z_score(reading) > <span class="num">3.0</span> <span class="kw">and</span> self.window_size >= <span class="num">5</span>:
+            <span class="kw">return</span> Alert(type=<span class="str">"STATISTICAL_ANOMALY"</span>)
+</pre>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Components Built</span>
+      <span class="exp-badge">7 components</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>1. Kafka Consumer (core/) &mdash; Domain-Agnostic Infrastructure</h3>
+      <p>JSON deserialization, consumer group health tracking, per-message error isolation (one bad message doesn't crash the consumer). Lives in <code>core/</code> because Kafka consumption is infrastructure, not business logic.</p>
+
+      <h3>2. FleetGuardianAgent (domains/logicore/) &mdash; Two-Tier Gate</h3>
+      <p>Topic routing dispatches to appropriate detector. Two-tier gate: Tier 1 (rule-based, EUR 0.00) handles 99.95% of events. Only anomalies escalate to Tier 2 (LLM, &lt;0.05%).</p>
+
+      <h3>3. AnomalyDetector &mdash; Four Detection Methods</h3>
+      <table>
+        <tr><th>Method</th><th>Catches</th><th>Cost</th><th>Key Parameter</th></tr>
+        <tr><td>Threshold</td><td>Obvious violations</td><td>EUR 0.00</td><td>Pharma: 2C margin (not 5C)</td></tr>
+        <tr><td>Rate-of-change</td><td>Slow drift (40% of incidents missed by threshold-only)</td><td>EUR 0.00</td><td>0.5C/30min</td></tr>
+        <tr><td>Speed</td><td>Speeding, unauthorized stops</td><td>EUR 0.00</td><td>&gt;120 km/h or 0 + engine on</td></tr>
+        <tr><td>Z-score</td><td>Statistical anomalies</td><td>EUR 0.00</td><td>&gt;3.0, n&ge;5</td></tr>
+      </table>
+
+      <h3>4. Alert Deduplication &mdash; 5-Min Window</h3>
+      <p>Per truck + alert_type. A truck with a sustained temperature issue generates one alert every 5 minutes, not one per reading (every 5 minutes = 12/hour, not 288/day). Prevents dispatcher fatigue.</p>
+
+      <h3>5. LangGraph Fleet Response &mdash; Memory-Aware Routing</h3>
+      <p>Checks 3-tier memory before investigating. If the same truck had the same issue in the last 30 days (Redis), routes to <code>escalate_maintenance</code> instead of re-investigating. Saves LLM calls and catches recurring issues.</p>
+
+      <h3>6. 3-Tier Memory</h3>
+      <table>
+        <tr><th>Tier</th><th>Storage</th><th>Retention</th><th>Failure Mode</th></tr>
+        <tr><td>Short-term</td><td>LangGraph state</td><td>Current execution</td><td>Graph restarts lose it</td></tr>
+        <tr><td>Medium-term</td><td>Redis</td><td>30 days</td><td>Returns empty tier &rarr; fallback to stateless</td></tr>
+        <tr><td>Long-term</td><td>PostgreSQL</td><td>Indefinite</td><td>Returns empty tier &rarr; fallback to stateless</td></tr>
+      </table>
+      <div class="callout callout-insight">
+        <div class="callout-title">Graceful Degradation in Memory</div>
+        Redis or PostgreSQL failures return empty tier data. The agent falls back to stateless investigation (re-investigates as if first time). Degraded but functional &mdash; better than crashing when the memory layer is down.
+      </div>
+
+      <h3>7. WebSocket Broadcast</h3>
+      <p>Real-time alert delivery to dashboard. Tested with direct Starlette TestClient (httpx doesn't support WebSocket connections).</p>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Key Decisions</span>
+      <span class="exp-badge">5 decisions</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Rationale</th></tr>
+        <tr>
+          <td>Processing architecture</td>
+          <td class="tbl-good">Two-tier (rules + LLM)</td>
+          <td>All-LLM</td>
+          <td>PHYSICAL necessity. 1K msgs/sec through LLM = 500s backlog/sec. Tier 1 filters 99.95% at EUR 0.00.</td>
+        </tr>
+        <tr>
+          <td>Drift detection</td>
+          <td class="tbl-good">Rate-of-change (mandatory)</td>
+          <td>Threshold-only</td>
+          <td>Threshold-only misses 40% of temp incidents. Slow drift = EUR 207K/incident average.</td>
+        </tr>
+        <tr>
+          <td>Pharma margin</td>
+          <td class="tbl-good">2C (tight)</td>
+          <td>5C (standard)</td>
+          <td>Catches degradation 75 minutes earlier. Pharma cargo value justifies tighter monitoring.</td>
+        </tr>
+        <tr>
+          <td>Alert dedup window</td>
+          <td class="tbl-good">5 minutes</td>
+          <td>No dedup / 1 hour</td>
+          <td>No dedup = dispatcher fatigue. 1 hour = too slow for evolving situations. 5 min balances.</td>
+        </tr>
+        <tr>
+          <td>Memory failure mode</td>
+          <td class="tbl-good">Graceful (empty tier)</td>
+          <td>Error propagation</td>
+          <td>Memory loss means re-investigation (suboptimal). Error propagation means no investigation at all (dangerous).</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Benchmark Results</span>
+      <span class="exp-badge">Cost analysis</span>
+    </div>
+    <div class="expandable-body content">
+      <h3>Processing Cost Comparison</h3>
+      <table>
+        <tr><th>Approach</th><th>Daily Cost</th><th>Monthly Cost</th><th>Feasible?</th></tr>
+        <tr><td>All events through LLM</td><td class="tbl-bad">EUR 662</td><td>EUR 19,860</td><td class="tbl-bad">No (500s backlog/sec)</td></tr>
+        <tr><td>Two-tier (rules + LLM on anomalies)</td><td class="tbl-good">EUR 0.075</td><td class="tbl-good">EUR 2.25</td><td class="tbl-good">Yes</td></tr>
+      </table>
+      <p><strong>8,827x cost reduction</strong> while maintaining 100% anomaly coverage.</p>
+
+      <h3>Detection Effectiveness</h3>
+      <table>
+        <tr><th>Detection Method</th><th>Coverage</th><th>Catches</th></tr>
+        <tr><td>Threshold only</td><td class="tbl-bad">60%</td><td>Obvious violations only</td></tr>
+        <tr><td>Threshold + drift</td><td class="tbl-good">100%</td><td>Slow degradation caught 75 min earlier</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Security Model</span>
+      <span class="exp-badge">SQL injection + isolation</span>
+    </div>
+    <div class="expandable-body content">
+      <table>
+        <tr><th>Attack Vector</th><th>Defense</th><th>Tests</th></tr>
+        <tr><td>SQL injection via telemetry data</td><td>Parameterized queries ($1 params) at all PostgreSQL entry points</td><td>7 injection vectors tested + second-order retrieval</td></tr>
+        <tr><td>Kafka message poisoning</td><td>JSON validation, per-message error isolation</td><td>Malformed JSON, oversized payloads, invalid schemas</td></tr>
+        <tr><td>Memory tier cross-contamination</td><td>Truck ID scoping in all memory queries</td><td>Truck A memory queries never return Truck B data</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Design Patterns Used</span>
+      <span class="exp-badge">3 patterns</span>
+    </div>
+    <div class="expandable-body content">
+      <span class="pattern-badge">Two-Tier Classification</span>
+      <span class="pattern-badge">Graceful Degradation</span>
+      <span class="pattern-badge">Strategy Pattern</span>
+    </div>
+  </div>
+
+  <div class="expandable">
+    <div class="expandable-header" onclick="toggleExpand(this)">
+      <span class="exp-icon">&#9654;</span>
+      <span class="exp-title">Interview Talking Points</span>
+      <span class="exp-badge">4 answers</span>
+    </div>
+    <div class="expandable-body content">
+      <div class="interview-card">
+        <div class="q">Q: How do you handle 47K messages/day from IoT sensors?</div>
+        <div class="a">"Two-tier processing, and it's a physical necessity, not just cost optimization. Running 1K messages per second through an LLM creates a 500-second backlog per second &mdash; the queue grows infinitely. Tier 1 is pure Python: threshold, rate-of-change, z-score, speed checks. EUR 0.00 per event. Only anomalies (&lt;0.05%) escalate to Tier 2 with LLM investigation. Daily cost: EUR 0.075 vs EUR 662 for all-LLM."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What is rate-of-change detection and why is it mandatory?</div>
+        <div class="a">"Threshold-only detection misses 40% of temperature incidents. Slow drift &mdash; 0.3 degrees every 30 minutes &mdash; stays below the threshold until it's too late. Rate-of-change detection catches the TREND, not just the value. For pharmaceutical cargo, we use a 2-degree margin instead of 5, which catches degradation 75 minutes earlier. At EUR 207K per incident, the math is clear."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: What happens when Redis goes down during fleet monitoring?</div>
+        <div class="a">"The 3-tier memory gracefully degrades. Redis failure returns empty medium-term memory. The agent falls back to stateless investigation &mdash; it re-investigates as if seeing the issue for the first time. Suboptimal (misses that this truck had the same issue 2 weeks ago), but functional. Error propagation would mean no investigation at all, which is unacceptable when cargo is at risk."</div>
+      </div>
+      <div class="interview-card">
+        <div class="q">Q: How do you prevent alert fatigue?</div>
+        <div class="a">"5-minute deduplication window per truck and alert type. A truck with sustained high temperature generates one alert every 5 minutes, not one per reading. Without dedup, dispatchers get 288 alerts per day per truck. With it, they get actionable notifications they can actually respond to."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- CROSS-PHASE PATTERN TRACKER            -->
+<!-- ════════════════════════════════════════ -->
+<section id="cross-phase" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>Cross-Phase Pattern Tracker</h2>
+      <div class="phase-subtitle">Which design patterns appear in which phases</div>
+    </div>
+  </div>
+  <div class="content">
+    <table class="cross-phase-table">
+      <tr>
+        <th>Pattern</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th><th>P7</th><th>P8</th><th>P9</th>
+      </tr>
+      <tr><td><strong>DI via Callable</strong></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>ABC + Factory</strong></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Circuit Breaker</strong></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td></tr>
+      <tr><td><strong>Fail-Closed Guard</strong></td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td></td><td></td><td class="check">&#10003;</td><td></td></tr>
+      <tr><td><strong>Strategy Pattern</strong></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td></tr>
+      <tr><td><strong>Graceful Degradation</strong></td><td></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td></tr>
+      <tr><td><strong>Deterministic Test Doubles</strong></td><td class="check">&#10003;</td><td class="check">&#10003;</td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Protocol (Structural Typing)</strong></td><td></td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Pipeline Config Object</strong></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Namespace Isolation</strong></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Architectural Guard</strong></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td></tr>
+      <tr><td><strong>Hash Chain</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td></tr>
+      <tr><td><strong>Two-Tier Classification</strong></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td></tr>
+      <tr><td><strong>Observer via ABC</strong></td><td></td><td></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Idempotent Nodes</strong></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><strong>Orthogonal Interrupt</strong></td><td></td><td></td><td class="check">&#10003;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+
+    <div class="callout callout-insight">
+      <div class="callout-title">Pattern Evolution Insight</div>
+      <strong>DI via Callable</strong> appears in 5 phases because testability is a cross-cutting concern. <strong>Graceful Degradation</strong> appears in 6 phases because enterprise systems must always return SOMETHING. <strong>Strategy Pattern</strong> appears in 6 phases because configurability is how you avoid hardcoded behavior. The patterns that recur most are the ones that solve universal engineering problems, not domain-specific ones.
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- PATTERNS GLOSSARY                       -->
+<!-- ════════════════════════════════════════ -->
+<section id="patterns-glossary" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>Patterns Glossary</h2>
+      <div class="phase-subtitle">Complete reference for all design patterns used</div>
+    </div>
+  </div>
+  <div class="content">
+    <table>
+      <tr><th>Pattern</th><th>What It Is</th><th>When to Use</th><th>When NOT to Use</th></tr>
+      <tr>
+        <td><strong>DI via Callable</strong></td>
+        <td>Inject dependencies as function parameters (callables). Decouples implementation from interface.</td>
+        <td>When a component needs to be testable with mocks or swappable across environments.</td>
+        <td>When the dependency is always the same and will never need mocking.</td>
+      </tr>
+      <tr>
+        <td><strong>ABC + Factory</strong></td>
+        <td>Abstract Base Class defines interface. Factory function selects concrete implementation.</td>
+        <td>When implementations share code (default methods) and you control all implementations.</td>
+        <td>When wrapping third-party classes (use Protocol instead).</td>
+      </tr>
+      <tr>
+        <td><strong>Circuit Breaker</strong></td>
+        <td>3-state machine (CLOSED/OPEN/HALF_OPEN) that fast-fails after repeated failures.</td>
+        <td>When calling unreliable external services. Prevents cascade failures.</td>
+        <td>When the downstream service is local and always available.</td>
+      </tr>
+      <tr>
+        <td><strong>Fail-Closed Guard</strong></td>
+        <td>Unknown/invalid state = deny access. Raises error instead of proceeding with undefined behavior.</td>
+        <td>Security-critical operations where undefined behavior could leak data.</td>
+        <td>When "empty" is a valid state (e.g., optional filters).</td>
+      </tr>
+      <tr>
+        <td><strong>Strategy Pattern</strong></td>
+        <td>Select algorithm at runtime via enum, config, or parameter. Implementations are interchangeable.</td>
+        <td>When behavior needs to be configurable (search modes, chunking strategies, routing tiers).</td>
+        <td>When there's only one algorithm and no foreseeable alternatives.</td>
+      </tr>
+      <tr>
+        <td><strong>Graceful Degradation</strong></td>
+        <td>Fallback chain: primary fails &rarr; secondary &rarr; cached/static response. System always responds.</td>
+        <td>When any response is better than no response (fleet monitoring, search).</td>
+        <td>When wrong answers are worse than no answers (medical dosage calculations).</td>
+      </tr>
+      <tr>
+        <td><strong>Deterministic Test Double</strong></td>
+        <td>Mock that produces same output for same input (SHA-256 hash expansion). No randomness, no API calls.</td>
+        <td>Testing components that depend on embeddings, LLM responses, or external services.</td>
+        <td>When testing semantic quality (use real APIs in live tests).</td>
+      </tr>
+      <tr>
+        <td><strong>Protocol (Structural Typing)</strong></td>
+        <td>Python Protocol: any class with the right methods satisfies it. No inheritance required.</td>
+        <td>When wrapping third-party classes or defining pure contracts without shared code.</td>
+        <td>When implementations need shared code (default methods). Use ABC.</td>
+      </tr>
+      <tr>
+        <td><strong>Namespace Isolation</strong></td>
+        <td>Physical separation (not filter) of data by access context. Structural boundary.</td>
+        <td>Multi-tenant caching, RBAC-partitioned storage.</td>
+        <td>Single-tenant systems where all users have identical access.</td>
+      </tr>
+      <tr>
+        <td><strong>Architectural Guard</strong></td>
+        <td>Security enforcement in application code (Python) at system boundaries, not in prompts.</td>
+        <td>When LLM prompts could be bypassed. Python code at graph boundaries cannot be prompt-injected.</td>
+        <td>When the enforcement is purely within LLM context (though this is always risky).</td>
+      </tr>
+      <tr>
+        <td><strong>Hash Chain</strong></td>
+        <td>Each entry's hash includes the previous entry's hash. Modification breaks the chain.</td>
+        <td>Tamper evidence for audit logs without blockchain complexity.</td>
+        <td>When tamper evidence isn't required or audit volume demands batch hashing.</td>
+      </tr>
+      <tr>
+        <td><strong>Two-Tier Classification</strong></td>
+        <td>Deterministic rules (keywords) handle known patterns. LLM handles the ambiguous tail.</td>
+        <td>When misclassification of known patterns has asymmetric cost (financial keywords).</td>
+        <td>When categories are fluid and can't be captured by deterministic rules.</td>
+      </tr>
+      <tr>
+        <td><strong>Idempotent Nodes</strong></td>
+        <td>Same input always produces same output. No side effects, no LLM non-determinism.</td>
+        <td>Crash recovery workflows. Replay must produce identical results.</td>
+        <td>When the node inherently requires non-deterministic behavior (creative generation).</td>
+      </tr>
+      <tr>
+        <td><strong>Orthogonal Interrupt</strong></td>
+        <td>HITL concern declared at compile time, not inside node code. Node doesn't know it will be interrupted.</td>
+        <td>When the approval UX might change (Slack, email, dashboard) independently of workflow logic.</td>
+        <td>When interrupt conditions depend on complex node state.</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- SECURITY MODEL SUMMARY                  -->
+<!-- ════════════════════════════════════════ -->
+<section id="security-summary" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>Security Model Summary</h2>
+      <div class="phase-subtitle">All security layers across all phases</div>
+    </div>
+  </div>
+  <div class="content">
+    <table>
+      <tr><th>Phase</th><th>Threat</th><th>Defense</th><th>Layer</th></tr>
+      <tr><td>P1</td><td>Unauthorized document access</td><td>Qdrant query-level RBAC filter</td><td>Database</td></tr>
+      <tr><td>P1</td><td>Empty department data leak</td><td>Fail-closed guard (ValueError)</td><td>Application</td></tr>
+      <tr><td>P1</td><td>Path traversal (../../etc/passwd)</td><td>.resolve() + allowlist</td><td>Application</td></tr>
+      <tr><td>P1</td><td>Invalid clearance levels</td><td>Pydantic Field(ge=1, le=4)</td><td>Validation</td></tr>
+      <tr><td>P2</td><td>Prompt injection in queries</td><td>QuerySanitizer (9 regex patterns)</td><td>Application</td></tr>
+      <tr><td>P2</td><td>Custom pattern bypass</td><td>Custom patterns REPLACE defaults</td><td>Design</td></tr>
+      <tr><td>P3</td><td>SQL injection in invoice queries</td><td>Parameterized queries ($1) + read-only DB role</td><td>Database + Application</td></tr>
+      <tr><td>P3</td><td>Prompt injection via reader</td><td>3 regex patterns + 2000 char truncation</td><td>Application</td></tr>
+      <tr><td>P3</td><td>Clearance bypass via LLM</td><td>Architectural guard (Python at graph boundary)</td><td>Application</td></tr>
+      <tr><td>P4</td><td>Cross-tenant cache leak</td><td>RBAC partition key (namespace isolation)</td><td>Infrastructure</td></tr>
+      <tr><td>P4</td><td>Financial query misrouting</td><td>Keyword override before LLM classifier</td><td>Application</td></tr>
+      <tr><td>P5</td><td>Judge bias (same-family inflation)</td><td>Family-level model separation</td><td>Evaluation</td></tr>
+      <tr><td>P5</td><td>Position bias in evaluation</td><td>Swap-and-discard pairwise scoring</td><td>Evaluation</td></tr>
+      <tr><td>P8</td><td>Audit log tampering</td><td>Three-layer immutability (REVOKE + frozen + hash chain)</td><td>Database + Application + Crypto</td></tr>
+      <tr><td>P8</td><td>GDPR vs EU AI Act conflict</td><td>PII vault (two tables, two lifecycles)</td><td>Architecture</td></tr>
+      <tr><td>P8</td><td>Hash chain forking</td><td>pg_advisory_xact_lock</td><td>Database</td></tr>
+      <tr><td>P9</td><td>SQL injection via telemetry</td><td>Parameterized queries at all PG entry points</td><td>Database</td></tr>
+      <tr><td>P9</td><td>Kafka message poisoning</td><td>JSON validation + per-message error isolation</td><td>Application</td></tr>
+    </table>
+
+    <div class="callout callout-security">
+      <div class="callout-title">Security Architecture Principle</div>
+      Defense is layered: validation (Pydantic) &rarr; application (guards, sanitizers) &rarr; database (RBAC filters, REVOKE, parameterized queries) &rarr; cryptographic (hash chains). No single layer is sufficient. Each layer assumes the previous one might fail.
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════ -->
+<!-- COST ANALYSIS SUMMARY                   -->
+<!-- ════════════════════════════════════════ -->
+<section id="cost-summary" class="phase-section">
+  <div class="phase-header">
+    <div class="phase-title-block">
+      <h2>Cost Analysis Summary</h2>
+      <div class="phase-subtitle">Financial impact across all phases</div>
+    </div>
+  </div>
+  <div class="content">
+    <h3>Cost of Wrong Decisions</h3>
+    <table>
+      <tr><th>Wrong Decision</th><th>Cost</th><th>Phase</th></tr>
+      <tr><td>BM25-only search (38% failure rate)</td><td>76 unanswered queries/day at 200 searches</td><td>P1</td></tr>
+      <tr><td>text-embedding-3-large instead of small</td><td>6.5x cost, zero quality gain</td><td>P1, P2</td></tr>
+      <tr><td>"Multilingual" reranker (mmarco-multi)</td><td>-6.6% MRR (worse than no reranker)</td><td>P2</td></tr>
+      <tr><td>LLM for rate comparison instead of pure function</td><td>EUR 0.02/call + non-determinism risk</td><td>P3</td></tr>
+      <tr><td>Cross-tenant cache leak</td><td>EUR 3,240 + GDPR investigation</td><td>P4</td></tr>
+      <tr><td>Unrouted LLM queries (all GPT-5.2)</td><td>EUR 42/day vs EUR 2.87/day (routed)</td><td>P4</td></tr>
+      <tr><td>Non-compliance with EU AI Act</td><td>EUR 3.5M (7% of EUR 50M turnover)</td><td>P8</td></tr>
+      <tr><td>Blockchain instead of hash chain</td><td>EUR 8K&ndash;15K/year for same tamper evidence</td><td>P8</td></tr>
+      <tr><td>All-LLM fleet processing</td><td>EUR 662/day vs EUR 0.075/day (two-tier)</td><td>P9</td></tr>
+      <tr><td>Threshold-only temp detection</td><td>Misses 40% of incidents (EUR 207K avg/incident)</td><td>P9</td></tr>
+    </table>
+
+    <h3>Cost Savings Achieved</h3>
+    <table>
+      <tr><th>Optimization</th><th>Before</th><th>After</th><th>Reduction</th></tr>
+      <tr><td>Model routing + caching</td><td>EUR 1,260/month</td><td>EUR 86/month</td><td class="tbl-good">93%</td></tr>
+      <tr><td>Two-tier fleet processing</td><td>EUR 19,860/month</td><td>EUR 2.25/month</td><td class="tbl-good">99.99%</td></tr>
+      <tr><td>Hash chain vs blockchain</td><td>EUR 8K&ndash;15K/year</td><td>EUR 0/year</td><td class="tbl-good">100%</td></tr>
+      <tr><td>Embedding model selection</td><td>$0.13/1M tok (large)</td><td>$0.02/1M tok (small)</td><td class="tbl-good">85%</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<!-- ── JavaScript ── -->
+<script>
+// Toggle expandable sections
+function toggleExpand(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// Toggle sidebar sections
+function toggleSidebarSection(el) {
+  el.classList.toggle('collapsed');
+  const links = el.nextElementSibling;
+  links.classList.toggle('hidden');
+}
+
+// Active sidebar link on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.sidebar-link[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-80px 0px -70% 0px' });
+
+document.querySelectorAll('.phase-section').forEach(s => observer.observe(s));
+
+// Search functionality
+const searchInput = document.getElementById('searchInput');
+const searchCount = document.getElementById('searchCount');
+
+searchInput.addEventListener('input', function() {
+  const query = this.value.toLowerCase().trim();
+  // Clear previous highlights
+  document.querySelectorAll('.search-highlight').forEach(el => {
+    const parent = el.parentNode;
+    parent.replaceChild(document.createTextNode(el.textContent), el);
+    parent.normalize();
+  });
+  document.querySelectorAll('.search-hidden').forEach(el => el.classList.remove('search-hidden'));
+
+  if (!query || query.length < 2) {
+    searchCount.textContent = '';
+    return;
+  }
+
+  const sections = document.querySelectorAll('.phase-section');
+  let totalMatches = 0;
+  let visibleSections = 0;
+
+  sections.forEach(section => {
+    const text = section.textContent.toLowerCase();
+    if (text.includes(query)) {
+      visibleSections++;
+      // Highlight matches in expandable bodies
+      const bodies = section.querySelectorAll('.expandable-body');
+      bodies.forEach(body => {
+        const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+        textNodes.forEach(node => {
+          const idx = node.textContent.toLowerCase().indexOf(query);
+          if (idx >= 0) {
+            totalMatches++;
+            const span = document.createElement('span');
+            span.className = 'search-highlight';
+            const range = document.createRange();
+            range.setStart(node, idx);
+            range.setEnd(node, idx + query.length);
+            range.surroundContents(span);
+            // Auto-open the expandable
+            const expandable = body.closest('.expandable');
+            if (expandable) {
+              expandable.querySelector('.expandable-header').classList.add('open');
+              body.classList.add('open');
+            }
+          }
+        });
+      });
+    } else {
+      section.classList.add('search-hidden');
+    }
+  });
+  searchCount.textContent = totalMatches > 0 ? `${visibleSections} sections` : 'No results';
+});
+
+// Ctrl+K shortcut
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+  if (e.key === 'Escape') {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+</script>
+</body>
+</html>

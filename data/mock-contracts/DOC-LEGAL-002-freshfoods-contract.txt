@@ -1,0 +1,32 @@
+LOGISTICS SERVICE AGREEMENT CTR-2024-002
+Between: FreshFoods Vertriebs GmbH (Client) and LogiCore Transport GmbH (Provider)
+Effective: 2024-06-01 — 2025-05-31
+
+1. Scope of Services
+Refrigerated transport of fresh produce and dairy products across Germany.
+- Daily routes: 12 fixed routes covering 180 retail locations
+- Temperature range: 2-6 degrees Celsius (fresh) / -18 degrees (frozen)
+- Delivery windows: 05:00-09:00 (before store opening)
+
+2. Service Level Agreement
+- On-time delivery: >= 97%
+- Product quality at delivery: zero visible damage
+- Temperature compliance: 100% (continuous monitoring required)
+- Vehicle cleanliness audit score: >= 95%
+
+3. Penalty Clauses
+3.1 Late delivery (after 09:00): EUR 200 per affected store
+3.2 Temperature deviation: EUR 1,000 per incident
+3.3 Product damage due to handling: full replacement at wholesale price
+3.4 Annual penalty cap: EUR 150,000
+
+4. Pricing
+- Monthly base fee: EUR 28,000
+- Per-delivery fee: EUR 8.50
+- Fuel surcharge: adjusted quarterly based on diesel index
+- Estimated annual value: EUR 650,000
+
+5. Seasonal Adjustments
+Summer months (June-August): 20% volume increase expected.
+December: 35% volume increase for holiday season.
+Provider must maintain capacity flexibility of +40% above baseline.

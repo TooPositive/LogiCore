@@ -49,3 +49,19 @@ docker-compose.override.local.yml
 htmlcov/
 .coverage
 coverage.xml
+
+# Claude Code (private agents/commands)
+.claude/
+AGENTS.md
+
+# Content & marketing (private)
+docs/content/
+docs/BARTEK-VOICE.md
+
+# Temp
+temp/
+tmp/
+*.zip
+
+# Playwright
+.playwright-mcp/
